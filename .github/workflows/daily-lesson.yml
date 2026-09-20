@@ -1,0 +1,45 @@
+name: Daily lesson
+
+# Publishes today's 10-minute lesson every morning as a GitHub Issue
+# (GitHub emails issue notifications to the repository owner) and keeps
+# `today.md` current on the main branch.
+on:
+  schedule:
+    - cron: '0 11 * * *'   # 07:00 America/New_York during daylight time (11:00 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  lesson:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Render today's lesson
+        id: render
+        run: |
+          node tools/lesson.js > today.md
+          echo "title=$(head -1 today.md | sed 's/^# //')" >> "$GITHUB_OUTPUT"
+      - name: Open the lesson as an issue (emails the owner)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('today.md', 'utf8');
+            const title = '${{ steps.render.outputs.title }}';
+            // close yesterday's lesson issues so only today's stays open
+            const open = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'daily-lesson', per_page: 20 });
+            for (const i of open.data) await github.rest.issues.update({ owner: context.repo.owner, repo: context.repo.repo, issue_number: i.number, state: 'closed' });
+            await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['daily-lesson'] });
+      - name: Commit today.md
+        run: |
+          git config user.name "senlin-bot"
+          git config user.email "senlin-bot@users.noreply.github.com"
+          git add today.md
+          git diff --cached --quiet || git commit -m "Daily lesson: $(date -u +%F)"
+          git push

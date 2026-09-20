@@ -1,0 +1,59 @@
+# Mandarin The SenLin Way 森林
+
+A daily **10-minute** Mandarin Chinese program on your own website.
+No accounts, no backend, no build step: plain HTML, CSS and JavaScript, deployed to GitHub Pages.
+
+**Live site:** https://forrest-jones.github.io/mandarin-the-senlin-way/
+
+森林 *sēnlín* means forest. 木 is a tree, 林 is woods, 森 is a forest. One tree a day.
+
+## What it does
+
+Every day is one lesson, always the same shape, always ten minutes on a visible clock:
+
+| Minutes | Segment | What happens |
+| --- | --- | --- |
+| 1:00 | Warm-up | One of the twenty tone pairs, spoken aloud with the device’s Mandarin voice |
+| 2:30 | Review | Spaced-repetition flashcards (SM-2), graded Again / Hard / Good / Easy |
+| 3:30 | New | Three characters as **movie scenes**: actor (initial) + set (final) + room (tone) + props (components), plus the words they unlock |
+| 2:00 | Sentences | Shadow each sentence three times, normal and slow speed |
+| 1:00 | Quiz | Five questions; misses feed tomorrow’s review |
+
+The curriculum is **top-down**: a word is never shown before all of its characters have been learned, and a sentence never before all of its words. The scheduler (`js/engine.js`) enforces this automatically, so extending the data extends the course.
+
+- **Days 1–12** Pronunciation Mastery: every initial, final, tone, tone pair and sandhi rule, while you cast your own actors, sets, rooms and props.
+- **Days 13–72** Phase 1 (HSK 1): 180 characters, 115 words, 103 sentences.
+- **After** Consolidation: daily review until Phase 2 data is added.
+
+Pages: **Today** (dashboard, catch-up queue), **Lesson** (the timed runner), **Library** (every character, word, sentence and prop, searchable, with audio), **Cast** (rename actors/sets/rooms/props), **Progress** (streak, heatmap, recall rate), **Method**, **Settings** (start date, pace, voice, backup).
+
+## The daily push
+
+Three independent ways to receive each day’s lesson:
+
+1. **Calendar feed** — `daily.ics` holds one 10-minute event per lesson day at 07:00 with a deep link to that day (`#/lesson/N`). Subscribe or import it once.
+2. **GitHub Actions** — `.github/workflows/daily-lesson.yml` runs every morning (11:00 UTC), renders the day’s lesson with `node tools/lesson.js`, opens it as a GitHub Issue labelled `daily-lesson` (GitHub emails the owner) and commits it to `today.md`.
+3. **Claude routine** — a scheduled Claude Code routine reads the same CLI output and sends it as a push notification / email each morning.
+
+The site, the CLI and the calendar all compute the day from the same start date (`CONFIG.startDate` in `js/engine.js`, changeable per-device in Settings).
+
+## Run locally
+
+```bash
+python3 -m http.server 8080      # then open http://localhost:8080
+node tools/validate.js           # checks data integrity and ordering
+node tools/lesson.js [day|date]  # prints a lesson as Markdown
+node tools/ics.js                # regenerates daily.ics
+```
+
+## Audio
+
+Pronunciation uses the browser’s Web Speech API with a Chinese (zh-CN) voice, so it works offline once a voice is installed. macOS: add *Tingting* under Accessibility → Spoken Content. Windows: add the Chinese (Simplified) language pack with speech. Chrome ships a Google 普通话 voice when online.
+
+## Extending the curriculum
+
+Add entries to `js/data/characters.js` (in the order you want them taught), `js/data/words.js` and `js/data/sentences.js`, then run `node tools/validate.js`. The validator fails if a word or sentence uses an untaught character, if a component is missing from `components.js`, or if a pinyin syllable does not parse. Nothing else needs to change.
+
+## Method and credits
+
+The SenLin Way is an original curriculum inspired by the publicly described methods of [Mandarin Blueprint](https://www.mandarinblueprint.com/) (the Hanzi Movie Method, Pronunciation Mastery, top-down learning), Heisig’s *Remembering the Hanzi*, Pimsleur’s graduated recall, the SM-2 spaced-repetition algorithm, Krashen’s comprehensible input and Argüelles’ shadowing. It is not affiliated with any of them. See the Method page on the site.

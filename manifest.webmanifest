@@ -1,0 +1,10 @@
+{
+  "name": "Mandarin The SenLin Way",
+  "short_name": "SenLin",
+  "description": "A daily 10-minute Mandarin Chinese program.",
+  "start_url": "./#/",
+  "display": "standalone",
+  "background_color": "#f8f6f0",
+  "theme_color": "#1b4a2f",
+  "icons": [{ "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
