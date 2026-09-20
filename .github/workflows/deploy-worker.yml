@@ -33,14 +33,29 @@ jobs:
           S_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         run: |
           for n in CLOUDFLARE_API_TOKEN STRIPE_SECRET_KEY; do v="S_$n"; val="${!v}"; if [ -n "$val" ]; then echo "secret $n: present (${#val} characters)"; else echo "secret $n: MISSING"; fi; done
-          if [ -n "$S_CLOUDFLARE_API_TOKEN" ] && [ "${#S_CLOUDFLARE_API_TOKEN}" != 40 ]; then echo "::error::CLOUDFLARE_API_TOKEN should be exactly 40 characters (a Cloudflare API token). Re-copy it from https://dash.cloudflare.com/profile/api-tokens and save it again."; fi
+      - name: Clean and verify the Cloudflare token
+        id: token
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: |
+          # strip whitespace, surrounding quotes, and a "Bearer " / "Authorization:" prefix that sometimes rides along when copying
+          t="$CLOUDFLARE_API_TOKEN"
+          t="$(printf '%s' "$t" | tr -d '[:space:]')"
+          t="${t#Authorization:}"; t="${t#authorization:}"; t="${t#Bearer}"; t="${t#bearer}"
+          t="${t#\"}"; t="${t%\"}"; t="${t#\'}"; t="${t%\'}"
+          echo "::add-mask::$t"
+          echo "cleaned token length: ${#t}"
+          code=$(curl -s -o verify.json -w '%{http_code}' -H "Authorization: Bearer $t" https://api.cloudflare.com/client/v4/user/tokens/verify)
+          echo "verify HTTP $code"; python3 -c "import json;d=json.load(open('verify.json'));print('status:',(d.get('result') or {}).get('status'));print('errors:',d.get('errors'))"
+          if [ "$code" != 200 ]; then echo "::error::Cloudflare does not recognise CLOUDFLARE_API_TOKEN. Create a fresh token at https://dash.cloudflare.com/profile/api-tokens (template 'Edit Cloudflare Workers'), click Copy on the final screen, and save it as the GitHub secret."; exit 1; fi
+          echo "token=$t" >> "$GITHUB_OUTPUT"
       - name: Deploy with Wrangler
         id: deploy
         if: env.CLOUDFLARE_API_TOKEN != ''
         working-directory: server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ steps.token.outputs.token }}
         run: |
           set -o pipefail
-          if [ "${#CLOUDFLARE_API_TOKEN}" != 40 ]; then echo "::error::CLOUDFLARE_API_TOKEN is ${#CLOUDFLARE_API_TOKEN} characters; a Cloudflare API token is 40. Re-copy it and save the GitHub secret again."; exit 1; fi
           npm install --no-audit --no-fund
           npx wrangler deploy 2>&1 | tee deploy.log
           url=$(grep -o 'https://[a-z0-9.-]*workers.dev' deploy.log | head -1 || true)
@@ -52,6 +67,7 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         working-directory: server
         env:
+          CLOUDFLARE_API_TOKEN: ${{ steps.token.outputs.token }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -72,6 +88,7 @@ jobs:
       - name: Stripe setup (product, prices, webhook, portal) — needs only STRIPE_SECRET_KEY
         if: env.CLOUDFLARE_API_TOKEN != '' && env.STRIPE_SECRET_KEY != '' && steps.deploy.outputs.url != ''
         env:
+          CLOUDFLARE_API_TOKEN: ${{ steps.token.outputs.token }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           WORKER_URL: ${{ steps.deploy.outputs.url }}
         working-directory: server
