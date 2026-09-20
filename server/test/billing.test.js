@@ -125,3 +125,52 @@ test('billing: plans catalogue, checkout session, portal', async () => {
   assert.equal(calls[2].get('customer'), 'cus_123');
   assert.equal(calls[2].has('subscription_data[trial_period_days]'), false);
 });
+
+test('billing: one-shot stripe setup creates product, prices, webhook and portal, then checkout uses the stored ids', async () => {
+  const created = [], hooks = [];
+  const FETCH = fakeFetch({
+    'products/search': () => new Response(JSON.stringify({ data: [] })),
+    'https://api.stripe.com/v1/products': (url, init) => { created.push(['product', new URLSearchParams(init.body)]); return new Response(JSON.stringify({ id: 'prod_1' })); },
+    'https://api.stripe.com/v1/prices?': () => new Response(JSON.stringify({ data: [{ id: 'price_m_existing', lookup_key: 'pro_monthly' }] })),
+    'https://api.stripe.com/v1/prices': (url, init) => { const f = new URLSearchParams(init.body); created.push(['price', f]); return new Response(JSON.stringify({ id: 'price_' + f.get('lookup_key') })); },
+    'webhook_endpoints?': () => new Response(JSON.stringify({ data: hooks })),
+    'webhook_endpoints': (url, init) => { const f = new URLSearchParams(init.body); created.push(['webhook', f]); hooks.push({ id: 'we_1', url: f.get('url') }); return new Response(JSON.stringify({ id: 'we_1', secret: 'whsec_generated' })); },
+    'billing_portal/configurations': (url, init) => { created.push(['portal', new URLSearchParams(init.body)]); return new Response(JSON.stringify({ id: 'bpc_1' })); },
+    'billing_portal/sessions': (url, init) => { created.push(['portal_session', new URLSearchParams(init.body)]); return new Response(JSON.stringify({ url: 'https://billing.stripe.com/s' })); },
+    'checkout/sessions': (url, init) => { created.push(['checkout', new URLSearchParams(init.body)]); return new Response(JSON.stringify({ id: 'cs_1', url: 'https://checkout.stripe.com/x' })); },
+  });
+  const env = makeEnv({ STRIPE_SECRET_KEY: 'sk_test_x', ADMIN_KEY: 'admin-1', FETCH });
+
+  assert.equal((await worker.fetch(req('/v1/admin/stripe-setup'), env, new FakeCtx())).status, 401);
+  const r = await worker.fetch(req('/v1/admin/stripe-setup?key=admin-1'), env, new FakeCtx());
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.mode, 'test');
+  assert.deepEqual(j.prices, { monthly: 'price_m_existing', yearly: 'price_pro_yearly', lifetime: 'price_pro_lifetime' });
+  assert.equal(j.webhookUrl, 'https://senlin-api.test/v1/webhooks/stripe');
+  assert.equal(j.webhookSecretStored, true);
+  assert.deepEqual(j.created, ['product', 'price:yearly', 'price:lifetime', 'webhook', 'portal']);
+  const yearly = created.find(([k, f]) => k === 'price' && f.get('lookup_key') === 'pro_yearly')[1];
+  assert.equal(yearly.get('unit_amount'), '5999'); assert.equal(yearly.get('recurring[interval]'), 'year');
+  const lifetime = created.find(([k, f]) => k === 'price' && f.get('lookup_key') === 'pro_lifetime')[1];
+  assert.equal(lifetime.get('unit_amount'), '14999'); assert.equal(lifetime.has('recurring[interval]'), false);
+  const hook = created.find(([k]) => k === 'webhook')[1];
+  assert.deepEqual(hook.getAll('enabled_events[]'), ['checkout.session.completed', 'customer.subscription.updated', 'customer.subscription.deleted']);
+
+  // idempotent: a second run creates nothing new
+  const again = await (await worker.fetch(req('/v1/admin/stripe-setup', { headers: { 'x-admin-key': 'admin-1' } }), env, new FakeCtx())).json();
+  assert.deepEqual(again.created, []);
+
+  // plans now purchasable, checkout uses the stored price, webhook verifies with the stored secret
+  const plans = await (await worker.fetch(req('/v1/billing/plans'), env, new FakeCtx())).json();
+  assert.deepEqual(plans.plans.map((p) => p.web), [true, true, true]);
+  const { token, user } = await signIn(env, worker);
+  await worker.fetch(req('/v1/billing/checkout', { method: 'POST', token, body: { plan: 'lifetime' } }), env, new FakeCtx());
+  const co = created.find(([k]) => k === 'checkout')[1];
+  assert.equal(co.get('line_items[0][price]'), 'price_pro_lifetime'); assert.equal(co.get('mode'), 'payment');
+  const payload = JSON.stringify({ type: 'checkout.session.completed', data: { object: { client_reference_id: user.id, customer: 'cus_9' } } });
+  const sig = await makeStripeSignature(payload, 'whsec_generated');
+  assert.equal((await worker.fetch(req('/v1/webhooks/stripe', { method: 'POST', raw: payload, headers: { 'stripe-signature': sig, 'content-type': 'application/json' } }), env, new FakeCtx())).status, 200);
+  await worker.fetch(req('/v1/billing/portal', { method: 'POST', token }), env, new FakeCtx());
+  assert.equal(created.find(([k]) => k === 'portal_session')[1].get('configuration'), 'bpc_1');
+});

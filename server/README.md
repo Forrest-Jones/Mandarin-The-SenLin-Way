@@ -65,10 +65,17 @@ Set `PAYWALL = "1"` in `wrangler.toml` **and** `paywall: true` in `js/config.js`
 
 Pricing (the rationale is in `PLAY_STORE.md` → Pricing): **$11.99 / month**, **$59.99 / year** marketed as "$5 a month" with a **7-day free trial**, and an optional **$149.99 lifetime** launch offer. HSK 1 is free forever. The catalogue lives in one place, `src/billing.js` → `PLANS`; the pricing page (`#/pro`) reads it from `GET /v1/billing/plans`.
 
-### Web (Stripe Checkout + Customer Portal), about 20 minutes
+### Web (Stripe), the two-step way
+
+1. Cloudflare dashboard → Workers & Pages → **senlin-api** → Settings → Variables and Secrets. Add two **secrets**: `STRIPE_SECRET_KEY` (Stripe → Developers → API keys → Secret key, `sk_live_…`, or `sk_test_…` to rehearse) and `ADMIN_KEY` (any long random string). Deploy.
+2. Open, in a browser, `https://<your worker>/v1/admin/stripe-setup?key=<ADMIN_KEY>`.
+
+The worker then does everything below by itself and stores the ids in its KV: the "SenLin Pro" product, the three prices (matched by lookup key, so re-running never duplicates), the webhook endpoint pointing at this worker with the right three events and its signing secret, and a customer-portal configuration (cancel at period end, switch monthly/yearly, update card, invoices). The response lists what was created; `webhookSecretStored: true` means purchases will activate. Re-open the URL after switching from the test key to the live key; it repeats the setup for live mode.
+
+### Web (Stripe Checkout + Customer Portal), by hand, about 20 minutes
 
 1. Stripe dashboard → **Product catalogue** → add product "SenLin Pro" with three prices: recurring $11.99 monthly, recurring $59.99 yearly, one-time $149.99. Copy each `price_…` id.
-2. `wrangler.toml` `[vars]`: set `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_LIFETIME` (and `SITE_URL` if the site moves). Secrets: `STRIPE_SECRET_KEY` (Developers → API keys).
+2. `wrangler.toml` `[vars]`: set `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_LIFETIME` (and `SITE_URL` if the site moves). Secrets: `STRIPE_SECRET_KEY` (Developers → API keys). Env values override whatever the one-URL setup stored.
 3. **Webhook**: Developers → Webhooks → add endpoint `https://<worker>/v1/webhooks/stripe` with events `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Put the signing secret in `STRIPE_WEBHOOK_SECRET`.
 4. **Customer Portal**: Settings → Billing → Customer portal → enable, allow cancellation and plan switching between the two subscription prices. The site's "Manage subscription" button opens it.
 5. The trial: the server adds `trial_period_days=7` to yearly checkouts, so no trial needs configuring on the price. Stripe emails the trial-ending reminder if you turn on *Settings → Subscriptions and emails → "Send emails about expiring trials"*.

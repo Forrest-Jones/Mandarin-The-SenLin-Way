@@ -26,7 +26,8 @@ TTS_PROVIDER = "azure"                               # 'azure' | 'google'
 STT_PROVIDER = "deepgram"                            # 'deepgram' | 'openai'
 EMAIL_FROM = "SenLin <hello@your-domain.com>"        # a domain verified in Resend
 SITE_URL = "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/"   # where Stripe Checkout returns to
-# Stripe price ids (Stripe dashboard → Product catalogue). Not secret, but only needed once Stripe is set up:
+# Stripe price ids are normally created and stored by GET /v1/admin/stripe-setup?key=ADMIN_KEY (needs the
+# STRIPE_SECRET_KEY and ADMIN_KEY secrets). Set these only to override what it stored:
 # STRIPE_PRICE_MONTHLY = "price_..."     # $11.99 / month
 # STRIPE_PRICE_YEARLY = "price_..."      # $59.99 / year (the 7-day trial is added by the server at checkout)
 # STRIPE_PRICE_LIFETIME = "price_..."    # $149.99 one-time

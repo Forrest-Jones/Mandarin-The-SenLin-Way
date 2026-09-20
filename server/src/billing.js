@@ -84,7 +84,7 @@ export function stripeSubscriptionChange(type, sub) {
 // POST /v1/webhooks/stripe
 export async function handleStripe(request, env) {
   const payload = await request.text();
-  const ok = await verifyStripeSignature(payload, request.headers.get('stripe-signature'), env.STRIPE_WEBHOOK_SECRET);
+  const ok = await verifyStripeSignature(payload, request.headers.get('stripe-signature'), (await stripeConfig(env)).webhookSecret);
   if (!ok) throw new HttpError(401, 'bad_signature');
   let event;
   try { event = JSON.parse(payload); } catch { throw new HttpError(400, 'bad_json'); }
@@ -134,27 +134,115 @@ export const PLANS = {
 };
 const PRICE_ENV = { monthly: 'STRIPE_PRICE_MONTHLY', yearly: 'STRIPE_PRICE_YEARLY', lifetime: 'STRIPE_PRICE_LIFETIME' };
 const siteUrl = (env) => String(env.SITE_URL || 'https://forrest-jones.github.io/Mandarin-The-SenLin-Way/').replace(/\/?$/, '/');
+const STRIPE_KV = 'stripe:config';
+
+/** Stripe ids: env vars win, otherwise what /v1/admin/stripe-setup stored in KV. */
+export async function stripeConfig(env) {
+  let stored = {};
+  try { stored = (env.CACHE && (await env.CACHE.get(STRIPE_KV, 'json'))) || {}; } catch { stored = {}; }
+  const prices = Object.assign({}, stored.prices || {});
+  for (const [id, name] of Object.entries(PRICE_ENV)) if (env[name]) prices[id] = env[name];
+  return {
+    prices,
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET || stored.webhookSecret || '',
+    portalConfig: env.STRIPE_PORTAL_CONFIG || stored.portalConfig || '',
+    productId: stored.productId || '',
+    webhookId: stored.webhookId || '',
+    webhookUrl: stored.webhookUrl || '',
+    setupAt: stored.setupAt || null,
+  };
+}
 
 // GET /v1/billing/plans  (public) — the catalogue plus what is actually purchasable on this deployment
-export function handlePlans(request, env) {
+export async function handlePlans(request, env) {
   const stripe = Boolean(env.STRIPE_SECRET_KEY);
-  const plans = Object.values(PLANS).map((p) => Object.assign({}, p, { web: stripe && Boolean(env[PRICE_ENV[p.id]]) }));
+  const cfg = await stripeConfig(env);
+  const plans = Object.values(PLANS).map((p) => Object.assign({}, p, { web: stripe && Boolean(cfg.prices[p.id]) }));
   return json({ plans, web: stripe, paywall: envFlag(env, 'PAYWALL'), portal: stripe });
 }
 
-async function stripeCall(env, path, form) {
+async function stripeCall(env, path, form, method = 'POST') {
   const body = new URLSearchParams();
-  const add = (k, v) => { if (v === undefined || v === null) return; if (typeof v === 'object') Object.entries(v).forEach(([kk, vv]) => add(`${k}[${kk}]`, vv)); else body.append(k, String(v)); };
-  Object.entries(form).forEach(([k, v]) => add(k, v));
-  const r = await upstreamFetch(env, `https://api.stripe.com/v1/${path}`, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'content-type': 'application/x-www-form-urlencoded' },
-    body: body.toString(),
+  const add = (k, v) => { if (v === undefined || v === null) return; if (Array.isArray(v)) v.forEach((vv) => add(`${k}[]`, vv)); else if (typeof v === 'object') Object.entries(v).forEach(([kk, vv]) => add(`${k}[${kk}]`, vv)); else body.append(k, String(v)); };
+  Object.entries(form || {}).forEach(([k, v]) => add(k, v));
+  const url = `https://api.stripe.com/v1/${path}` + (method === 'GET' && body.toString() ? `?${body}` : '');
+  const r = await upstreamFetch(env, url, {
+    method,
+    headers: Object.assign({ authorization: `Bearer ${env.STRIPE_SECRET_KEY}` }, method === 'GET' ? {} : { 'content-type': 'application/x-www-form-urlencoded' }),
+    body: method === 'GET' ? undefined : body.toString(),
   });
   let data = null;
   try { data = await r.json(); } catch { /* not json */ }
   if (!r.ok) throw new HttpError(502, 'stripe', { message: data?.error?.message || `Stripe ${r.status}` });
   return data;
+}
+
+// GET|POST /v1/admin/stripe-setup  (X-Admin-Key header or ?key=)
+// Idempotent one-shot: product + three prices (by lookup_key), the webhook endpoint for this worker,
+// a customer-portal configuration; stores the ids (and the webhook signing secret) in KV.
+export async function handleStripeSetup(request, env) {
+  const url = new URL(request.url);
+  const key = request.headers.get('x-admin-key') || url.searchParams.get('key') || '';
+  if (!env.ADMIN_KEY || !timingSafeEqual(key, env.ADMIN_KEY)) throw new HttpError(401, 'unauthorized', { message: 'Set ADMIN_KEY in Cloudflare and pass it as ?key=' });
+  if (!env.STRIPE_SECRET_KEY) throw new HttpError(503, 'billing_unavailable', { message: 'Add the STRIPE_SECRET_KEY secret in Cloudflare first' });
+  if (!env.CACHE) throw new HttpError(503, 'no_kv');
+  const prev = (await env.CACHE.get(STRIPE_KV, 'json')) || {};
+  const out = { productId: prev.productId || '', prices: Object.assign({}, prev.prices || {}), webhookId: prev.webhookId || '', webhookSecret: prev.webhookSecret || '', webhookUrl: '', portalConfig: prev.portalConfig || '', created: [] };
+
+  // product
+  if (!out.productId) {
+    const found = await stripeCall(env, 'products/search', { query: "active:'true' AND metadata['senlin']:'pro'" }, 'GET');
+    const p = found.data?.[0] || (await stripeCall(env, 'products', { name: 'SenLin Pro', description: 'Mandarin The SenLin Way — the whole road to HSK 6, the Deal Desk, the AI tutor, cloud sync and voice.', 'metadata[senlin]': 'pro' }));
+    out.productId = p.id; if (!found.data?.[0]) out.created.push('product');
+  }
+  // prices, matched by lookup_key so re-runs never duplicate
+  const want = Object.values(PLANS).map((p) => p.sku);
+  const existing = await stripeCall(env, 'prices', { lookup_keys: want, active: 'true', limit: 10 }, 'GET');
+  const byKey = Object.fromEntries((existing.data || []).map((p) => [p.lookup_key, p.id]));
+  for (const plan of Object.values(PLANS)) {
+    if (out.prices[plan.id] && !env[PRICE_ENV[plan.id]]) continue;
+    if (byKey[plan.sku]) { out.prices[plan.id] = byKey[plan.sku]; continue; }
+    const form = { product: out.productId, currency: plan.currency.toLowerCase(), unit_amount: Math.round(plan.price * 100), nickname: plan.name, lookup_key: plan.sku, transfer_lookup_key: 'true', 'metadata[plan]': plan.id };
+    if (plan.interval) form['recurring[interval]'] = plan.interval;
+    const price = await stripeCall(env, 'prices', form);
+    out.prices[plan.id] = price.id; out.created.push('price:' + plan.id);
+  }
+  // webhook endpoint for this very worker
+  out.webhookUrl = `${url.origin}/v1/webhooks/stripe`;
+  const hooks = await stripeCall(env, 'webhook_endpoints', { limit: 100 }, 'GET');
+  const mine = (hooks.data || []).find((h) => h.url === out.webhookUrl);
+  const events = ['checkout.session.completed', 'customer.subscription.updated', 'customer.subscription.deleted'];
+  if (mine && (out.webhookSecret || env.STRIPE_WEBHOOK_SECRET)) {
+    out.webhookId = mine.id;
+  } else {
+    if (mine) await stripeCall(env, `webhook_endpoints/${mine.id}`, {}, 'DELETE');   // secret unknown: recreate to learn it
+    const h = await stripeCall(env, 'webhook_endpoints', { url: out.webhookUrl, enabled_events: events, description: 'Mandarin The SenLin Way (senlin-api)', 'metadata[senlin]': 'pro' });
+    out.webhookId = h.id; out.webhookSecret = h.secret || ''; out.created.push('webhook');
+  }
+  // customer portal configuration (cancel, switch between monthly and yearly, update card, invoices)
+  if (!out.portalConfig) {
+    const c = await stripeCall(env, 'billing_portal/configurations', {
+      'business_profile[headline]': 'Mandarin The SenLin Way — manage your Pro plan',
+      'business_profile[privacy_policy_url]': `${siteUrl(env)}privacy.html`,
+      'business_profile[terms_of_service_url]': `${siteUrl(env)}terms.html`,
+      'features[subscription_cancel][enabled]': 'true',
+      'features[subscription_cancel][mode]': 'at_period_end',
+      'features[payment_method_update][enabled]': 'true',
+      'features[invoice_history][enabled]': 'true',
+      'features[subscription_update][enabled]': 'true',
+      'features[subscription_update][default_allowed_updates]': ['price'],
+      'features[subscription_update][proration_behavior]': 'create_prorations',
+      'features[subscription_update][products][0][product]': out.productId,
+      'features[subscription_update][products][0][prices]': [out.prices.monthly, out.prices.yearly].filter(Boolean),
+      'default_return_url': `${siteUrl(env)}#/settings`,
+    });
+    out.portalConfig = c.id; out.created.push('portal');
+  }
+  const stored = { productId: out.productId, prices: out.prices, webhookId: out.webhookId, webhookSecret: out.webhookSecret, webhookUrl: out.webhookUrl, portalConfig: out.portalConfig, setupAt: new Date().toISOString() };
+  await env.CACHE.put(STRIPE_KV, JSON.stringify(stored));
+  const live = /^sk_live_/.test(env.STRIPE_SECRET_KEY);
+  return json({ ok: true, mode: live ? 'live' : 'test', productId: out.productId, prices: out.prices, webhookId: out.webhookId, webhookUrl: out.webhookUrl, webhookSecretStored: Boolean(out.webhookSecret || env.STRIPE_WEBHOOK_SECRET), portalConfig: out.portalConfig, created: out.created,
+    next: live ? 'Done. Open the site → SenLin Pro and the buttons are live.' : 'Test mode. Buy with card 4242 4242 4242 4242, then swap STRIPE_SECRET_KEY for the live key and open this URL once more.' });
 }
 
 // POST /v1/billing/checkout {plan}  → {url}   (signed in)
@@ -164,7 +252,7 @@ export async function handleCheckout(request, env) {
   const body = await readJson(request, 4096).catch(() => ({}));
   const plan = PLANS[body.plan];
   if (!plan) throw new HttpError(400, 'bad_plan');
-  const price = env[PRICE_ENV[plan.id]];
+  const price = (await stripeConfig(env)).prices[plan.id];
   if (!price) throw new HttpError(503, 'billing_unavailable', { message: `No Stripe price configured for ${plan.id}` });
   const site = siteUrl(env);
   const form = {
@@ -195,6 +283,9 @@ export async function handlePortal(request, env) {
   const user = await requireUser(request, env);
   if (!env.STRIPE_SECRET_KEY) throw new HttpError(503, 'billing_unavailable');
   if (!user.stripe_customer) throw new HttpError(404, 'no_customer', { message: 'No web subscription on this account' });
-  const session = await stripeCall(env, 'billing_portal/sessions', { customer: user.stripe_customer, return_url: `${siteUrl(env)}#/settings` });
+  const cfg = await stripeConfig(env);
+  const form = { customer: user.stripe_customer, return_url: `${siteUrl(env)}#/settings` };
+  if (cfg.portalConfig) form.configuration = cfg.portalConfig;
+  const session = await stripeCall(env, 'billing_portal/sessions', form);
   return json({ url: session.url });
 }

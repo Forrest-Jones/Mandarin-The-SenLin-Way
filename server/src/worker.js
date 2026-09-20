@@ -9,7 +9,7 @@ import { handleAiChat } from './ai.js';
 import { handleTts, ttsProvider } from './tts.js';
 import { handleStt, sttProvider } from './stt.js';
 import { handleEvents, handleErrors, handleAdminStats } from './events.js';
-import { handleRevenueCat, handleStripe, handleEntitlement, handlePlans, handleCheckout, handlePortal } from './billing.js';
+import { handleRevenueCat, handleStripe, handleEntitlement, handlePlans, handleCheckout, handlePortal, handleStripeSetup } from './billing.js';
 import { ensureSchema } from './schema.js';
 
 export const VERSION = '2026.09.20';
@@ -61,6 +61,8 @@ export const ROUTES = [
   ['POST', '/v1/events', handleEvents],
   ['POST', '/v1/errors', handleErrors],
   ['GET', '/v1/admin/stats', handleAdminStats],
+  ['GET', '/v1/admin/stripe-setup', handleStripeSetup],
+  ['POST', '/v1/admin/stripe-setup', handleStripeSetup],
   ['GET', '/v1/billing/plans', handlePlans],
   ['POST', '/v1/billing/checkout', handleCheckout],
   ['POST', '/v1/billing/portal', handlePortal],

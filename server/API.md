@@ -25,6 +25,7 @@ Errors are `{ "error": "<code>", "message"?: "..." }`; limits are `429 { "error"
 | POST | `/v1/errors` | optional | `{ message, stack?, url?, version? }` → 204 |
 | POST | `/v1/webhooks/revenuecat` | `Authorization: <REVENUECAT_WEBHOOK_SECRET>` | RevenueCat events; `app_user_id` must be our user id |
 | POST | `/v1/webhooks/stripe` | Stripe signature | `checkout.session.completed` (`client_reference_id` = user id) → pro; subscription updated/deleted → plan |
+| GET/POST | `/v1/admin/stripe-setup` | `X-Admin-Key` or `?key=` | one-shot, idempotent Stripe setup: product, prices (lookup keys `pro_monthly`, `pro_yearly`, `pro_lifetime`), webhook for this worker, portal configuration; stores ids and the webhook secret in KV → `{ ok, mode, productId, prices, webhookId, webhookUrl, webhookSecretStored, portalConfig, created, next }` |
 | GET | `/v1/admin/stats` | `X-Admin-Key` | users, new users (30 d), daily actives (7/30 d), lessons done, AI messages, errors (24 h) |
 
 ## Examples
