@@ -39,15 +39,27 @@
       for (const p of pref) { const v = this.voices.find(v => (v.name + ' ' + v.lang).includes(p)); if (v) return v; }
       return this.voices.find(v => /zh[-_]CN/i.test(v.lang)) || this.voices[0];
     },
+    audio: null,
+    /** Online fallback voice (Google Translate's Mandarin voice) for browsers or app viewers without a speech engine. */
+    speakOnline(text, rate) {
+      try { if (this.audio) { this.audio.pause(); } } catch (e) { /* ignore */ }
+      const slow = (rate || state.settings.rate) < 0.75;
+      const a = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-CN${slow ? '&ttsspeed=0.24' : ''}&q=${encodeURIComponent(text.slice(0, 190))}`);
+      this.audio = a; this.speakingOnline = true;
+      a.onended = a.onerror = () => { this.speakingOnline = false; };
+      a.onerror = () => { this.speakingOnline = false; toast('No voice available here — open the site in Chrome or Safari for audio'); };
+      a.play().catch(() => { this.speakingOnline = false; toast('Tap once more to allow audio, or open the site in Chrome'); });
+    },
+    hasDeviceVoice() { if (!window.speechSynthesis) return false; if (!this.voices.length) this.load(); return !!this.best(); },
     speak(text, rate) {
-      if (!window.speechSynthesis) return toast('Speech is not supported in this browser');
-      if (!this.voices.length) this.load();
+      if (state.settings.voiceSource === 'online' || !this.hasDeviceVoice()) return this.speakOnline(text, rate);
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'zh-CN'; u.rate = rate || state.settings.rate;
-      const v = this.best(); if (v) u.voice = v; else toast('No Chinese voice installed — add one in your OS speech settings');
+      const v = this.best(); if (v) u.voice = v;
       speechSynthesis.speak(u);
-    }
+    },
+    get speaking() { return this.speakingOnline || (!!window.speechSynthesis && speechSynthesis.speaking); }
   };
   if (window.speechSynthesis) { tts.load(); speechSynthesis.onvoiceschanged = () => tts.load(); }
   const playBtn = (text, opts = {}) => `<button class="btn btn-icon${opts.cls ? ' ' + opts.cls : ''}" data-say="${esc(text)}"${opts.rate ? ` data-rate="${opts.rate}"` : ''} title="Listen" aria-label="Listen">${opts.slow ? '🐢' : '🔊'}</button>`;
@@ -195,7 +207,7 @@
           <div class="card stack">
             <h2 class="h3">Your curriculum</h2>
             ${(() => { const st = S.curriculumStats(DAYS); return `<p class="muted small">${st.pronDays} days of Pronunciation Mastery, then ${st.characters} characters, ${st.words} words and ${st.sentences} sentences over ${st.days} days. Every word appears only after all its characters; every sentence only after all its words.</p>`; })()}
-            <div class="row"><a class="btn btn-sm" href="#/library">Browse the library</a><a class="btn btn-sm" href="#/plan">See all days</a></div>
+            <div class="row"><a class="btn btn-sm" href="#/library">Browse the library</a><a class="btn btn-sm" href="#/plan">See all days</a><a class="btn btn-sm" href="#/tones">Tone gym</a></div>
           </div>
         </section>
       </div>`;
@@ -305,7 +317,7 @@
           <div class="stack" style="gap:.4rem">
             <div class="py ${toneClass(ch.p)}" style="font-size:1.8rem">${esc(ch.p)} ${toneSVG(sc.tone)}</div>
             <div style="font-size:1.15rem;font-weight:700">${esc(ch.m)}</div>
-            <div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}</div>
+            <div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}<button class="btn btn-sm" data-write="${ch.h}" title="Stroke order">✍️ Write</button></div>
           </div>
         </div>
         <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
@@ -360,8 +372,10 @@
     if (!item) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${q.right} / ${L.quiz.length} correct.</p><p class="muted small">${q.right === L.quiz.length ? 'Perfect. ' : ''}Anything you missed will come back in tomorrow’s review.</p></div><div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">Finish →</button></div>`;
     return `<div class="stack" style="margin-top:1rem">
       <p class="muted small">Question ${q.i + 1} of ${L.quiz.length}</p>
-      <div class="card stack"><div class="big-hz" style="font-size:4rem">${esc(item.prompt)}</div><p style="text-align:center" class="muted">${esc(item.question)}</p>
-        <div class="stack" style="gap:.5rem">${item.options.map(o => `<button class="quiz-opt" data-opt="${esc(o)}">${o === item.correct || item.question.includes('pronounced') ? pinyinHTML(o) : esc(o)}</button>`).join('')}</div>
+      <div class="card stack">${item.kind === 'listen'
+        ? `<div class="row" style="justify-content:center"><button class="btn btn-lg btn-primary" data-say="${esc(item.prompt)}">🔊 Play</button><button class="btn" data-say="${esc(item.prompt)}" data-rate="0.6">🐢</button></div><p style="text-align:center" class="muted">${esc(item.question)}${window.speechSynthesis ? '' : ` (${esc(item.pinyin)})`}</p>`
+        : `<div class="big-hz" style="font-size:4rem">${esc(item.prompt)}</div><p style="text-align:center" class="muted">${esc(item.question)}</p>`}
+        <div class="stack" style="gap:.5rem">${item.options.map(o => `<button class="quiz-opt${item.kind === 'listen' ? ' hz' : ''}" data-opt="${esc(o)}" style="${item.kind === 'listen' ? 'font-size:1.4rem' : ''}">${item.kind !== 'listen' && item.question.includes('pronounced') ? pinyinHTML(o) : esc(o)}</button>`).join('')}</div>
         <div id="quiz-next"></div></div></div>`;
   }
 
@@ -395,6 +409,7 @@
     document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
     document.querySelectorAll('[data-reveal]').forEach(e => e.onclick = () => e.classList.remove('hidden'));
     document.querySelectorAll('[data-shadow]').forEach(b => b.onclick = () => { lesson.shadow[b.dataset.shadow] = +b.dataset.n; renderSegment(); });
+    if (id === 'quiz') { const q = L.quiz[lesson.quiz.i]; if (q && q.kind === 'listen' && !lesson.quiz.answered) setTimeout(() => tts.speak(q.prompt), 300); }
     if (id === 'quiz') document.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => {
       const q = lesson.quiz; if (q.answered) return; q.answered = true;
       const item = L.quiz[q.i]; const ok = b.dataset.opt === item.correct;
@@ -464,7 +479,7 @@
     const sents = S.SENTENCES.filter(s => s.zh.includes(h)).slice(0, 4);
     const srs = state.srs['c:' + h];
     openDialog(`<div class="row between"><span class="eyebrow">${esc(sc.actor)} · ${esc(sc.set)} · ${esc(sc.room)}</span><button class="btn btn-sm btn-ghost" data-close>✕</button></div>
-      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${ch.h}</div><div><div class="py ${toneClass(ch.p)}" style="font-size:1.6rem">${esc(ch.p)}</div><div style="font-weight:700">${esc(ch.m)}</div><div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}</div></div></div>
+      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${ch.h}</div><div><div class="py ${toneClass(ch.p)}" style="font-size:1.6rem">${esc(ch.p)}</div><div style="font-weight:700">${esc(ch.m)}</div><div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}<button class="btn btn-sm" data-write="${ch.h}" title="Stroke order">✍️ Write</button></div></div></div>
       <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
       <div class="scene">${esc(state.scenes[h] || sc.text)}</div>
       <textarea class="input" data-scene="${h}" placeholder="Rewrite this scene in your own words">${esc(state.scenes[h] || '')}</textarea>
@@ -515,6 +530,8 @@
         <div class="card stat"><b>${due}</b><span>reviews due now · ${mature} mature (21 d+)</span></div>
         <div class="card stat"><b>${rv.total ? Math.round(rv.good / rv.total * 100) : 0}%</b><span>recall rate (${rv.total} reviews)</span></div>
         <div class="card stat"><b>${qz.total ? Math.round(qz.right / qz.total * 100) : 0}%</b><span>quiz accuracy (${qz.total} questions)</span></div>
+        <div class="card stat"><b>${(state.progress.tones || { total: 0 }).total ? Math.round(state.progress.tones.right / state.progress.tones.total * 100) : 0}%</b><span>tone gym (${(state.progress.tones || { total: 0 }).total} reps) · <a href="#/tones" style="text-decoration:underline">train</a></span></div>
+        <div class="card stat"><b>${(state.progress.writes || { total: 0 }).total}</b><span>characters written by hand · ${(state.talks || []).length} tutor sessions</span></div>
       </section>
       <section class="card stack"><h2 class="h3">Last 90 days</h2><div class="heatmap">${cells.join('')}</div><p class="faint small">Green = done · red = missed · gold ring = today. Missed days stay open under Today → Catch-up.</p></section>
       <section class="card stack"><h2 class="h3">Milestones</h2><ul class="stack small" style="gap:.4rem">
@@ -558,6 +575,8 @@
       </section>
       <section class="card stack">
         <h2 class="h3">Voice</h2>
+        <div class="field"><label for="voicesource">Voice source</label><select class="input" id="voicesource">${[['auto', 'Device voice when available, otherwise online voice'], ['online', 'Always the online voice (Google Mandarin)']].map(([v, l]) => `<option value="${v}"${(s.voiceSource || 'auto') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+          <span class="faint small">Best browsers: Chrome (desktop and Android) for both speaking and the microphone; Safari for speaking. The preview inside the Claude app has no speech engine, so it uses the online voice; the microphone needs Chrome.</span></div>
         <div class="field"><label for="voice">Mandarin voice</label><select class="input" id="voice"><option value="">Automatic${voices.length ? '' : ' (no Chinese voice found yet)'}</option>${voices.map(v => `<option value="${esc(v.name)}"${s.voice === v.name ? ' selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
           <span class="faint small">No Chinese voice? macOS: System Settings → Accessibility → Spoken Content → add Tingting. Windows: Settings → Time & Language → add Chinese (Simplified) speech. Chrome also ships a Google 普通话 voice online.</span></div>
         <div class="field"><label for="rate">Speed: <span id="rateval">${s.rate}</span></label><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${s.rate}"></div>
@@ -568,6 +587,7 @@
         <p class="muted small">Everything lives in this browser (no account, no server). Export a backup before switching devices.</p>
         <div class="row"><button class="btn" id="export">Export backup</button><label class="btn">Import backup<input type="file" id="import" accept="application/json" class="sr-only"></label><button class="btn btn-ghost" id="reset" style="color:var(--vermilion)">Reset everything</button></div>
       </section>
+      ${window.SenLinApp && window.SenLinApp.placementExtra ? window.SenLinApp.placementExtra() : ''}
       ${window.SenLinApp && window.SenLinApp.settingsExtra ? window.SenLinApp.settingsExtra() : ''}
       <section class="card card-soft stack">
         <h2 class="h3">Daily push</h2>
@@ -581,12 +601,14 @@
     $('#pace').onchange = e => { s.charsPerDay = +e.target.value; save(); rebuild(); toast('Pace updated'); };
     $('#theme').onchange = e => { s.theme = e.target.value; save(); applyTheme(); };
     $('#voice').onchange = e => { s.voice = e.target.value; save(); };
+    $('#voicesource').onchange = e => { s.voiceSource = e.target.value; save(); };
     $('#rate').oninput = e => { s.rate = +e.target.value; $('#rateval').textContent = s.rate; save(); };
     $('#testvoice').onclick = () => tts.speak('你好，我是森林。');
     $('#export').onclick = () => { const blob = new Blob([JSON.stringify({ settings: s, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `senlin-backup-${S.isoDate(new Date())}.json`; a.click(); };
     $('#import').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); Object.assign(state.settings, d.settings || {}); state.cast = d.cast || state.cast; state.srs = d.srs || state.srs; state.scenes = d.scenes || state.scenes; state.progress = d.progress || state.progress; save(); rebuild(); applyTheme(); toast('Backup restored'); navigate(); } catch (err) { toast('That file is not a SenLin backup'); } }; r.readAsText(f); };
     $('#reset').onclick = () => { if (confirm('Delete all progress, reviews, scenes and cast? This cannot be undone.')) { ['settings', 'cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => localStorage.removeItem('senlin.' + k)); location.reload(); } };
     if (window.SenLinApp && window.SenLinApp.settingsExtraAfter) window.SenLinApp.settingsExtraAfter();
+    if (window.SenLinApp && window.SenLinApp.placementExtraAfter) window.SenLinApp.placementExtraAfter();
   };
 
   /* ------------------------------------------------------------ bridge for add-on modules (tutor.js) */

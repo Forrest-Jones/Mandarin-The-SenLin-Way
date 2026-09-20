@@ -145,7 +145,7 @@ ${FORMAT}`;
         ${ASR ? `<button type="button" class="btn btn-icon" id="mic" title="Speak" ${T.busy ? 'disabled' : ''}>🎤</button>` : ''}
         <button class="btn btn-primary" type="submit" ${T.busy ? 'disabled' : ''}>Send</button>
       </form>
-      <div class="small muted" id="talk-note"></div>
+      <div class="small muted" id="talk-note">${ASR ? '' : '🎤 Microphone input needs Chrome (desktop or Android). Here you can type your replies; the tutor still speaks.'}</div>
     </div>`;
     const chat = document.getElementById('chat'); chat.scrollTop = chat.scrollHeight;
     document.getElementById('composer').onsubmit = e => { e.preventDefault(); const v = document.getElementById('say').value.trim(); if (v) send(v); };
@@ -198,7 +198,7 @@ ${FORMAT}`;
 
   function waitThenListen(zh) {
     /* start listening once the tutor's voice finishes */
-    const check = () => { if (!T.handsFree) return; if (window.speechSynthesis && speechSynthesis.speaking) setTimeout(check, 200); else listen(); };
+    const check = () => { if (!T.handsFree) return; if (tts.speaking) setTimeout(check, 200); else listen(); };
     setTimeout(check, 400);
   }
 

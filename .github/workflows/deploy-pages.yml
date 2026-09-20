@@ -25,6 +25,8 @@ jobs:
           node-version: 22
       - name: Check curriculum data (ordering, pinyin, components)
         run: node tools/validate.js
+      - name: Engine tests
+        run: node --test tools/test.js
       - name: Render today's lesson
         run: node tools/lesson.js
       - name: Check calendar feed is current

@@ -246,3 +246,7 @@ audio.mine { max-width: 220px; }
 .composer { display: flex; gap: .5rem; align-items: center; }
 .composer .input { flex: 1; font-size: 1.1rem; }
 @media (max-width: 640px) { .chat { max-height: 52vh; } .msg { max-width: 96%; } }
+
+/* ---------- Write it ---------- */
+.hw-box { width: 260px; height: 260px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 50% 50%; background-position: center; display: grid; place-items: center; touch-action: none; }
+.quiz-opt.hz { font-family: var(--font-hanzi); }

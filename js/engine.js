@@ -229,14 +229,19 @@
       const isChar = t.type === 'c';
       const prompt = isChar ? t.ref.h : t.ref.w;
       const answer = isChar ? t.ref.m : t.ref.m;
+      if (i === 2) {                                 // listening question: hear it (or read the pinyin), pick the character/word
+        const same = Array.from(new Set(pool.filter(x => x.id !== t.id && x.type === t.type).map(x => isChar ? x.ref.h : x.ref.w)));
+        let others = pick(same, 3, rand);
+        if (others.length < 3) { const all = Array.from(new Set((isChar ? CHARACTERS : WORDS).map(x => isChar ? x.h : x.w))).filter(x => x !== prompt && !others.includes(x)); others = others.concat(pick(all, 3 - others.length, rand)); }
+        return { kind: 'listen', prompt, pinyin: t.ref.p, meaning: t.ref.m, question: 'Listen — which one did you hear?', options: pick([prompt].concat(others), 4, rand), correct: prompt };
+      }
       const askPinyin = i % 2 === 1;
       const correct = askPinyin ? t.ref.p : answer;
-      let others = pick(pool.filter(x => x.id !== t.id && x.type === t.type), 3, rand);
-      if (others.length < 3) {                       // early days: borrow distractors from the whole curriculum
-        const all = (isChar ? CHARACTERS : WORDS).filter(x => itemId(t.type, x) !== t.id && !others.some(o => o.ref === x));
-        others = others.concat(pick(all, 3 - others.length, rand).map(x => ({ ref: x })));
-      }
-      others = others.map(x => askPinyin ? x.ref.p : x.ref.m).filter(v => v !== correct);
+      const val = x => askPinyin ? x.p : x.m;
+      const used = new Set([correct]);
+      const take = (cands, n) => { const out = []; for (const x of pick(cands, cands.length, rand)) { const v = val(x); if (!used.has(v)) { used.add(v); out.push(v); if (out.length === n) break; } } return out; };
+      let others = take(pool.filter(x => x.id !== t.id && x.type === t.type).map(x => x.ref), 3);
+      if (others.length < 3) others = others.concat(take((isChar ? CHARACTERS : WORDS).filter(x => itemId(t.type, x) !== t.id), 3 - others.length));
       const options = pick([correct].concat(others), 4, rand);
       return { prompt, question: askPinyin ? 'How is it pronounced?' : 'What does it mean?', options, correct };
     });
@@ -285,7 +290,7 @@
     L.push('\n## 4 · Sentences: shadow each one 3× (2 min)');
     lesson.sentences.forEach(s => L.push(`- ${s.zh}  ${s.p}  — ${s.en}`));
     L.push('\n## 5 · Quiz (1 min)');
-    lesson.quiz.forEach((q, i) => L.push(`${i + 1}. **${q.prompt}** — ${q.question}  ${q.options.map((o, j) => `(${'abcd'[j]}) ${o}`).join('  ')}`));
+    lesson.quiz.forEach((q, i) => L.push(q.kind === 'listen' ? `${i + 1}. **${q.pinyin}** — which one is it?  ${q.options.map((o, j) => `(${'abcd'[j]}) ${o}`).join('  ')}` : `${i + 1}. **${q.prompt}** — ${q.question}  ${q.options.map((o, j) => `(${'abcd'[j]}) ${o}`).join('  ')}`));
     L.push('\nAnswers: ' + lesson.quiz.map((q, i) => `${i + 1}${'abcd'[q.options.indexOf(q.correct)]}`).join(' '));
     return L.join('\n');
   }
