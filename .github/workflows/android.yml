@@ -100,6 +100,19 @@ jobs:
             git config user.name "senlin-bot"; git config user.email "senlin-bot@users.noreply.github.com"
             git add .well-known/assetlinks.json && git commit -m "Android: record the signing key fingerprint in assetlinks.json" && git pull --rebase origin main && git push
           fi
+      - name: Publish the build as a GitHub release (stable download links for phones)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: Android build (latest)
+          body: |
+            Direct install on an Android phone: download **app-release-signed.apk** below, open it, allow the install.
+            Google Play upload: **app-release-bundle.aab**.
+            Signing key SHA-256: ${{ steps.key.outputs.fingerprint }}
+          prerelease: true
+          files: |
+            app-release-bundle.aab
+            app-release-signed.apk
       - uses: actions/upload-artifact@v4
         with:
           name: senlin-android
