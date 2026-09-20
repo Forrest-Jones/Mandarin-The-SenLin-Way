@@ -58,7 +58,7 @@ Pronunciation uses the browser’s Web Speech API with a Chinese (zh-CN) voice, 
 
 ## Extending the curriculum
 
-Add entries to `js/data/characters.js` (in the order you want them taught), `js/data/words.js` and `js/data/sentences.js`, then run `node tools/validate.js`. The validator fails if a word or sentence uses an untaught character, if a component is missing from `components.js`, or if a pinyin syllable does not parse. Nothing else needs to change.
+Each HSK level is one file, `js/data/hskN.js`, holding its characters (in teaching order), words, sentences and any new props; grammar patterns live in `js/data/grammar.js` and conversation scenarios in `js/data/scenarios.js`. See `CURRICULUM.md` for the format and rules, then run `node tools/validate.js` and `node --test tools/test.js`. The validator fails if a word, sentence or pattern uses an untaught character, if a component is missing, if a character is taught twice, or if a pinyin syllable does not parse. Nothing else needs to change.
 
 ## Method and credits
 
