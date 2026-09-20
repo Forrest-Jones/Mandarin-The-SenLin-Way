@@ -8,7 +8,7 @@
 'use strict';
 const S = require('../js/engine.js');
 const start = process.env.SENLIN_START || S.CONFIG.startDate;
-const site = process.env.SENLIN_SITE || 'https://forrest-jones.github.io/mandarin-the-senlin-way/';
+const site = process.env.SENLIN_SITE || 'https://forrest-jones.github.io/Mandarin-The-SenLin-Way/';
 const arg = process.argv[2];
 let day;
 if (!arg) day = S.dayNumber(new Date(), start);

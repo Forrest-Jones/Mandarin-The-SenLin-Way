@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const S = require('../js/engine.js');
-const site = process.env.SENLIN_SITE || 'https://forrest-jones.github.io/mandarin-the-senlin-way/';
+const site = process.env.SENLIN_SITE || 'https://forrest-jones.github.io/Mandarin-The-SenLin-Way/';
 const start = process.env.SENLIN_START || S.CONFIG.startDate;
 const days = S.buildSchedule();
 const pad = n => String(n).padStart(2, '0');

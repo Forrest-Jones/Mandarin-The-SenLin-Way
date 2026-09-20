@@ -3,7 +3,7 @@
 A daily **10-minute** Mandarin Chinese program on your own website.
 No accounts, no backend, no build step: plain HTML, CSS and JavaScript, deployed to GitHub Pages.
 
-**Live site:** https://forrest-jones.github.io/mandarin-the-senlin-way/
+**Live site:** https://forrest-jones.github.io/Mandarin-The-SenLin-Way/
 
 森林 *sēnlín* means forest. 木 is a tree, 林 is woods, 森 is a forest. One tree a day.
 
