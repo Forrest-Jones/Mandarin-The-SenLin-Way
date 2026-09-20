@@ -29,10 +29,19 @@ jobs:
         run: node --test server/test/*.test.js
       - name: Which secrets does this run see? (names only, never values)
         env:
-          S_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          S_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          ALL_SECRET_NAMES: ${{ toJSON(secrets) }}
         run: |
-          for n in CLOUDFLARE_API_TOKEN STRIPE_SECRET_KEY; do v="S_$n"; val="${!v}"; if [ -n "$val" ]; then echo "secret $n: present (${#val} characters)"; else echo "secret $n: MISSING"; fi; done
+          python3 - <<'PY'
+          import json, os
+          names = sorted(k for k in json.loads(os.environ['ALL_SECRET_NAMES']).keys() if k != 'github_token')
+          print('repository secrets visible to this run:', ', '.join(names))
+          expected = ['CLOUDFLARE_API_TOKEN', 'STRIPE_SECRET_KEY', 'ANTHROPIC_API_KEY', 'RESEND_API_KEY', 'DEEPGRAM_API_KEY', 'AZURE_TTS_KEY']
+          for e in expected:
+              if e in names: print(f'  {e}: present')
+              else:
+                  near = [n for n in names if e.split('_')[0].lower() in n.lower()]
+                  print(f'  {e}: MISSING' + (f'  (did you mean to name one of these {e}? {near})' if near else ''))
+          PY
       - name: Clean and verify the Cloudflare token
         id: token
         if: env.CLOUDFLARE_API_TOKEN != ''
