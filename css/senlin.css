@@ -228,3 +228,8 @@ footer a { color: var(--fg-muted); text-decoration: underline; text-underline-of
   .lesson-top { top: 0; }
 }
 @media print { .header, .lesson-top, footer, .btn { display: none !important; } }
+
+/* ---------- Say it / record ---------- */
+.asr { color: var(--fg-muted); margin-left: .4rem; }
+.asr .hz { color: var(--fg); font-size: 1.05rem; }
+audio.mine { max-width: 220px; }

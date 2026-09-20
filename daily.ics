@@ -443,7 +443,7 @@ UID:senlin-day-32@senlin
 DTSTAMP:20260921T000000Z
 DTSTART:20261022T070000
 DTEND:20261022T071000
-SUMMARY:森 Day 32: 有 没 了 · 没有
+SUMMARY:森 Day 32: 有 没 了 · 没有 大家
 DESCRIPTION:10-minute lesson. Phase 1 · HSK 1. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/32
 URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/32
 BEGIN:VALARM
@@ -555,7 +555,7 @@ UID:senlin-day-40@senlin
 DTSTAMP:20260921T000000Z
 DTSTART:20261030T070000
 DTEND:20261030T071000
-SUMMARY:森 Day 40: 里 东 西 · 里面 东西
+SUMMARY:森 Day 40: 里 东 西 · 里面 东西 小时 一下
 DESCRIPTION:10-minute lesson. Phase 1 · HSK 1. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/40
 URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/40
 BEGIN:VALARM
@@ -597,7 +597,7 @@ UID:senlin-day-43@senlin
 DTSTAMP:20260921T000000Z
 DTSTART:20261102T070000
 DTEND:20261102T071000
-SUMMARY:森 Day 43: 看 见 听 · 看见
+SUMMARY:森 Day 43: 看 见 听 · 看见 去年
 DESCRIPTION:10-minute lesson. Phase 1 · HSK 1. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/43
 URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/43
 BEGIN:VALARM
@@ -709,7 +709,7 @@ UID:senlin-day-51@senlin
 DTSTAMP:20260921T000000Z
 DTSTART:20261110T070000
 DTEND:20261110T071000
-SUMMARY:森 Day 51: 吃 喝 饭 · 吃饭
+SUMMARY:森 Day 51: 吃 喝 饭 · 吃饭 好吃
 DESCRIPTION:10-minute lesson. Phase 1 · HSK 1. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/51
 URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/51
 BEGIN:VALARM
@@ -877,7 +877,7 @@ UID:senlin-day-63@senlin
 DTSTAMP:20260921T000000Z
 DTSTART:20261122T070000
 DTEND:20261122T071000
-SUMMARY:森 Day 63: 睡 觉 起 · 睡觉 起来
+SUMMARY:森 Day 63: 睡 觉 起 · 睡觉 起来 一起
 DESCRIPTION:10-minute lesson. Phase 1 · HSK 1. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/63
 URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/63
 BEGIN:VALARM
@@ -1017,9 +1017,793 @@ UID:senlin-day-73@senlin
 DTSTAMP:20260921T000000Z
 DTSTART:20261202T070000
 DTEND:20261202T071000
-SUMMARY:森 Day 73: 
-DESCRIPTION:10-minute lesson. Consolidation. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/73
+SUMMARY:森 Day 73: 吧 您 两
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/73
 URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/73
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-74@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261203T070000
+DTEND:20261203T071000
+SUMMARY:森 Day 74: 百 千 白
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/74
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/74
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-75@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261204T070000
+DTEND:20261204T071000
+SUMMARY:森 Day 75: 弟 第 哥 · 第一 弟弟 哥哥
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/75
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/75
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-76@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261205T070000
+DTEND:20261205T071000
+SUMMARY:森 Day 76: 妹 孩 男 · 妹妹 孩子 男人
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/76
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/76
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-77@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261206T070000
+DTEND:20261206T071000
+SUMMARY:森 Day 77: 丈 夫 妻 · 丈夫 妻子
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/77
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/77
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-78@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261207T070000
+DTEND:20261207T071000
+SUMMARY:森 Day 78: 可 以 要 · 可以 可能
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/78
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/78
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-79@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261208T070000
+DTEND:20261208T071000
+SUMMARY:森 Day 79: 知 道 得 · 知道 觉得
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/79
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/79
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-80@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261209T070000
+DTEND:20261209T071000
+SUMMARY:森 Day 80: 问 题 为 · 问题 为什么
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/80
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/80
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-81@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261210T070000
+DTEND:20261210T071000
+SUMMARY:森 Day 81: 因 所 但 · 因为 所以 但是
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/81
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/81
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-82@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261211T070000
+DTEND:20261211T071000
+SUMMARY:森 Day 82: 虽 然 就 · 虽然
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/82
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/82
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-83@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261212T070000
+DTEND:20261212T071000
+SUMMARY:森 Day 83: 还 已 经 · 已经
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/83
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/83
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-84@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261213T070000
+DTEND:20261213T071000
+SUMMARY:森 Day 84: 正 着 真 · 正在
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/84
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/84
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-85@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261214T070000
+DTEND:20261214T071000
+SUMMARY:森 Day 85: 最 非 常 · 非常
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/85
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/85
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-86@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261215T070000
+DTEND:20261215T071000
+SUMMARY:森 Day 86: 每 次 从 · 每天 一次
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/86
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/86
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-87@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261216T070000
+DTEND:20261216T071000
+SUMMARY:森 Day 87: 到 过 进 · 进来 得到
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/87
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/87
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-88@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261217T070000
+DTEND:20261217T071000
+SUMMARY:森 Day 88: 走 跑 步 · 跑步
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/88
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/88
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-89@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261218T070000
+DTEND:20261218T071000
+SUMMARY:森 Day 89: 路 远 近 · 走路
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/89
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/89
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-90@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261219T070000
+DTEND:20261219T071000
+SUMMARY:森 Day 90: 离 外 旁 · 外面
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/90
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/90
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-91@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261220T070000
+DTEND:20261220T071000
+SUMMARY:森 Day 91: 边 左 右 · 旁边 左边 右边
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/91
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/91
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-92@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261221T070000
+DTEND:20261221T071000
+SUMMARY:森 Day 92: 门 房 间 · 房间 时间
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/92
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/92
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-93@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261222T070000
+DTEND:20261222T071000
+SUMMARY:森 Day 93: 床 早 晚 · 起床 早上 晚上
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/93
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/93
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-94@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261223T070000
+DTEND:20261223T071000
+SUMMARY:森 Day 94: 完 事 情 · 事情
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/94
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/94
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-95@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261224T070000
+DTEND:20261224T071000
+SUMMARY:森 Day 95: 意 思 希 · 意思
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/95
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/95
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-96@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261225T070000
+DTEND:20261225T071000
+SUMMARY:森 Day 96: 望 告 诉 · 希望 告诉
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/96
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/96
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-97@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261226T070000
+DTEND:20261226T071000
+SUMMARY:森 Day 97: 让 给 送
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/97
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/97
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-98@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261227T070000
+DTEND:20261227T071000
+SUMMARY:森 Day 98: 找 等 帮
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/98
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/98
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-99@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261228T070000
+DTEND:20261228T071000
+SUMMARY:森 Day 99: 助 始 准 · 帮助 开始
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/99
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/99
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-100@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261229T070000
+DTEND:20261229T071000
+SUMMARY:森 Day 100: 备 休 息 · 准备 休息
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/100
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/100
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-101@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261230T070000
+DTEND:20261230T071000
+SUMMARY:森 Day 101: 忙 累 快
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/101
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/101
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-102@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20261231T070000
+DTEND:20261231T071000
+SUMMARY:森 Day 102: 慢 乐 笑 · 快乐
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/102
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/102
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-103@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270101T070000
+DTEND:20270101T071000
+SUMMARY:森 Day 103: 玩 唱 歌 · 唱歌
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/103
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/103
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-104@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270102T070000
+DTEND:20270102T071000
+SUMMARY:森 Day 104: 跳 舞 游 · 跳舞
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/104
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/104
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-105@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270103T070000
+DTEND:20270103T071000
+SUMMARY:森 Day 105: 泳 运 动 · 游泳 运动
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/105
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/105
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-106@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270104T070000
+DTEND:20270104T071000
+SUMMARY:森 Day 106: 踢 足 球 · 踢足球
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/106
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/106
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-107@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270105T070000
+DTEND:20270105T071000
+SUMMARY:森 Day 107: 篮 旅 票 · 打篮球 旅游
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/107
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/107
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-108@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270106T070000
+DTEND:20270106T071000
+SUMMARY:森 Day 108: 站 火 场 · 火车站 机场
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/108
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/108
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-109@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270107T070000
+DTEND:20270107T071000
+SUMMARY:森 Day 109: 汽 公 共 · 汽车 公共汽车
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/109
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/109
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-110@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270108T070000
+DTEND:20270108T071000
+SUMMARY:森 Day 110: 司 班 务 · 公司 上班
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/110
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/110
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-111@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270109T070000
+DTEND:20270109T071000
+SUMMARY:森 Day 111: 员 宾 馆 · 服务员 宾馆
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/111
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/111
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-112@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270110T070000
+DTEND:20270110T071000
+SUMMARY:森 Day 112: 教 室 课 · 教室 上课
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/112
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/112
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-113@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270111T070000
+DTEND:20270111T071000
+SUMMARY:森 Day 113: 考 试 懂 · 考试
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/113
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/113
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-114@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270112T070000
+DTEND:20270112T071000
+SUMMARY:森 Day 114: 错 介 绍 · 介绍
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/114
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/114
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-115@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270113T070000
+DTEND:20270113T071000
+SUMMARY:森 Day 115: 姓 它 身
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/115
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/115
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-116@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270114T070000
+DTEND:20270114T071000
+SUMMARY:森 Day 116: 体 病 药 · 身体 生病
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/116
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/116
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-117@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270115T070000
+DTEND:20270115T071000
+SUMMARY:森 Day 117: 眼 睛 手 · 眼睛 手机
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/117
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/117
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-118@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270116T070000
+DTEND:20270116T071000
+SUMMARY:森 Day 118: 表 穿 新 · 手表
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/118
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/118
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-119@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270117T070000
+DTEND:20270117T071000
+SUMMARY:森 Day 119: 洗 颜 色 · 颜色
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/119
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/119
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-120@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270118T070000
+DTEND:20270118T071000
+SUMMARY:森 Day 120: 黑 红 长
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/120
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/120
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-121@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270119T070000
+DTEND:20270119T071000
+SUMMARY:森 Day 121: 贵 便 宜 · 便宜
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/121
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/121
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-122@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270120T070000
+DTEND:20270120T071000
+SUMMARY:森 Day 122: 卖 件 条 · 面条
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/122
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/122
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-123@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270121T070000
+DTEND:20270121T071000
+SUMMARY:森 Day 123: 牛 奶 羊 · 牛奶
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/123
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/123
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-124@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270122T070000
+DTEND:20270122T071000
+SUMMARY:森 Day 124: 肉 鸡 蛋 · 羊肉 鸡蛋
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/124
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/124
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-125@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270123T070000
+DTEND:20270123T071000
+SUMMARY:森 Day 125: 鱼 瓜 咖 · 西瓜
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/125
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/125
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-126@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270124T070000
+DTEND:20270124T071000
+SUMMARY:森 Day 126: 啡 报 纸 · 咖啡 报纸
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/126
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/126
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-127@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270125T070000
+DTEND:20270125T071000
+SUMMARY:森 Day 127: 铅 笔 雪 · 铅笔 下雪
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/127
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/127
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-128@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270126T070000
+DTEND:20270126T071000
+SUMMARY:森 Day 128: 晴 阴 比
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/128
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/128
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-129@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270127T070000
+DTEND:20270127T071000
+SUMMARY:森 Day 129: 别
+DESCRIPTION:10-minute lesson. Phase 2 · HSK 2. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/129
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/129
 BEGIN:VALARM
 TRIGGER:PT0M
 ACTION:DISPLAY

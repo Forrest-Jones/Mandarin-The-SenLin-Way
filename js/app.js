@@ -53,6 +53,57 @@
     const b = e.target.closest('[data-say]'); if (b) tts.speak(b.dataset.say, b.dataset.rate ? parseFloat(b.dataset.rate) : undefined);
   });
 
+  /* ---- "Say it": speech recognition scores what you said against the target (Chrome, Edge, Android) */
+  const ASR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const hanOnly = t => Array.from(t).filter(c => /\p{Script=Han}/u.test(c));
+  function matchScore(target, said) {
+    const t = hanOnly(target), sd = hanOnly(said);
+    if (!t.length) return 0;
+    /* longest common subsequence, character level */
+    const m = t.length, n = sd.length, dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) dp[i][j] = t[i - 1] === sd[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    return dp[m][n] / m;
+  }
+  const sayBtn = target => ASR ? `<button class="btn btn-icon" data-listen="${esc(target)}" title="Say it — I’ll check" aria-label="Say it">🎤</button>` : '';
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-listen]'); if (!b) return;
+    const target = b.dataset.listen; const out = b.parentElement.querySelector('.asr') || b.parentElement.appendChild(Object.assign(document.createElement('span'), { className: 'asr small' }));
+    out.textContent = 'listening…'; b.disabled = true;
+    let r; try { r = new ASR(); } catch (err) { out.textContent = 'speech recognition unavailable'; b.disabled = false; return; }
+    r.lang = 'zh-CN'; r.interimResults = false; r.maxAlternatives = 5;
+    r.onresult = ev => {
+      const alts = Array.from(ev.results[0]).map(a => a.transcript);
+      const best = alts.map(a => ({ a, s: matchScore(target, a) })).sort((x, y) => y.s - x.s)[0];
+      const pct = Math.round(best.s * 100);
+      state.progress.said = state.progress.said || { total: 0, good: 0 }; state.progress.said.total++; if (pct >= 80) state.progress.said.good++; save();
+      out.innerHTML = `${pct >= 80 ? '✅' : pct >= 50 ? '🟡' : '❌'} heard “<span class="hz">${esc(best.a)}</span>” · ${pct}% match`;
+    };
+    r.onerror = ev => { out.textContent = ev.error === 'not-allowed' ? 'microphone blocked — allow it in the browser' : ev.error === 'no-speech' ? 'no speech heard' : 'error: ' + ev.error; };
+    r.onend = () => { b.disabled = false; if (out.textContent === 'listening…') out.textContent = 'nothing heard'; };
+    r.start();
+  });
+
+  /* ---- Record & compare: record yourself, then play it back next to the native voice */
+  const recBtn = () => (navigator.mediaDevices && window.MediaRecorder) ? `<button class="btn btn-icon" data-rec title="Record yourself" aria-label="Record yourself">⏺</button>` : '';
+  let recorder = null;
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-rec]'); if (!b) return;
+    if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const chunks = []; recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = ev => chunks.push(ev.data);
+      recorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const url = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType }));
+        let a = b.parentElement.querySelector('audio.mine'); if (!a) { a = document.createElement('audio'); a.className = 'mine'; a.controls = true; a.style.height = '32px'; b.parentElement.appendChild(a); }
+        a.src = url; a.play(); b.textContent = '⏺'; b.classList.remove('btn-primary');
+      };
+      recorder.start(); b.textContent = '⏹'; b.classList.add('btn-primary');
+      setTimeout(() => { if (recorder && recorder.state === 'recording') recorder.stop(); }, 12000);
+    } catch (err) { toast('Microphone unavailable: ' + (err.message || err.name)); }
+  });
+
   /* ------------------------------------------------------------ helpers */
   let toastTimer;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
@@ -111,7 +162,8 @@
           <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
           <div class="row">
             <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(day, DAYS.length)}">${done ? 'Do it again' : 'Start the 10-minute lesson'}</a>
-            <span class="muted">${dueCount()} reviews due · ${streak()}-day streak</span>
+            ${dueCount() ? `<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${dueCount()} due cards</a>` : ''}
+            <span class="muted">${streak()}-day streak</span>
           </div>
         </section>
         <section class="grid grid-3">
@@ -217,9 +269,9 @@
     </div>`;
   }
 
-  function renderReview(L) {
-    const r = lesson.review; const card = L.review[r.i];
-    if (!card) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${L.review.length ? 'Review complete.' : 'Nothing to review yet — new items start appearing tomorrow.'}</p>${L.review.length ? `<p class="muted small">${L.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>` : ''}</div>` + `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">Next →</button></div>`;
+  function renderReview(L, r) {
+    r = r || lesson.review; const card = L.review[r.i];
+    if (!card) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${L.review.length ? 'Review complete.' : 'Nothing to review yet — new items start appearing tomorrow.'}</p>${L.review.length ? `<p class="muted small">${L.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>` : ''}</div>` + `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${r.standalone ? 'Done' : 'Next →'}</button></div>`;
     const x = card.ref;
     const front = card.type === 'c' ? `<div class="big-hz">${x.h}</div>` : card.type === 'w' ? `<div class="mid-hz" style="font-size:3rem">${x.w}</div>` : `<div class="mid-hz">${esc(x.zh)}</div>`;
     const back = card.type === 's' ? `<div class="py" style="font-size:1.2rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.en)}</div>` : `<div class="py" style="font-size:1.4rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.m)}</div>`;
@@ -246,7 +298,7 @@
           <div class="stack" style="gap:.4rem">
             <div class="py ${toneClass(ch.p)}" style="font-size:1.8rem">${esc(ch.p)} ${toneSVG(sc.tone)}</div>
             <div style="font-size:1.15rem;font-weight:700">${esc(ch.m)}</div>
-            <div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}</div>
+            <div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}</div>
           </div>
         </div>
         <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
@@ -281,9 +333,9 @@
   function renderSentences(L) {
     if (!L.sentences.length) return `<div class="card" style="margin-top:1rem"><p class="lead">Sentences begin once you own a few characters. Use the time to replay today’s scenes with your eyes closed.</p></div>`;
     return `<div class="stack" style="margin-top:1rem">
-      <p class="muted small">Shadowing: play, then speak <b>with</b> the voice, matching rhythm and tones. Three passes each — first with pinyin, then with the English hidden, then eyes closed.</p>
+      <p class="muted small">Shadowing: play, then speak <b>with</b> the voice, matching rhythm and tones. Three passes each — first with pinyin, then with the English hidden, then eyes closed.${ASR ? ' Tap 🎤 to say it and get checked.' : ''}${(navigator.mediaDevices && window.MediaRecorder) ? ' Tap ⏺ to record yourself and compare.' : ''}</p>
       ${L.sentences.map((s, i) => `<div class="sentence">
-        <div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row">${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}</span></div>
+        <div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row">${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}${sayBtn(s.zh)}${recBtn()}</span></div>
         <div class="py">${pinyinHTML(s.p)}</div>
         <div class="en hidden" data-reveal>${esc(s.en)}</div>
         <div class="row"><span class="small muted">Passes:</span>${[1, 2, 3].map(n => `<button class="btn btn-sm${(lesson.shadow[i] || 0) >= n ? ' btn-primary' : ''}" data-shadow="${i}" data-n="${n}">${n}</button>`).join('')}</div>
@@ -325,19 +377,8 @@
 
   function wireSegment(id) {
     const L = lesson.data;
-    if (id === 'review') {
-      const r = lesson.review;
-      const reveal = () => { r.shown = true; renderSegment(); };
-      const f = $('#flash'); if (f && !r.shown) f.onclick = reveal;
-      const rb = $('#reveal'); if (rb) rb.onclick = reveal;
-      document.querySelectorAll('[data-grade]').forEach(b => b.onclick = () => {
-        const card = L.review[r.i]; const g = +b.dataset.grade;
-        state.srs[card.id] = S.srsReview(state.srs[card.id], g, Date.now());
-        state.progress.reviews.total++; if (g >= 2) state.progress.reviews.good++;
-        save(); r.i++; r.shown = false; renderSegment();
-      });
-      document.addEventListener('keydown', reviewKeys);
-    } else document.removeEventListener('keydown', reviewKeys);
+    if (id === 'review') { wireReview(L, lesson.review, renderSegment); document.addEventListener('keydown', reviewKeys); }
+    else document.removeEventListener('keydown', reviewKeys);
     document.querySelectorAll('[data-scene]').forEach(t => t.oninput = () => { state.scenes[t.dataset.scene] = t.value.trim(); save(); });
     document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
     document.querySelectorAll('[data-reveal]').forEach(e => e.onclick = () => e.classList.remove('hidden'));
@@ -351,6 +392,30 @@
       $('#qn').onclick = () => { q.i++; q.answered = false; renderSegment(); };
     });
   }
+  function wireReview(L, r, rerender) {
+    const reveal = () => { r.shown = true; rerender(); };
+    const f = $('#flash'); if (f && !r.shown) f.onclick = reveal;
+    const rb = $('#reveal'); if (rb) rb.onclick = reveal;
+    document.querySelectorAll('[data-grade]').forEach(b => b.onclick = () => {
+      const card = L.review[r.i]; const g = +b.dataset.grade;
+      state.srs[card.id] = S.srsReview(state.srs[card.id], g, Date.now());
+      state.progress.reviews.total++; if (g >= 2) state.progress.reviews.good++;
+      save(); r.i++; r.shown = false; rerender();
+    });
+  }
+  /* ---- Review anytime: every due card, outside the daily lesson */
+  routes.review = function () {
+    const now = Date.now();
+    const learned = S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => state.progress.completed[i.day]);
+    const due = learned.filter(i => state.srs[i.id] && state.srs[i.id].due <= now).sort((a, b) => state.srs[a.id].due - state.srs[b.id].due).slice(0, 40);
+    routes.review.L = { review: due }; routes.review.r = { i: 0, shown: false, standalone: true };
+    return `<div class="stack"><div class="row between"><div><span class="eyebrow">Review anytime</span><h1 class="h2">${due.length} card${due.length === 1 ? '' : 's'} due</h1></div><a class="btn btn-sm btn-ghost" href="#/">Exit</a></div><div id="review-body"></div></div>`;
+  };
+  routes.review.after = () => {
+    const L = routes.review.L, r = routes.review.r;
+    const draw = () => { $('#review-body').innerHTML = renderReview(L, r); wireReview(L, r, draw); const n = $('#next'); if (n) n.onclick = () => { location.hash = '#/'; }; };
+    draw(); document.addEventListener('keydown', reviewKeys);
+  };
   function reviewKeys(e) {
     if (e.target.matches('input,textarea')) return;
     if (e.key === ' ' || e.key === 'Enter') { const b = $('#reveal'); if (b) { e.preventDefault(); b.click(); } }
@@ -369,9 +434,9 @@
         <div class="row">${['characters', 'words', 'sentences', 'props'].map(t => `<a class="btn btn-sm${t === tab ? ' btn-primary' : ''}" href="#/library/${t}">${t}</a>`).join('')}</div></div>
       <input class="input" id="search" placeholder="Search hanzi, pinyin or English…" autocomplete="off">
       <div id="lib">
-      ${tab === 'characters' ? `<div class="grid grid-tiles">${S.CHARACTERS.map(c => `<button class="tile" data-open="${c.h}" data-q="${esc((c.h + ' ' + c.p + ' ' + c.m + ' ' + S.parsePinyin(c.p).base).toLowerCase())}" style="${charDay[c.h] > today ? 'opacity:.55' : ''}"><span class="hz">${c.h}</span><span class="py ${toneClass(c.p)}">${esc(c.p)}</span><span class="small muted">${esc(c.m)}</span><span class="faint small">day ${charDay[c.h]}</span></button>`).join('')}</div>` : ''}
+      ${tab === 'characters' ? `<div class="grid grid-tiles">${S.CHARACTERS.map(c => `<button class="tile" data-open="${c.h}" data-q="${esc((c.h + ' ' + c.p + ' ' + c.m + ' ' + S.parsePinyin(c.p).base).toLowerCase())}" style="${charDay[c.h] > today ? 'opacity:.55' : ''}"><span class="hz">${c.h}</span><span class="py ${toneClass(c.p)}">${esc(c.p)}</span><span class="small muted">${esc(c.m)}</span><span class="faint small">HSK ${c.level} · day ${charDay[c.h]}</span></button>`).join('')}</div>` : ''}
       ${tab === 'words' ? `<table class="table"><tbody>${S.WORDS.map(w => `<tr data-q="${esc((w.w + ' ' + w.p + ' ' + w.m).toLowerCase())}"><td class="mid-hz">${w.w}</td><td class="py">${pinyinHTML(w.p)}</td><td>${esc(w.m)}</td><td class="faint small">day ${wordDay[w.w] || '—'}</td><td>${playBtn(w.w)}</td></tr>`).join('')}</tbody></table>` : ''}
-      ${tab === 'sentences' ? `<div class="stack">${S.SENTENCES.map(s => `<div class="sentence" data-q="${esc((s.zh + ' ' + s.p + ' ' + s.en).toLowerCase())}"><div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row"><span class="faint small">day ${sentDay[s.zh] || '—'}</span>${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}</span></div><div class="py">${pinyinHTML(s.p)}</div><div class="en">${esc(s.en)}</div></div>`).join('')}</div>` : ''}
+      ${tab === 'sentences' ? `<div class="stack">${S.SENTENCES.map(s => `<div class="sentence" data-q="${esc((s.zh + ' ' + s.p + ' ' + s.en).toLowerCase())}"><div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row"><span class="faint small">day ${sentDay[s.zh] || '—'}</span>${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}${sayBtn(s.zh)}</span></div><div class="py">${pinyinHTML(s.p)}</div><div class="en">${esc(s.en)}</div></div>`).join('')}</div>` : ''}
       ${tab === 'props' ? `<div class="grid grid-tiles">${S.COMPONENTS.map(c => `<div class="tile" data-q="${esc((c.c + ' ' + c.k + ' ' + c.prop).toLowerCase())}"><span class="hz">${c.c}</span><b>${esc(c.k)}</b><span class="small muted">${esc(S.resolveCast(state.cast).prop(c.c))}</span></div>`).join('')}</div>` : ''}
       </div></div>`;
   };
@@ -386,7 +451,7 @@
     const sents = S.SENTENCES.filter(s => s.zh.includes(h)).slice(0, 4);
     const srs = state.srs['c:' + h];
     openDialog(`<div class="row between"><span class="eyebrow">${esc(sc.actor)} · ${esc(sc.set)} · ${esc(sc.room)}</span><button class="btn btn-sm btn-ghost" data-close>✕</button></div>
-      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${ch.h}</div><div><div class="py ${toneClass(ch.p)}" style="font-size:1.6rem">${esc(ch.p)}</div><div style="font-weight:700">${esc(ch.m)}</div><div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}</div></div></div>
+      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${ch.h}</div><div><div class="py ${toneClass(ch.p)}" style="font-size:1.6rem">${esc(ch.p)}</div><div style="font-weight:700">${esc(ch.m)}</div><div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}</div></div></div>
       <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
       <div class="scene">${esc(state.scenes[h] || sc.text)}</div>
       <textarea class="input" data-scene="${h}" placeholder="Rewrite this scene in your own words">${esc(state.scenes[h] || '')}</textarea>
@@ -440,7 +505,7 @@
       </section>
       <section class="card stack"><h2 class="h3">Last 90 days</h2><div class="heatmap">${cells.join('')}</div><p class="faint small">Green = done · red = missed · gold ring = today. Missed days stay open under Today → Catch-up.</p></section>
       <section class="card stack"><h2 class="h3">Milestones</h2><ul class="stack small" style="gap:.4rem">
-        ${[[12, 'Pronunciation Mastery complete — every sound has an actor and a set'], [13, 'First tree planted: 木 林 森'], [24, 'You can introduce yourself and ask who someone is'], [40, 'Time, dates and family — a hundred characters'], [60, 'Food, money and shopping'], [st.days, 'HSK 1 complete: ' + st.characters + ' characters, ' + st.words + ' words, ' + st.sentences + ' sentences']].map(([d, t]) => `<li>${done[d] ? '✅' : d <= today ? '⬜' : '🔒'} <b>Day ${d}</b> — ${esc(t)}</li>`).join('')}</ul></section>
+        ${[[12, 'Pronunciation Mastery complete — every sound has an actor and a set'], [13, 'First tree planted: 木 林 森']].concat(st.levels.map(l => [l.lastDay, `${l.name} complete: ${l.characters} characters, ${l.words} words, ${l.sentences} sentences`])).map(([d, t]) => `<li>${done[d] ? '✅' : d <= today ? '⬜' : '🔒'} <b>Day ${d}</b> — ${esc(t)}</li>`).join('')}</ul></section>
     </div>`;
   };
 
@@ -459,8 +524,8 @@
       <h2 class="h3">The road</h2>
       <ul>
         <li><b>Days 1–12 · Pronunciation Mastery.</b> Sounds, tones, tone pairs, and casting your actors, sets and props.</li>
-        <li><b>Days 13–72 · Phase 1, HSK 1.</b> Three characters a day (180 total), 115 words and 103 sentences, each unlocking exactly when you are ready for it.</li>
-        <li><b>After that · Consolidation.</b> Daily review keeps the forest alive while Phase 2 (HSK 2) is added to the data files. The engine needs no changes: add characters, words and sentences and the scheduler places them.</li>
+        ${(() => { const st = S.curriculumStats(DAYS); let start = 13; return st.levels.map(l => { const li = `<li><b>Days ${start}–${l.lastDay} · Phase ${l.level}, ${esc(l.name)}.</b> ${l.characters} characters, ${l.words} words and ${l.sentences} sentences, each unlocking exactly when you are ready for it.</li>`; start = l.lastDay + 1; return li; }).join(''); })()}
+        <li><b>After the last level · Consolidation.</b> Daily review keeps the forest alive. HSK 6 is the ceiling of the standard test: at three characters a day the full road is about ${Math.round((S.CHARACTERS.length / 3 + 12) / 30)} months of ten-minute lessons, and you can raise the pace in Settings.</li>
       </ul>
       <h2 class="h3">Credits</h2>
       <p class="small muted">This program is an original curriculum inspired by the publicly described methods of <a href="https://www.mandarinblueprint.com/" target="_blank" rel="noopener">Mandarin Blueprint</a> (Hanzi Movie Method, Pronunciation Mastery, top-down learning), James Heisig, Paul Pimsleur, Piotr Woźniak (SM-2), Stephen Krashen and Alexander Argüelles. It is not affiliated with any of them. Character decompositions are mnemonic-level approximations chosen for memorability.</p>
