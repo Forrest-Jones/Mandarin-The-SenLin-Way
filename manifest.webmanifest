@@ -4,7 +4,7 @@
   "description": "Building your Mandarin Word Forest, one tree at a time. A daily 10-minute Mandarin program, HSK 1 to 6.",
   "start_url": "./#/",
   "display": "standalone",
-  "background_color": "#f8f6f0",
-  "theme_color": "#1b4a2f",
+  "background_color": "#fbfdf8",
+  "theme_color": "#14a066",
   "icons": [{ "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
 }
