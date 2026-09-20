@@ -62,6 +62,8 @@ The Talk page calls Claude three ways, in this order: signed-in learners go thro
 | `tests/e2e/` | CI | Playwright smoke, navigation, lesson, settings, offline, mobile (Pixel 7) and axe accessibility checks on every push |
 | `privacy.html`, `terms.html` | site | required by both stores; linked from the footer |
 
+Daily reminder: Settings → Daily reminder subscribes the browser or the Android app to Web Push (the worker's cron sends it at the chosen local time, no email provider needed); the iOS/Android Capacitor shells schedule a local notification instead. The calendar feed remains for people who prefer it.
+
 Sign-in: a 6-digit email code when the worker has an email provider (`RESEND_API_KEY`), otherwise email + password (PBKDF2, rate limited). Both give the same account, sync, Pro and tutor allowance.
 
 Voice sources: the site never calls an unofficial endpoint. Recorded audio → native app voice → device Web Speech voice → cloud voice (signed in). Speech recognition: native app → browser (Chrome/Edge/Android) → cloud recogniser (signed in, any browser with a microphone).

@@ -21,6 +21,11 @@ Errors are `{ "error": "<code>", "message"?: "..." }`; limits are `429 { "error"
 | GET | `/v1/billing/plans` | – | `{ plans: [{ id, name, price, currency, interval, trialDays, perMonth?, savePct?, highlight?, launchOffer?, rcPackage, sku, web }], web, portal, paywall }` — the catalogue (`monthly` $11.99, `yearly` $59.99 with a 7-day trial, `lifetime` $149.99); `web` per plan = purchasable through Stripe on this deployment |
 | POST | `/v1/billing/checkout` | ✓ | `{ plan }` → `{ url, id, plan }`: a Stripe Checkout session (subscription mode with `trial_period_days` for yearly, payment mode for lifetime), `client_reference_id` = user id, returns to `SITE_URL#/pro/thanks` |
 | POST | `/v1/billing/portal` | ✓ | → `{ url }` Stripe Customer Portal for the account's web subscription (404 `no_customer` when there is none) |
+| GET | `/v1/push/vapid` | – | `{ publicKey }` — the VAPID application server key (generated once, kept in KV) |
+| POST | `/v1/push/subscribe` | optional | `{ subscription: PushSubscription JSON, hour, minute, tz }` → `{ ok, hour, minute, tz }`; anonymous callers send `X-Senlin-Anon`. Upserts by endpoint |
+| DELETE | `/v1/push/subscribe` | – | `{ endpoint }` → 204 |
+| POST | `/v1/push/test` | – | `{ endpoint }` → sends one notification now → `{ ok, status }` |
+| cron | every 15 min | – | sends "Your 10 minutes of Mandarin" to every subscription whose local time entered its chosen slot today; 404/410 endpoints are deleted |
 | GET | `/v1/entitlement` | ✓ | `{ plan, expiresAt, features: { ai, hsk3plus, dealDesk } }` (`PAYWALL` unset → everything true) |
 | POST | `/v1/events` | optional | `{ events: [{ name, props?, ts }] }` (≤50). Anonymous callers send `X-Senlin-Anon: <random id>`. Names whitelisted: lesson_start, lesson_done, review, talk_start, talk_end, write_quiz, tone_drill, install, purchase, error, visit, say, sign_in → 204 |
 | POST | `/v1/errors` | optional | `{ message, stack?, url?, version? }` → 204 |
