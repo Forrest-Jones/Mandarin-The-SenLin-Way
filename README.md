@@ -54,12 +54,15 @@ The Talk page calls Claude three ways, in this order: signed-in learners go thro
 | `server/` | Cloudflare Worker + D1 + KV (`server/README.md`, `server/API.md`) | email-code sign-in, cross-device sync with automatic backups, AI proxy with metering and rate limits, licensed cloud voice (Azure/Google), cloud speech-to-text for iOS/Safari, opt-in analytics, error reports, RevenueCat/Stripe webhooks, admin stats |
 | `js/cloud.js` | site | the Settings → Account card, sync merge, cloud tutor/voice/recogniser, telemetry (Sentry when `sentryDsn` is set) |
 | `js/native.js` + `native/` | Capacitor | Android and iOS shells with native TTS/STT, daily reminder notifications, haptics, RevenueCat purchases |
-| `twa-manifest.json`, `.well-known/assetlinks.json`, `store/` | Play Store | Bubblewrap/PWABuilder Trusted Web Activity, icons, feature graphic, screenshots, listing copy; the full guide is `PLAY_STORE.md` |
+| `twa-manifest.json`, `.well-known/assetlinks.json`, `store/` | Play Store | Bubblewrap/PWABuilder Trusted Web Activity, icons, feature graphic, screenshots, listing copy; the full guide is `PLAY_STORE.md`. **`.github/workflows/android.yml` builds the signed Play bundle on every run** (signing key kept in the worker's private KV, fingerprint written into assetlinks.json) and uploads it to Play's internal track when a `PLAY_SERVICE_ACCOUNT_JSON` secret exists |
+| `.github/workflows/native.yml` | App Store | macOS runner generates and commits the Capacitor `native/ios` and `native/android` projects and compiles the iOS app for the simulator; open the workspace in Xcode, pick your Team, Archive, upload |
 | `tools/audio.js` → `audio/` | site | pre-generated MP3s from a licensed studio voice (≈ $1.50 one-off for the whole course); the site plays them first, then the device voice, then the cloud voice |
 | `tools/review.js` → `review/` | editors | CSV export of HSK 4–6 sentences, grammar and business lines for a native-speaker review pass, and `--apply` to read it back |
 | `js/loader.js` | site | HSK 4–6 (250 KB gzipped) load lazily, so first paint only needs HSK 1–3 |
 | `tests/e2e/` | CI | Playwright smoke, navigation, lesson, settings, offline, mobile (Pixel 7) and axe accessibility checks on every push |
 | `privacy.html`, `terms.html` | site | required by both stores; linked from the footer |
+
+Sign-in: a 6-digit email code when the worker has an email provider (`RESEND_API_KEY`), otherwise email + password (PBKDF2, rate limited). Both give the same account, sync, Pro and tutor allowance.
 
 Voice sources: the site never calls an unofficial endpoint. Recorded audio → native app voice → device Web Speech voice → cloud voice (signed in). Speech recognition: native app → browser (Chrome/Edge/Android) → cloud recogniser (signed in, any browser with a microphone).
 

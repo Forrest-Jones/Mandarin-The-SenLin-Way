@@ -55,6 +55,13 @@ The GitHub Actions workflow `.github/workflows/deploy-worker.yml` does the same 
 
 Local development: copy `.dev.vars.example` to `.dev.vars`, `npm run db:migrate:local`, `npm run dev` (serves on :8787), set `apiBase: 'http://localhost:8787'` while testing (`DEV=1` allows the localhost site origin; `DEV_ECHO_CODE=1` prints the sign-in code in the response so no email is needed).
 
+## What is live right now
+
+- Worker: `https://senlin-api.forrestjones2010.workers.dev` (D1, KV, JWT signing all self-provisioned). `GET /v1/health` lists which provider keys are still missing.
+- Stripe: product, the three prices, the webhook and the customer portal exist and their ids live in KV (created by the deploy workflow). The key currently stored is a **test-mode** key: purchases work with card `4242 4242 4242 4242`. To go live, replace the `STRIPE_SECRET_KEY` GitHub secret with the `sk_live_` key and rerun *Deploy API worker*; the setup repeats itself for live mode.
+- Sign-in: email + password until `RESEND_API_KEY` is added (then email codes appear automatically).
+- Talk through the server needs `ANTHROPIC_API_KEY`; until then the tutor uses the learner's own key or the claude.ai preview account.
+
 ## Providers and what they cost
 
 | Piece | Provider | Free tier | Beyond |

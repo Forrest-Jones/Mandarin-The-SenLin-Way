@@ -9,6 +9,7 @@ Errors are `{ "error": "<code>", "message"?: "..." }`; limits are `429 { "error"
 | GET | `/v1/health` | – | `{ ok, version, providers: { ai, tts, stt, email } }` (booleans / names, never keys) |
 | POST | `/v1/auth/request` | – | `{ email }` → sends a 6-digit code (10 min, 5/hour/email). With `DEV_ECHO_CODE=1` also returns `{ code }` |
 | POST | `/v1/auth/verify` | – | `{ email, code }` → `{ token, user: { id, email, plan } }` (JWT, 90 days) |
+| POST | `/v1/auth/password` | – | `{ email, password (≥8), create?: true }` → `{ token, user, created }`. Works without an email provider. `404 no_password` when the email has no password and `create` is not set; `401 bad_password`; 10 attempts/hour/email |
 | GET | `/v1/me` | ✓ | `{ user, usage: { aiMessagesToday, aiTokensMonth, ttsCharsMonth, sttSecondsMonth }, limits }` |
 | GET | `/v1/sync` | ✓ | `{ version, updatedAt, data }` or `404 { error: "none" }` |
 | PUT | `/v1/sync` | ✓ | `{ version, data }` → `{ version, updatedAt }`; `409 { error: "conflict", version, updatedAt, data }` when the stored version moved on. Each write keeps the previous version as a backup (last 10). Max 2 MB. |
