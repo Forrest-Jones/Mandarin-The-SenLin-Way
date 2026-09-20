@@ -240,7 +240,7 @@ export async function handleStripeSetup(request, env) {
   }
   const stored = { productId: out.productId, prices: out.prices, webhookId: out.webhookId, webhookSecret: out.webhookSecret, webhookUrl: out.webhookUrl, portalConfig: out.portalConfig, setupAt: new Date().toISOString() };
   await env.CACHE.put(STRIPE_KV, JSON.stringify(stored));
-  const live = /^sk_live_/.test(env.STRIPE_SECRET_KEY);
+  const live = /^(sk|rk)_live_/.test(env.STRIPE_SECRET_KEY);   // secret or restricted live key
   return json({ ok: true, mode: live ? 'live' : 'test', productId: out.productId, prices: out.prices, webhookId: out.webhookId, webhookUrl: out.webhookUrl, webhookSecretStored: Boolean(out.webhookSecret || env.STRIPE_WEBHOOK_SECRET), portalConfig: out.portalConfig, created: out.created,
     next: live ? 'Done. Open the site → SenLin Pro and the buttons are live.' : 'Test mode. Buy with card 4242 4242 4242 4242, then swap STRIPE_SECRET_KEY for the live key and open this URL once more.' });
 }
