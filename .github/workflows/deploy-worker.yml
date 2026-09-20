@@ -2,8 +2,10 @@ name: Deploy API worker
 
 # Deploys server/ to Cloudflare Workers whenever it changes on main.
 # Needs two repository secrets (Settings → Secrets and variables → Actions):
-#   CLOUDFLARE_API_TOKEN   (dash.cloudflare.com → My Profile → API Tokens → "Edit Cloudflare Workers" template, plus D1:Edit and Workers KV Storage:Edit)
-#   CLOUDFLARE_ACCOUNT_ID  (dashboard → Workers & Pages → Account ID on the right)
+#   CLOUDFLARE_API_TOKEN   (dash.cloudflare.com → My Profile → API Tokens → Create Token → "Edit Cloudflare Workers" template; add D1:Edit and Workers KV Storage:Edit)
+#   CLOUDFLARE_ACCOUNT_ID  (dashboard → Workers & Pages → Account ID on the right, or the 32-hex id in the dashboard URL)
+# Optional: any of the secrets listed in "Sync secrets into the worker" below, pasted as GitHub secrets, are
+# pushed into the worker on every deploy, so the Cloudflare dashboard is never needed.
 # If the repository is connected through the Cloudflare Git integration instead, this workflow is
 # redundant and skips itself when the secrets are absent.
 on:
@@ -31,6 +33,40 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npx wrangler deploy
+      # Any of these GitHub repository secrets that exist are pushed into the worker as Cloudflare secrets,
+      # so keys can be pasted in GitHub (Settings → Secrets and variables → Actions) instead of the Cloudflare dashboard.
+      - name: Sync secrets into the worker
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        working-directory: server
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          AZURE_TTS_KEY: ${{ secrets.AZURE_TTS_KEY }}
+          AZURE_TTS_REGION: ${{ secrets.AZURE_TTS_REGION }}
+          GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY }}
+          DEEPGRAM_API_KEY: ${{ secrets.DEEPGRAM_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REVENUECAT_WEBHOOK_SECRET: ${{ secrets.REVENUECAT_WEBHOOK_SECRET }}
+        run: |
+          for name in JWT_SECRET ADMIN_KEY ANTHROPIC_API_KEY RESEND_API_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET AZURE_TTS_KEY AZURE_TTS_REGION GOOGLE_TTS_KEY DEEPGRAM_API_KEY OPENAI_API_KEY REVENUECAT_WEBHOOK_SECRET; do
+            value="${!name}"
+            if [ -n "$value" ]; then printf '%s' "$value" | npx wrangler secret put "$name" && echo "set $name"; else echo "skip $name (no GitHub secret)"; fi
+          done
+      - name: Run the one-shot Stripe setup (when ADMIN_KEY and STRIPE_SECRET_KEY exist)
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.ADMIN_KEY != '' && env.STRIPE_SECRET_KEY != ''
+        env:
+          ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        working-directory: server
+        run: |
+          url=$(npx wrangler deployments list 2>/dev/null | grep -o 'https://[^ ]*workers.dev' | head -1 || true)
+          if [ -z "$url" ]; then echo "could not read the worker URL; open /v1/admin/stripe-setup?key=... by hand"; exit 0; fi
+          sleep 10
+          curl -sS -H "x-admin-key: $ADMIN_KEY" "$url/v1/admin/stripe-setup" | sed 's/"webhookSecret":"[^"]*"/"webhookSecret":"***"/'
       - name: Skipped
         if: env.CLOUDFLARE_API_TOKEN == ''
         run: echo "CLOUDFLARE_API_TOKEN not set; the Cloudflare Git integration deploys this worker instead."

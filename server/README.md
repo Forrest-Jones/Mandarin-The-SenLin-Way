@@ -8,9 +8,23 @@ Everything is optional. With `apiBase` empty in `js/config.js` the site runs exa
 - `schema.sql` D1 tables · `wrangler.toml` bindings and vars · `API.md` every endpoint with curl examples
 - `test/` 23 node:test cases with in-memory D1/KV fakes: `npm test`
 
+## Deploy from GitHub Actions (paste keys in GitHub, never in Cloudflare)
+
+Add these GitHub repository secrets (GitHub → the repo → Settings → Secrets and variables → Actions → New repository secret) and push, or run the "Deploy API worker" workflow from the Actions tab:
+
+| Secret | Where it comes from |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | dash.cloudflare.com → profile icon → My Profile → API Tokens → Create Token → template "Edit Cloudflare Workers"; before creating, under Permissions add *Account → D1 → Edit* and *Account → Workers KV Storage → Edit* |
+| `CLOUDFLARE_ACCOUNT_ID` | dash.cloudflare.com → Workers & Pages → right-hand column "Account ID" (or the 32-character id in the dashboard URL) |
+| `JWT_SECRET`, `ADMIN_KEY` | any long random strings |
+| `STRIPE_SECRET_KEY` | dashboard.stripe.com/apikeys |
+| `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `DEEPGRAM_API_KEY`, `AZURE_TTS_KEY` + `AZURE_TTS_REGION` | each provider, when you are ready |
+
+The workflow deploys the worker (provisioning D1 and KV on the first run), pushes every secret you added into it, and, when `ADMIN_KEY` and `STRIPE_SECRET_KEY` are both present, runs the one-shot Stripe setup and prints the result in the job log. The worker URL is printed by the deploy step; paste it into the site (Settings → Account → Connect your server).
+
 ## Deploy from the Cloudflare Git integration (zero commands)
 
-If the repository is connected in the Cloudflare dashboard (Workers & Pages → Create → Import a repository), every push to `main` deploys the worker. The root `wrangler.toml` points at `server/src/worker.js`, so the default build settings work: no build command, deploy command `npx wrangler deploy`. The D1 database and KV namespace are provisioned automatically on the first deploy (no ids in the config), and the worker creates its own tables on the first request, so there is no migration step.
+Create the project once: dash.cloudflare.com → Workers & Pages → **Create** → **Workers** tab → **Import a repository** (connect GitHub if asked) → pick `Mandarin-The-SenLin-Way` → project name `senlin-api`, root directory `/`, no build command, deploy command `npx wrangler deploy` → **Create and deploy**. From then on every push to `main` deploys the worker. The root `wrangler.toml` points at `server/src/worker.js`, so the default build settings work: no build command, deploy command `npx wrangler deploy`. The D1 database and KV namespace are provisioned automatically on the first deploy (no ids in the config), and the worker creates its own tables on the first request, so there is no migration step.
 
 After the first deploy, two things in the dashboard, Workers & Pages → **senlin-api** → Settings → Variables and Secrets:
 
