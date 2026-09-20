@@ -19,7 +19,7 @@ binding = "CACHE"
 
 [vars]
 # Non-secret configuration. Anything sensitive goes in `wrangler secret put <NAME>` or the dashboard.
-ALLOWED_ORIGINS = "https://forrest-jones.github.io"   # comma-separated; add your custom domain and app origins (capacitor://localhost, https://localhost)
+ALLOWED_ORIGINS = "https://forrest-jones.github.io,capacitor://localhost,https://localhost,http://localhost,ionic://localhost"   # the site plus the Capacitor app origins; add a custom domain here
 VERSION = "2026.09.20"
 ANTHROPIC_MODEL = "claude-sonnet-5"                  # default tutor model (fast, cheap); the client may request one from ANTHROPIC_ALLOWED_MODELS
 ANTHROPIC_ALLOWED_MODELS = "claude-sonnet-5,claude-opus-5,claude-haiku-4-5-20251001"

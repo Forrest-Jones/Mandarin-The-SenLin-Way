@@ -23,7 +23,10 @@ function watchErrors(page) {
 }
 
 // Navigates to a hash route and waits for the SPA to render something into #app.
+// The suite runs against the static site alone: the per-device server override is set to "" so
+// js/config.js disconnects any apiBase baked into the build (no network calls to the worker).
 async function go(page, hash) {
+  if (!page.__senlinNoApi) { page.__senlinNoApi = true; await page.addInitScript(() => { try { localStorage.setItem('senlin.apiBase', '""'); } catch (e) { /* ignore */ } }); }
   await page.goto('/' + (hash.startsWith('#') ? hash : '#' + hash));
   await page.waitForFunction(() => { const a = document.querySelector('#app'); return a && a.children.length > 0 && a.innerText.trim().length > 0; });
   await expect(page.locator('#app')).toBeVisible();
