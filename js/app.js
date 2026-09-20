@@ -140,6 +140,20 @@
     while (d >= 1 && done[d]) { n++; d--; }
     return n;
   };
+  const TREE_COLORS = ['#1ec27c', '#14a066', '#3ee39a', '#b8f23c', '#0f7a4f', '#ffb300'];
+  function forestSVG(n) {
+    let out = ''; for (let i = 0; i < Math.min(n, 60); i++) { const c = TREE_COLORS[i % TREE_COLORS.length]; out += `<svg viewBox="0 0 22 44" style="animation-delay:${Math.min(i, 30) * 25}ms"><rect x="9.5" y="30" width="3" height="14" rx="1" fill="#8a5a2b"/><path d="M11 2 L21 20 H1 Z" fill="${c}"/><path d="M11 10 L21 30 H1 Z" fill="${c}" opacity=".85"/></svg>`; }
+    if (n > 60) out += `<span class="small muted" style="align-self:center;margin-left:.4rem">+${n - 60}</span>`;
+    return out;
+  }
+  function confetti() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const c = document.createElement('canvas'); c.className = 'confetti'; document.body.appendChild(c);
+    const ctx = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
+    const cols = ['#1ec27c', '#ffcf4d', '#ff7bd4', '#2f8bff', '#b8f23c', '#ff4d5a'];
+    const ps = Array.from({ length: 140 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5, r: 4 + Math.random() * 6, vx: -1.5 + Math.random() * 3, vy: 2 + Math.random() * 3, rot: Math.random() * 6, vr: -.2 + Math.random() * .4, col: cols[Math.floor(Math.random() * cols.length)] }));
+    let t = 0; (function frame() { ctx.clearRect(0, 0, c.width, c.height); ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.rot += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.col; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); ctx.restore(); }); if (++t < 220) requestAnimationFrame(frame); else c.remove(); })();
+  }
   const learnedChars = () => S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => i.type === 'c' && state.progress.completed[i.day]).length;
   const dueCount = () => { const now = Date.now(); return Object.values(state.srs).filter(s => s.due <= now).length; };
 
@@ -177,9 +191,10 @@
           <div class="row">
             <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(day, DAYS.length)}">${done ? 'Do it again' : 'Start the 10-minute lesson'}</a>
             ${dueCount() ? `<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${dueCount()} due cards</a>` : ''}
-            <span class="muted">${streak()}-day streak</span>
+            <span class="streak"><span class="fire">🔥</span> ${streak()}-day streak</span>
           </div>
         </section>
+        ${Object.keys(state.progress.completed).length ? `<section class="card stack" style="padding-bottom:.6rem"><div class="row between"><span class="eyebrow">Your forest · ${Object.keys(state.progress.completed).length} trees</span><a class="small muted" href="#/progress">see progress →</a></div><div class="forest">${forestSVG(Object.keys(state.progress.completed).length)}</div></section>` : ''}
         <section class="grid grid-3">
           <div class="card stat"><b>${streak()}</b><span>day streak</span></div>
           <div class="card stat"><b>${learnedChars()}</b><span>characters planted</span></div>
@@ -399,7 +414,7 @@
       <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a></div>
     </div>`;
   }
-  function wireDone() { lesson.stop(); }
+  function wireDone() { lesson.stop(); confetti(); }
 
   function wireSegment(id) {
     const L = lesson.data;
@@ -533,6 +548,7 @@
         <div class="card stat"><b>${(state.progress.tones || { total: 0 }).total ? Math.round(state.progress.tones.right / state.progress.tones.total * 100) : 0}%</b><span>tone gym (${(state.progress.tones || { total: 0 }).total} reps) · <a href="#/tones" style="text-decoration:underline">train</a></span></div>
         <div class="card stat"><b>${(state.progress.writes || { total: 0 }).total}</b><span>characters written by hand · ${(state.talks || []).length} tutor sessions</span></div>
       </section>
+      <section class="card stack"><h2 class="h3">Your forest</h2><div class="forest">${forestSVG(total) || '<span class="small muted">Plant your first tree today.</span>'}</div></section>
       <section class="card stack"><h2 class="h3">Last 90 days</h2><div class="heatmap">${cells.join('')}</div><p class="faint small">Green = done · red = missed · gold ring = today. Missed days stay open under Today → Catch-up.</p></section>
       <section class="card stack"><h2 class="h3">Milestones</h2><ul class="stack small" style="gap:.4rem">
         ${[[12, 'Pronunciation Mastery complete — every sound has an actor and a set'], [13, 'First tree planted: 木 林 森']].concat(st.levels.map(l => [l.lastDay, `${l.name} complete: ${l.characters} characters, ${l.words} words, ${l.sentences} sentences`])).map(([d, t]) => `<li>${done[d] ? '✅' : d <= today ? '⬜' : '🔒'} <b>Day ${d}</b> — ${esc(t)}</li>`).join('')}</ul></section>
