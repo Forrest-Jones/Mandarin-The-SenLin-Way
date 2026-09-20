@@ -37,9 +37,12 @@ jobs:
           V_CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           V_CLOUDFLARE_API_TOKEN: ${{ vars.CLOUDFLARE_API_TOKEN }}
         run: |
+          missing=0
           for n in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID STRIPE_SECRET_KEY ADMIN_KEY JWT_SECRET; do
-            v="S_$n"; if [ -n "${!v}" ]; then echo "secret $n: present (${#v} chars name, value length ${#${!v}})"; else echo "secret $n: MISSING"; fi
+            v="S_$n"; val="${!v}"
+            if [ -n "$val" ]; then echo "secret $n: present (${#val} characters)"; else echo "secret $n: MISSING"; missing=1; fi
           done
+          [ "$missing" = 1 ] && echo "Add the MISSING ones at https://github.com/${GITHUB_REPOSITORY}/settings/secrets/actions (Secrets tab, exact names)." || true
           [ -n "$V_CLOUDFLARE_API_TOKEN" ] && echo "NOTE: CLOUDFLARE_API_TOKEN was added as a *Variable*, not a Secret. Delete it from the Variables tab and add it under Secrets." || true
           [ -n "$V_CLOUDFLARE_ACCOUNT_ID" ] && echo "NOTE: CLOUDFLARE_ACCOUNT_ID is a Variable; that is fine, using it." || true
       - name: Deploy with Wrangler
