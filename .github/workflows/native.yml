@@ -1,0 +1,50 @@
+name: Generate native apps (Capacitor iOS + Android)
+
+# Runs on a macOS runner: installs the Capacitor shell in native/, copies the web app into it,
+# generates the Xcode and Android Studio projects, verifies the iOS app compiles for the
+# simulator, then commits native/ios and native/android so they can be opened, signed and
+# submitted from any Mac with Xcode (App Store) or from Android Studio.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['native/**', '.github/workflows/native.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the Capacitor shell
+        working-directory: native
+        run: npm install --no-audit --no-fund
+      - name: Copy the web app into native/www
+        working-directory: native
+        run: npm run build && ls www | head
+      - name: Add the iOS and Android platforms (kept if already committed)
+        working-directory: native
+        run: |
+          [ -d ios ] || npx cap add ios
+          [ -d android ] || npx cap add android
+          npx cap sync
+      - name: Compile the iOS app for the simulator (no signing) to prove the project is sound
+        working-directory: native/ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -quiet build | tail -20
+      - name: Commit the generated projects
+        run: |
+          git config user.name "senlin-bot"; git config user.email "senlin-bot@users.noreply.github.com"
+          git add native/ios native/android native/package-lock.json 2>/dev/null || true
+          git reset -q native/www 2>/dev/null || true
+          if ! git diff --cached --quiet; then git commit -m "Native: generate the Capacitor iOS and Android projects" && git push; else echo "nothing new to commit"; fi
+      - name: Summary
+        run: |
+          { echo "### Native projects"; echo "- iOS: open \`native/ios/App/App.xcworkspace\` in Xcode, set your Team under Signing & Capabilities, Product → Archive → Distribute (TestFlight / App Store)."; echo "- Android (Capacitor variant): open \`native/android\` in Android Studio. The Play Store bundle is also built by the *Build Android app* workflow without Android Studio."; } >> "$GITHUB_STEP_SUMMARY"

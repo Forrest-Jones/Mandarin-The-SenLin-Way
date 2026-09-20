@@ -1,7 +1,16 @@
 node_modules/
 www/
-android/
-ios/
+# generated projects are committed (see .github/workflows/native.yml); only build output is ignored
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
 *.keystore
 *.jks
 *.p8
