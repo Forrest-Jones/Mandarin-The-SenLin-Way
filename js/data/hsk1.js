@@ -11,7 +11,9 @@
   return {
     level: 1,
     name: 'HSK 1',
-    components: [],
+    components: [
+
+    ],
     characters: [
     {h: "木", p: "mù", m: "tree", c: ["木"], s: "plants a single TREE (木) and waters it — the first tree of your forest."},
     {h: "林", p: "lín", m: "woods", c: ["木","木"], s: "stands between TWO TREES (木木) — a small grove: WOODS."},
