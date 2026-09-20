@@ -64,7 +64,17 @@ for (let d = 1; d <= days.length; d++) {
 lessons.forEach(l => { if (l.type !== 'pron' && l.quiz.length < 3) warnings.push(`day ${l.day}: quiz has only ${l.quiz.length} questions`); });
 const emptyWordDays = days.filter(d => d.type === 'chars' && !d.words.length).map(d => d.day);
 
+/* level files must be wired in index.html and each level's words/sentences only use characters from its level or earlier */
+const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
+S.LEVELS.forEach(l => { if (!html.includes(`js/data/hsk${l.level}.js`)) errors.push(`index.html does not load js/data/hsk${l.level}.js`); });
+const charLevel = Object.fromEntries(S.CHARACTERS.map(c => [c.h, c.level]));
+S.WORDS.forEach(w => han(w.w).forEach(c => { if (charLevel[c] > w.level) errors.push(`word ${w.w} (HSK ${w.level}) uses ${c}, taught in HSK ${charLevel[c]}`); }));
+S.SENTENCES.forEach(s => han(s.zh).forEach(c => { if (charLevel[c] > s.level) errors.push(`sentence "${s.zh}" (HSK ${s.level}) uses ${c}, taught in HSK ${charLevel[c]}`); }));
+const compSeen = new Set();
+S.COMPONENTS.forEach(c => { if (compSeen.has(c.c)) errors.push(`duplicate component ${c.c}`); compSeen.add(c.c); });
+
 console.log(`Mandarin The SenLin Way — curriculum check`);
+st.levels.forEach(l => console.log(`  HSK ${l.level}: ${l.characters} characters, ${l.words} words, ${l.sentences} sentences → complete on day ${l.lastDay}`));
 console.log(`  characters: ${st.characters}   words: ${st.words}   sentences: ${st.sentences}   components: ${st.components}`);
 console.log(`  pronunciation days: ${st.pronDays}   total scheduled days: ${st.days}`);
 console.log(`  character days without a new word: ${emptyWordDays.join(', ') || 'none'}`);

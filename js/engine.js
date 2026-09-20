@@ -6,14 +6,20 @@
    - the 10-minute lesson builder                                              */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(
-      require('./data/pinyin.js'), require('./data/components.js'),
-      require('./data/characters.js'), require('./data/words.js'), require('./data/sentences.js'));
+    module.exports = factory(require('./data/pinyin.js'), require('./data/components.js'), require('./data/levels.js'));
   } else {
-    root.SenLin = factory(root.SENLIN_PINYIN, root.SENLIN_COMPONENTS, root.SENLIN_CHARACTERS, root.SENLIN_WORDS, root.SENLIN_SENTENCES);
+    root.SenLin = factory(root.SENLIN_PINYIN, root.SENLIN_COMPONENTS, root.SENLIN_LEVELS || []);
   }
-})(this, function (PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES) {
+})(this, function (PINYIN, BASE_COMPONENTS, RAW_LEVELS) {
   'use strict';
+
+  /* ---------- levels → flat, tagged lists (teaching order = level order, then file order) */
+  const LEVELS = RAW_LEVELS.slice().sort((a, b) => a.level - b.level).filter(l => l.characters.length);
+  const tag = (l, arr) => arr.map(x => Object.assign({ level: l.level }, x));
+  const COMPONENTS = BASE_COMPONENTS.concat(LEVELS.flatMap(l => l.components || []));
+  const CHARACTERS = LEVELS.flatMap(l => tag(l, l.characters));
+  const WORDS = LEVELS.flatMap(l => tag(l, l.words));
+  const SENTENCES = LEVELS.flatMap(l => tag(l, l.sentences));
 
   const CONFIG = {
     name: 'Mandarin The SenLin Way',
@@ -105,11 +111,16 @@
       days.push({ day: i + 1, phase: 'Pronunciation Mastery', type: 'pron', pron: pd, chars: [], words: [], sentences: [] });
     });
     const charDay = {};
-    for (let i = 0; i < CHARACTERS.length; i += o.charsPerDay) {
-      const chunk = CHARACTERS.slice(i, i + o.charsPerDay);
-      const day = days.length + 1;
-      chunk.forEach(ch => { charDay[ch.h] = day; });
-      days.push({ day, phase: 'Phase 1 · HSK 1 characters', type: 'chars', chars: chunk, words: [], sentences: [] });
+    const levelEnd = {};                             // level → last day that introduces its characters
+    for (const L of LEVELS) {
+      const chars = CHARACTERS.filter(c => c.level === L.level);
+      for (let i = 0; i < chars.length; i += o.charsPerDay) {
+        const chunk = chars.slice(i, i + o.charsPerDay);
+        const day = days.length + 1;
+        chunk.forEach(ch => { charDay[ch.h] = day; });
+        days.push({ day, level: L.level, phase: `Phase ${L.level} · ${L.name}`, type: 'chars', chars: chunk, words: [], sentences: [] });
+        levelEnd[L.level] = day;
+      }
     }
     const ensureDay = d => { while (days.length < d) days.push({ day: days.length + 1, phase: 'Consolidation', type: 'review', chars: [], words: [], sentences: [] }); return days[d - 1]; };
     const place = (items, textOf, key, cap) => {
@@ -125,6 +136,7 @@
     };
     place(WORDS, w => w.w, 'words', o.wordsPerDay);
     place(SENTENCES, s => s.zh, 'sentences', o.sentencesPerDay);
+    days.levelEnd = levelEnd;
     return days;
   }
 
@@ -279,11 +291,12 @@
   /* ------------------------------------------------------------------ stats */
   function curriculumStats(days) {
     const last = days[days.length - 1].day;
-    return { days: last, pronDays: PRON_DAYS, characters: CHARACTERS.length, words: WORDS.length, sentences: SENTENCES.length, components: COMPONENTS.length };
+    const levels = LEVELS.map(l => ({ level: l.level, name: l.name, characters: l.characters.length, words: l.words.length, sentences: l.sentences.length, lastDay: days.levelEnd ? days.levelEnd[l.level] : null }));
+    return { days: last, pronDays: PRON_DAYS, characters: CHARACTERS.length, words: WORDS.length, sentences: SENTENCES.length, components: COMPONENTS.length, levels };
   }
 
   return {
-    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES,
+    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES, LEVELS,
     INITIAL_MAP, FINAL_MAP, TONE_MAP, COMP_MAP,
     parsePinyin, resolveCast, scene,
     buildSchedule, dayNumber, dateForDay, isoDate, parseISO,
