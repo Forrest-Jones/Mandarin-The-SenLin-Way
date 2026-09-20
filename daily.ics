@@ -3061,9 +3061,23 @@ UID:senlin-day-219@senlin
 DTSTAMP:20260921T000000Z
 DTSTART:20270427T070000
 DTEND:20270427T071000
-SUMMARY:森 Day 219: 澡 南 · 洗澡 南方
+SUMMARY:森 Day 219: 澡 南 往 · 洗澡 南方 往往
 DESCRIPTION:10-minute lesson. Phase 3 · HSK 3. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/219
 URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/219
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Plant today’s tree — 10 minutes of Mandarin
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:senlin-day-220@senlin
+DTSTAMP:20260921T000000Z
+DTSTART:20270428T070000
+DTEND:20270428T071000
+SUMMARY:森 Day 220: 典 · 词典
+DESCRIPTION:10-minute lesson. Phase 3 · HSK 3. Open: https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/220
+URL:https://forrest-jones.github.io/mandarin-the-senlin-way/#/lesson/220
 BEGIN:VALARM
 TRIGGER:PT0M
 ACTION:DISPLAY

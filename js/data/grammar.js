@@ -44,6 +44,22 @@
     { level: 2, name: '每…都…', pattern: '每 + measure + noun + 都 + verb', zh: '我每天都跑步。', p: 'Wǒ měi tiān dōu pǎobù.', en: 'I jog every day.', note: '每 loves to be followed by 都 before the verb.' },
     { level: 2, name: '别 “don’t”', pattern: '别 + verb', zh: '别说话！', p: 'Bié shuō huà!', en: 'Don’t talk!', note: '别 (or 不要) makes a negative command.' },
     { level: 2, name: '最 superlative', pattern: '最 + adjective', zh: '这是我最喜欢的歌。', p: 'Zhè shì wǒ zuì xǐhuan de gē.', en: 'This is my favourite song.', note: '最 before an adjective or a feeling verb makes the superlative.' },
-    { level: 2, name: '吧 suggestion', pattern: 'Statement + 吧', zh: '我们走吧。', p: 'Wǒmen zǒu ba.', en: 'Let’s go.', note: '吧 softens a statement into a suggestion or a guess: 你是老师吧？ “You’re a teacher, right?”' }
+    { level: 2, name: '吧 suggestion', pattern: 'Statement + 吧', zh: '我们走吧。', p: 'Wǒmen zǒu ba.', en: 'Let’s go.', note: '吧 softens a statement into a suggestion or a guess: 你是老师吧？ “You’re a teacher, right?”' },
+    /* ---------- HSK 3 ---------- */
+    { level: 3, name: '把 sentence', pattern: 'Subject + 把 + object + verb + result', zh: '请把书给我。', p: 'Qǐng bǎ shū gěi wǒ.', en: 'Please give me the book.', note: '把 moves the object before the verb to say what is done to it. The verb must carry a result (给我, 放好, 吃完).' },
+    { level: 3, name: '被 passive', pattern: 'A + 被 + B + verb + result', zh: '我的手机被弟弟拿走了。', p: 'Wǒ de shǒujī bèi dìdi ná zǒu le.', en: 'My phone was taken by my little brother.', note: '被 marks the passive, often for things that happen to you. The doer can be left out: 手机被拿走了.' },
+    { level: 3, name: '越来越', pattern: '越来越 + adjective', zh: '天气越来越热了。', p: 'Tiānqì yuè lái yuè rè le.', en: 'The weather is getting hotter and hotter.', note: '越 A 越 B = the more A, the more B: 越多越好.' },
+    { level: 3, name: '一边…一边…', pattern: '一边 + verb 1 + 一边 + verb 2', zh: '他一边吃饭一边看电视。', p: 'Tā yìbiān chī fàn yìbiān kàn diànshì.', en: 'He eats while watching TV.', note: 'Two actions at the same time by the same person.' },
+    { level: 3, name: '又…又…', pattern: '又 + adjective + 又 + adjective', zh: '这个菜又便宜又好吃。', p: 'Zhè ge cài yòu piányi yòu hǎochī.', en: 'This dish is both cheap and delicious.', note: 'Two qualities at once. 又 also means “again” for a past repeat; 再 is “again” for the future.' },
+    { level: 3, name: '除了…以外', pattern: '除了 A 以外，都 / 还…', zh: '除了我以外，大家都去了。', p: 'Chúle wǒ yǐwài, dàjiā dōu qù le.', en: 'Everyone went except me.', note: 'With 都 it means “except”; with 还 / 也 it means “besides, in addition to”.' },
+    { level: 3, name: '如果…就…', pattern: '如果 A，(subject) 就 B', zh: '如果明天下雨，我就不去了。', p: 'Rúguǒ míngtiān xià yǔ, wǒ jiù bú qù le.', en: 'If it rains tomorrow, I won’t go.', note: '就 sits after the subject of the second clause.' },
+    { level: 3, name: '只有…才…', pattern: '只有 A，才 B', zh: '只有努力，才能学好汉语。', p: 'Zhǐyǒu nǔlì, cái néng xué hǎo Hànyǔ.', en: 'Only by working hard can you learn Chinese well.', note: '才 = “only then”, later than expected; 就 = “as soon as”, earlier than expected.' },
+    { level: 3, name: '是…的 emphasis', pattern: 'Subject + 是 + time/place/manner + verb + 的', zh: '我是昨天来的。', p: 'Wǒ shì zuótiān lái de.', en: 'It was yesterday that I came.', note: 'For a completed action, 是…的 spotlights when, where or how it happened, not that it happened.' },
+    { level: 3, name: '一…就…', pattern: '一 + verb 1 + 就 + verb 2', zh: '我一到家就睡觉。', p: 'Wǒ yí dào jiā jiù shuì jiào.', en: 'As soon as I get home I go to sleep.', note: 'The second action follows the first immediately.' },
+    { level: 3, name: '先…然后…', pattern: '先 A，然后 B', zh: '我先吃饭，然后看书。', p: 'Wǒ xiān chī fàn, ránhòu kàn shū.', en: 'First I eat, then I read.', note: 'Sequence words: 先 … 然后 … 最后 (finally).' },
+    { level: 3, name: 'Result complements', pattern: 'verb + 完 / 好 / 到 / 见', zh: '我吃完了。', p: 'Wǒ chī wán le.', en: 'I have finished eating.', note: 'A second syllable after the verb states the result: 完 finished, 好 done well, 到 reached, 见 perceived. Negate with 没: 没吃完.' },
+    { level: 3, name: 'Duration with 了…了', pattern: 'verb + 了 + duration + (object) + 了', zh: '我学了三年汉语了。', p: 'Wǒ xué le sān nián Hànyǔ le.', en: 'I have been studying Chinese for three years (and still am).', note: 'Duration goes after the verb. The final 了 means the action continues up to now.' },
+    { level: 3, name: '要…了 imminent', pattern: '(快) 要 + verb + 了', zh: '要下雨了。', p: 'Yào xià yǔ le.', en: 'It is about to rain.', note: '快要…了 / 就要…了 all mean “about to”.' },
+    { level: 3, name: '比较 “relatively”', pattern: '比较 + adjective', zh: '这个比较贵。', p: 'Zhè ge bǐjiào guì.', en: 'This one is rather expensive.', note: 'A soft “quite / relatively”, with no explicit comparison.' }
   ];
 });

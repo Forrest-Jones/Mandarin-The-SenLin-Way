@@ -57,7 +57,8 @@
     {c: "里", k: "inside", prop: "a nesting doll"},
     {c: "开", k: "open", prop: "a can opener"},
     {c: "能", k: "able", prop: "a superhero cape"},
-    {c: "先", k: "first", prop: "a gold medal"}
+    {c: "先", k: "first", prop: "a gold medal"},
+    {c: "典", k: "canon", prop: "a leather-bound dictionary"}
     ],
     characters: [
     {h: "心", p: "xīn", m: "heart", c: ["心"], s: "squeezes a HEART PILLOW (心) until it thumps — the HEART."},
@@ -328,7 +329,9 @@
     {h: "刷", p: "shuā", m: "brush", c: ["尸","巾","刂"], s: "scrubs a BED SHEET (尸) with a TOWEL (巾) and a SWORD (刂) — BRUSH."},
     {h: "牙", p: "yá", m: "tooth", c: ["牙"], s: "polishes a FANG (牙) — a TOOTH."},
     {h: "澡", p: "zǎo", m: "bathe", c: ["氵","口","木"], s: "sprays a WATER PISTOL (氵) into three GIANT MOUTHS (口) in a TREE (木) — BATHE."},
-    {h: "南", p: "nán", m: "south", c: ["十","冂","丷","干"], s: "hangs a CROSS (十) in a DOORFRAME (冂) with HORNS (丷) on a CLOTHESLINE (干) facing SOUTH."}
+    {h: "南", p: "nán", m: "south", c: ["十","冂","丷","干"], s: "hangs a CROSS (十) in a DOORFRAME (冂) with HORNS (丷) on a CLOTHESLINE (干) facing SOUTH."},
+    {h: "往", p: "wǎng", m: "towards / to go", c: ["彳","主"], s: "marches in BOOTS (彳) straight TOWARDS a CANDLE (主) — TOWARDS; 往往 = often."},
+    {h: "典", p: "diǎn", m: "canon / dictionary (词典)", c: ["典"], s: "opens a LEATHER-BOUND DICTIONARY (典) — a CANON, a classic; 词典 = dictionary."}
     ],
     words: [
     {w: "担心", p: "dānxīn", m: "to worry"},
@@ -576,7 +579,9 @@
     {w: "月亮", p: "yuèliang", m: "moon"},
     {w: "中间", p: "zhōngjiān", m: "middle"},
     {w: "最后", p: "zuìhòu", m: "finally, last"},
-    {w: "最近", p: "zuìjìn", m: "recently"}
+    {w: "最近", p: "zuìjìn", m: "recently"},
+    {w: "词典", p: "cídiǎn", m: "dictionary"},
+    {w: "往往", p: "wǎngwǎng", m: "often, more often than not"}
     ],
     sentences: [
     {zh: "我很担心你。", p: "Wǒ hěn dānxīn nǐ.", en: "I am very worried about you."},
@@ -715,7 +720,9 @@
     {zh: "附近有银行吗？", p: "Fùjìn yǒu yínháng ma?", en: "Is there a bank nearby?"},
     {zh: "苹果三块钱一斤。", p: "Píngguǒ sān kuài qián yì jīn.", en: "Apples are three yuan a jin."},
     {zh: "欢迎你来北京！", p: "Huānyíng nǐ lái Běijīng!", en: "Welcome to Beijing!"},
-    {zh: "我洗澡以后睡觉。", p: "Wǒ xǐzǎo yǐhòu shuìjiào.", en: "I go to sleep after showering."}
+    {zh: "我洗澡以后睡觉。", p: "Wǒ xǐzǎo yǐhòu shuìjiào.", en: "I go to sleep after showering."},
+    {zh: "我有一本汉语词典。", p: "Wǒ yǒu yì běn Hànyǔ cídiǎn.", en: "I have a Chinese dictionary."},
+    {zh: "他往往很晚才回家。", p: "Tā wǎngwǎng hěn wǎn cái huí jiā.", en: "He often gets home very late."}
     ]
   };
 });
