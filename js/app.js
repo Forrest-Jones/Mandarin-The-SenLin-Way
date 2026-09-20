@@ -16,9 +16,11 @@
     cast: store.get('cast', { actors: {}, sets: {}, rooms: {}, props: {} }),
     srs: store.get('srs', {}),
     scenes: store.get('scenes', {}),
-    progress: Object.assign({ completed: {}, reviews: { total: 0, good: 0 }, quiz: { total: 0, right: 0 } }, store.get('progress', {}))
+    progress: Object.assign({ completed: {}, reviews: { total: 0, good: 0 }, quiz: { total: 0, right: 0 } }, store.get('progress', {})),
+    extra: store.get('extra', { words: [] }),
+    talks: store.get('talks', [])
   };
-  const save = () => { store.set('settings', state.settings); store.set('cast', state.cast); store.set('srs', state.srs); store.set('scenes', state.scenes); store.set('progress', state.progress); };
+  const save = () => { store.set('settings', state.settings); store.set('cast', state.cast); store.set('srs', state.srs); store.set('scenes', state.scenes); store.set('progress', state.progress); store.set('extra', state.extra); store.set('talks', state.talks); };
   const applyTheme = () => { if (state.settings.theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', state.settings.theme); };
   applyTheme();
 
@@ -176,6 +178,9 @@
           <p class="muted small">Missed days never expire. Do the oldest first — each lesson builds on the last.</p>
           <div class="row">${missed.slice(0, 14).map(d => `<a class="chip" href="#/lesson/${d}">Day ${d}</a>`).join('')}${missed.length > 14 ? `<span class="chip">+${missed.length - 14} more</span>` : ''}</div>
         </section>` : ''}
+        <section class="card stack" style="border-left:4px solid var(--gold)">
+          <div class="row between"><div><h2 class="h3">Talk with 森林老师 — live 1-on-1</h2><p class="muted small">Role-play a café order, a taxi ride, a job interview. Speak or type; get corrected in real time.</p></div><a class="btn btn-primary" href="#/talk">Start a conversation</a></div>
+        </section>
         <section class="grid grid-2">
           <div class="card stack">
             <h2 class="h3">How a lesson works</h2>
@@ -215,6 +220,8 @@
     lesson.day = day; lesson.seg = 0; lesson.elapsed = 0;
     lesson.review = { i: 0, shown: false }; lesson.quiz = { i: 0, right: 0, answered: false }; lesson.shadow = {};
     lesson.data = S.buildLesson(day, DAYS, state.srs, state.cast, Date.now());
+    const extraDue = window.SenLinApp.extraReviewItems().filter(i => state.srs[i.id] && state.srs[i.id].due <= Date.now());
+    if (extraDue.length) lesson.data.review = extraDue.concat(lesson.data.review).slice(0, S.CONFIG.reviewCap + 4);
     lesson.timer = setInterval(() => { lesson.elapsed++; const c = $('#clock'); if (c) { const left = S.CONFIG.lessonMinutes * 60 - lesson.elapsed; c.textContent = (left < 0 ? '+' : '') + seconds(left); c.classList.toggle('over', left < 0); } }, 1000);
   };
   routes.lesson = function (arg) {
@@ -411,7 +418,7 @@
   /* ---- Review anytime: every due card, outside the daily lesson */
   routes.review = function () {
     const now = Date.now();
-    const learned = S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => state.progress.completed[i.day]);
+    const learned = S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => state.progress.completed[i.day]).concat(window.SenLinApp.extraReviewItems());
     const due = learned.filter(i => state.srs[i.id] && state.srs[i.id].due <= now).sort((a, b) => state.srs[a.id].due - state.srs[b.id].due).slice(0, 40);
     routes.review.L = { review: due }; routes.review.r = { i: 0, shown: false, standalone: true };
     return `<div class="stack"><div class="row between"><div><span class="eyebrow">Review anytime</span><h1 class="h2">${due.length} card${due.length === 1 ? '' : 's'} due</h1></div><a class="btn btn-sm btn-ghost" href="#/">Exit</a></div><div id="review-body"></div></div>`;
@@ -561,6 +568,7 @@
         <p class="muted small">Everything lives in this browser (no account, no server). Export a backup before switching devices.</p>
         <div class="row"><button class="btn" id="export">Export backup</button><label class="btn">Import backup<input type="file" id="import" accept="application/json" class="sr-only"></label><button class="btn btn-ghost" id="reset" style="color:var(--vermilion)">Reset everything</button></div>
       </section>
+      ${window.SenLinApp && window.SenLinApp.settingsExtra ? window.SenLinApp.settingsExtra() : ''}
       <section class="card card-soft stack">
         <h2 class="h3">Daily push</h2>
         <p class="small muted">Add the 10-minute slot to your calendar: <a href="daily.ics" download>daily.ics</a> (7:00 every day, with a link straight to that day’s lesson). A GitHub-hosted daily reminder is described in the repository README.</p>
@@ -577,8 +585,12 @@
     $('#testvoice').onclick = () => tts.speak('你好，我是森林。');
     $('#export').onclick = () => { const blob = new Blob([JSON.stringify({ settings: s, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `senlin-backup-${S.isoDate(new Date())}.json`; a.click(); };
     $('#import').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); Object.assign(state.settings, d.settings || {}); state.cast = d.cast || state.cast; state.srs = d.srs || state.srs; state.scenes = d.scenes || state.scenes; state.progress = d.progress || state.progress; save(); rebuild(); applyTheme(); toast('Backup restored'); navigate(); } catch (err) { toast('That file is not a SenLin backup'); } }; r.readAsText(f); };
-    $('#reset').onclick = () => { if (confirm('Delete all progress, reviews, scenes and cast? This cannot be undone.')) { ['settings', 'cast', 'srs', 'scenes', 'progress'].forEach(k => localStorage.removeItem('senlin.' + k)); location.reload(); } };
+    $('#reset').onclick = () => { if (confirm('Delete all progress, reviews, scenes and cast? This cannot be undone.')) { ['settings', 'cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => localStorage.removeItem('senlin.' + k)); location.reload(); } };
+    if (window.SenLinApp && window.SenLinApp.settingsExtraAfter) window.SenLinApp.settingsExtraAfter();
   };
+
+  /* ------------------------------------------------------------ bridge for add-on modules (tutor.js) */
+  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, navigate, DAYS: () => DAYS, todayDay, settingsExtra: null, settingsExtraAfter: null, extraReviewItems: () => [] };
 
   /* ------------------------------------------------------------ go */
   navigate();
