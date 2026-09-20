@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 60
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -100,7 +100,7 @@
     A.applyData(merged);
     await push();
   }
-  async function backups() { return signedIn() ? api('/v1/sync/backups') : []; }
+  async function backups() { if (!signedIn()) return []; const r = await api('/v1/sync/backups'); return Array.isArray(r) ? r : ((r && r.backups) || []); }
   async function restoreBackup(version) { const b = await api('/v1/sync/backups/' + version); A.applyData(b.data); sync.version = 0; await push(); }
 
   /* ------------------------------------------------------------ AI, voice */

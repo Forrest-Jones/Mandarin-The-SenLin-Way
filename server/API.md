@@ -13,7 +13,7 @@ Errors are `{ "error": "<code>", "message"?: "..." }`; limits are `429 { "error"
 | GET | `/v1/me` | ✓ | `{ user, usage: { aiMessagesToday, aiTokensMonth, ttsCharsMonth, sttSecondsMonth }, limits }` |
 | GET | `/v1/sync` | ✓ | `{ version, updatedAt, data }` or `404 { error: "none" }` |
 | PUT | `/v1/sync` | ✓ | `{ version, data }` → `{ version, updatedAt }`; `409 { error: "conflict", version, updatedAt, data }` when the stored version moved on. Each write keeps the previous version as a backup (last 10). Max 2 MB. |
-| GET | `/v1/sync/backups` | ✓ | `[{ version, createdAt, bytes }]` |
+| GET | `/v1/sync/backups` | ✓ | `{ backups: [{ version, createdAt, bytes }] }` |
 | GET | `/v1/sync/backups/:version` | ✓ | `{ version, createdAt, data }` |
 | POST | `/v1/ai/chat` | ✓ | `{ system, messages: [{ role, content }], maxTokens?, stream?: true, model? }` → SSE (`data: {"text": "…"}` per delta, then `data: {"usage": {...}}`, then `data: [DONE]`); with `stream:false` → `{ text, usage }`. Limits: 20 req/min; free 25 msgs/day + 60k output tokens/month; pro 400/day + 2M/month |
 | POST | `/v1/tts` | ✓ | `{ text (≤300), rate? 0.5–1.2, voice? }` → `audio/mpeg`. Cached 30 days by hash. Free 20k chars/month, pro 500k |

@@ -36,7 +36,7 @@ ok(get.status === 200 && get.body?.data?.progress?.completed?.['1'] === '2026-09
 const conflict = await j('/v1/sync', { method: 'PUT', headers: auth, body: JSON.stringify({ version: 0, data: {} }) });
 ok(conflict.status === 409, 'stale version is a conflict');
 const backups = await j('/v1/sync/backups', { headers: auth });
-ok(backups.status === 200 && Array.isArray(backups.body), 'backups list');
+ok(backups.status === 200 && Array.isArray(backups.body?.backups ?? backups.body), 'backups list', String(backups.status));
 
 const plans = await j('/v1/billing/plans');
 ok(plans.status === 200 && plans.body?.plans?.length === 3 && plans.body.plans.every((p) => p.web), 'three plans purchasable on web');

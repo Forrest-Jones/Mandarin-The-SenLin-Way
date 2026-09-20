@@ -22,7 +22,9 @@ jobs:
           node-version: 22
       - name: Worker API end to end
         working-directory: server
-        run: node scripts/live-check.mjs | tee ../live-api.log
+        run: |
+          set -o pipefail
+          node scripts/live-check.mjs | tee ../live-api.log
       - name: Public site pages
         run: |
           set -e

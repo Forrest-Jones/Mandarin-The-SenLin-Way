@@ -34,7 +34,7 @@ const SYSTEM = `You are a native Mandarin editor (Beijing standard, mainland usa
 - "fix": anything unnatural, ungrammatical, non-mainland, wrong punctuation (Chinese must use 。，？！、), pinyin tone/spelling errors, spacing (pinyin per word, capital at sentence start), or an English rendering that misleads.
 Only mark "fix" when a careful native editor would change it; do not restyle acceptable sentences. When fixing, return the corrected field(s) and leave the others as empty strings. Business items must keep a formal finance register (您, 贵方, 我方). Never change the meaning; never add characters beyond the course's level unless required for correctness.`;
 
-const client = new Anthropic();
+const client = new Anthropic({ defaultHeaders: process.env.ANTHROPIC_WORKSPACE_ID ? { 'anthropic-workspace-id': process.env.ANTHROPIC_WORKSPACE_ID } : undefined });
 const seen = new Map();   // id → review result (cache across batches)
 
 async function reviewBatch(rows) {

@@ -67,6 +67,7 @@ export async function handleAiChat(request, env, ctx) {
     headers: {
       'x-api-key': env.ANTHROPIC_API_KEY,
       'anthropic-version': ANTHROPIC_VERSION,
+      ...(env.ANTHROPIC_WORKSPACE_ID ? { 'anthropic-workspace-id': env.ANTHROPIC_WORKSPACE_ID } : {}),   // needed by organisation-level keys
       'content-type': 'application/json',
       accept: stream ? 'text/event-stream' : 'application/json',
     },
