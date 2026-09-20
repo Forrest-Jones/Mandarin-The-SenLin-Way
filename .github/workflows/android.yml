@@ -51,7 +51,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ steps.token.outputs.token }}
         run: |
           set -e
-          ns=$(wrangler kv namespace list | python3 -c "import sys,json;l=json.load(sys.stdin);print(next(n['id'] for n in l if 'CACHE' in n['title']))")
+          ns=$(wrangler kv namespace list | python3 -c "import sys,json;l=json.load(sys.stdin);print(next((n['id'] for n in l if 'cache' in n['title'].lower() or 'senlin' in n['title'].lower()), '5267a4c90f99468597b32382f0351085'))")
           echo "namespace: $ns"
           if wrangler kv key get android:keystore --namespace-id "$ns" --remote > ks.b64 2>/dev/null && [ -s ks.b64 ]; then
             base64 -d ks.b64 > android.keystore
