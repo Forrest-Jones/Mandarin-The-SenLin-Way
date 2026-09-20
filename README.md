@@ -25,6 +25,10 @@ The curriculum is **top-down**: a word is never shown before all of its characte
 - **Days 13–899** Phases 1–6, the full HSK 1–6 road: 2,655 characters, 4,447 words, 1,444 sentences and 86 grammar patterns, one level after another (HSK 1 done by day 72, HSK 2 by 129, HSK 3 by 220, HSK 4 by 368, HSK 5 by 577, HSK 6 by 899).
 - **Then** Consolidation: the remaining HSK 6 vocabulary and daily review.
 
+**Levels.** The Levels page defines each HSK level as the Chinese government's test does (vocabulary, CEFR equivalent, exam format, the HSK Standard Course units, typical study hours) and shows the date you reach it at your pace. Every official HSK 2.0 word is taught at its listed level.
+
+**Deal Desk.** A business track for cross-border private-equity and venture-capital work: 12 units (people and titles, fund terms, sourcing, valuation and term sheets, due diligence, negotiation, closing and FX/ODI mechanics, legal, exits, banquets, numbers, follow-up) with 181 terms, 40 closing phrases and worked dialogues. Two terms and a phrase join every lesson from Day 13, and six deal-room role-plays live in Talk.
+
 Beyond the daily lesson: **Talk** (a live 1-on-1 AI tutor with role-play scenarios, voice in and out, corrections and session reviews), **Write it** (stroke-order animation and drawing quiz on every character), the **Tone gym**, listening questions in every quiz, a **Review anytime** deck, and a placement setting for learners who already know some Chinese. The site installs to a phone home screen and works offline.
 
 Pages: **Today** (dashboard, catch-up queue, your growing forest), **Lesson** (the timed runner), **Talk** (AI tutor), **Library** (every character, word, sentence, grammar pattern and prop, searchable, with audio), **Cast** (rename actors/sets/rooms/props), **Progress** (streak, heatmap, recall rate), **Method**, **Settings** (start date, pace, voice, AI key, placement, backup).

@@ -59,6 +59,10 @@ FIX: <if the learner's last message had a mistake: the corrected Chinese, then "
 NEW: <words in your reply the learner may not know, as 词|pinyin|meaning separated by ; or - if none>`;
 
   function systemPrompt(sc, level, known) {
+    if (sc.track === 'business') return `You are 森林老师 (Sēnlín lǎoshī), a Mandarin coach for cross-border private-equity and venture-capital professionals, running a live 1-on-1 deal-room role-play with a learner at HSK ${level}.
+Scenario: ${sc.en} (${sc.title}). Setting: ${sc.setting}. You play: ${sc.persona}. The learner's goal: ${sc.goal}
+Stay in character as a Chinese business counterpart: formal register (您, titles like 王总), natural Mandarin as used in Chinese finance (基金, 估值, 尽调, 条款, 交割, 优先清算权, 对赌, 备案, 结汇…). Business terms may exceed HSK ${level}; use them, but keep sentence structure at the learner's level and put every finance term in the NEW line with pinyin and meaning. Keep replies to 1–3 sentences and always push the deal forward with a question, a counter-offer or a next step, the way a real counterparty would. Correct the learner's Chinese in the FIX line, including register mistakes (too casual, missing 您/title). If they write English, answer in Chinese and show them the Chinese way to say it. Never break the 5-line format.
+${FORMAT}`;
     return `You are 森林老师 (Sēnlín lǎoshī), a warm, patient Mandarin tutor running a live 1-on-1 role-play with a learner at HSK ${level}.
 Scenario: ${sc.en} (${sc.title}). Setting: ${sc.setting}. You play: ${sc.persona}. The learner's goal: ${sc.goal}
 Stay in character and speak natural spoken Mandarin (simplified characters). Keep every reply to 1–2 short sentences and always end with a question or a prompt so the learner keeps talking. Match HSK ${level}: prefer these characters the learner already knows: ${known}. Introduce at most one new word per turn. If the learner makes a mistake, keep the conversation going but correct it in the FIX line. If the learner writes in English, gently answer in Chinese and show them how to say it. Never break the 5-line format, never add commentary.
@@ -101,7 +105,9 @@ ${FORMAT}`;
       <div><span class="eyebrow">Talk · live 1-on-1</span><h1 class="h2">Practice with 森林老师</h1>
         <p class="lead">Real conversation, in real time. Type or speak; the tutor answers in Chinese, shows pinyin and English, corrects your mistakes, and keeps you talking. Vocabulary is matched to what you have learned (about HSK ${lvl} right now).</p></div>
       <div id="talk-status" class="card card-soft small muted">Checking AI availability…</div>
-      <div class="grid grid-3">${SCENARIOS.map(s => `<a class="tile" href="#/talk/${s.id}" style="${s.minLevel > lvl ? 'opacity:.6' : ''}"><span class="hz" style="font-size:1.6rem">${esc(s.title)}</span><b>${esc(s.en)}</b><span class="small muted">${esc(s.goal)}</span><span class="faint small">from HSK ${s.minLevel}${s.minLevel > lvl ? ' · stretch' : ''}</span></a>`).join('')}</div>
+      <div class="grid grid-3">${SCENARIOS.filter(s => !s.track).map(s => `<a class="tile" href="#/talk/${s.id}" style="${s.minLevel > lvl ? 'opacity:.6' : ''}"><span class="hz" style="font-size:1.6rem">${esc(s.title)}</span><b>${esc(s.en)}</b><span class="small muted">${esc(s.goal)}</span><span class="faint small">from HSK ${s.minLevel}${s.minLevel > lvl ? ' · stretch' : ''}</span></a>`).join('')}</div>
+      <div><span class="eyebrow">Deal room · business track</span><h2 class="h3">Close the deal in Mandarin</h2><p class="muted small">Six role-plays that follow a cross-border PE/VC transaction end to end. Formal register, real finance vocabulary, a counterparty who negotiates back. Vocabulary lives under <a href="#/business" style="text-decoration:underline">Deal Desk</a>.</p></div>
+      <div class="grid grid-3">${SCENARIOS.filter(s => s.track === 'business').map(s => `<a class="tile" href="#/talk/${s.id}" style="border-color:var(--sky-500)"><span class="hz" style="font-size:1.6rem">${esc(s.title)}</span><b>${esc(s.en)}</b><span class="small muted">${esc(s.goal)}</span><span class="faint small">from HSK ${s.minLevel}</span></a>`).join('')}</div>
       ${state.talks.length ? `<section class="card stack"><h2 class="h3">Past sessions</h2>${state.talks.slice(-8).reverse().map(t => `<div class="row between small"><span><b>${esc(t.scenario)}</b> · ${esc(t.date)} · ${t.turns} turns</span><span class="muted">${esc(t.summary || '')}</span></div>`).join('')}</section>` : ''}
     </div>`;
   };
@@ -158,6 +164,7 @@ ${FORMAT}`;
     if (!T.busy) { const inp = document.getElementById('say'); if (inp && !T.handsFree) inp.focus(); }
   }
 
+  A.addWord = w => addWord(w);
   function addWord(w) {
     state.extra = state.extra || { words: [] };
     if (!state.extra.words.find(x => x.w === w.w)) { state.extra.words.push(w); const s = S.srsInit(); s.due = Date.now() + 86400000; state.srs['x:' + w.w] = s; save(); toast(`${w.w} added to your review deck`); }

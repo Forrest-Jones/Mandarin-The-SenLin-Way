@@ -6,11 +6,11 @@
    - the 10-minute lesson builder                                              */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./data/pinyin.js'), require('./data/components.js'), require('./data/levels.js'), require('./data/grammar.js'));
+    module.exports = factory(require('./data/pinyin.js'), require('./data/components.js'), require('./data/levels.js'), require('./data/grammar.js'), require('./data/business.js'), require('./data/levelinfo.js'));
   } else {
-    root.SenLin = factory(root.SENLIN_PINYIN, root.SENLIN_COMPONENTS, root.SENLIN_LEVELS || [], root.SENLIN_GRAMMAR || []);
+    root.SenLin = factory(root.SENLIN_PINYIN, root.SENLIN_COMPONENTS, root.SENLIN_LEVELS || [], root.SENLIN_GRAMMAR || [], root.SENLIN_BUSINESS || null, root.SENLIN_LEVELINFO || null);
   }
-})(this, function (PINYIN, BASE_COMPONENTS, RAW_LEVELS, GRAMMAR) {
+})(this, function (PINYIN, BASE_COMPONENTS, RAW_LEVELS, GRAMMAR, BUSINESS, LEVELINFO) {
   'use strict';
 
   /* ---------- levels → flat, tagged lists (teaching order = level order, then file order) */
@@ -29,6 +29,7 @@
     sentencesPerDay: 3,
     lessonMinutes: 10,
     reviewCap: 12,
+    businessStartDay: 13,         // the Deal Desk joins the lesson once characters begin (Settings can turn it off)
     /* 10 minutes, in seconds */
     segments: [
       { id: 'warmup',    title: 'Warm-up: tones',        seconds: 60 },
@@ -246,7 +247,19 @@
       return { prompt, question: askPinyin ? 'How is it pronounced?' : 'What does it mean?', options, correct };
     });
 
-    return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review, chars, words: d.words, grammar: d.grammar || [], sentences, quiz, segments: CONFIG.segments };
+    return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review, chars, words: d.words, grammar: d.grammar || [], sentences, quiz, segments: CONFIG.segments, business: dealDesk(day, CONFIG.businessStartDay) };
+  }
+
+  /* ------------------------------------------------------------------ business track ("deal desk") */
+  const BIZ_TERMS = BUSINESS ? BUSINESS.units.flatMap(u => u.terms.map(t => Object.assign({ unit: u.id, unitTitle: u.en }, t))) : [];
+  const BIZ_PHRASES = BUSINESS ? BUSINESS.units.flatMap(u => u.phrases.map(t => Object.assign({ unit: u.id, unitTitle: u.en }, t))) : [];
+  /** Two terms and one phrase per day, walking the units in order; `startDay` = first day the track is on. */
+  function dealDesk(day, startDay) {
+    if (!BIZ_TERMS.length || day < (startDay || 1)) return null;
+    const i = day - (startDay || 1);
+    const terms = [BIZ_TERMS[(2 * i) % BIZ_TERMS.length], BIZ_TERMS[(2 * i + 1) % BIZ_TERMS.length]];
+    const phrase = BIZ_PHRASES[i % BIZ_PHRASES.length];
+    return { terms, phrase, cycle: Math.floor((2 * i) / BIZ_TERMS.length) + 1 };
   }
 
   /* ------------------------------------------------------------------ text export (CLI / email) */
@@ -287,6 +300,7 @@
     }
     if (lesson.words.length) { L.push('\n**New words**'); lesson.words.forEach(w => L.push(`- ${w.w} ${w.p} — ${w.m}`)); }
     lesson.grammar.forEach(g => { L.push(`\n**Pattern of the day: ${g.name}** — ${g.pattern}`); L.push(`${g.zh}  ${g.p}  — ${g.en}`); L.push(g.note); });
+    if (lesson.business) { L.push('\n**Deal desk (business Mandarin)**'); lesson.business.terms.forEach(t => L.push(`- ${t.w} ${t.p} — ${t.m}${t.note ? ' · ' + t.note : ''}`)); L.push(`- ${lesson.business.phrase.zh}  ${lesson.business.phrase.p}  — ${lesson.business.phrase.en}`); }
     L.push('\n## 4 · Sentences: shadow each one 3× (2 min)');
     lesson.sentences.forEach(s => L.push(`- ${s.zh}  ${s.p}  — ${s.en}`));
     L.push('\n## 5 · Quiz (1 min)');
@@ -303,7 +317,7 @@
   }
 
   return {
-    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES, GRAMMAR, LEVELS,
+    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES, GRAMMAR, LEVELS, BUSINESS, LEVELINFO, BIZ_TERMS, BIZ_PHRASES, dealDesk,
     INITIAL_MAP, FINAL_MAP, TONE_MAP, COMP_MAP,
     parsePinyin, resolveCast, scene,
     buildSchedule, dayNumber, dateForDay, isoDate, parseISO,

@@ -44,6 +44,14 @@ for (const g of S.GRAMMAR) {
   han(g.zh).forEach(c => { if (!charSet.has(c)) errors.push(`grammar "${g.name}": character ${c} is never taught`); });
   if (!g.pattern || !g.p || !g.en || !g.note) errors.push(`grammar "${g.name}": missing field`);
 }
+/* business track: every term/phrase has parseable pinyin and a meaning */
+if (S.BUSINESS) {
+  S.BUSINESS.units.forEach(u => {
+    u.terms.forEach(t => { if (!t.w || !t.p || !t.m) errors.push(`business term ${t.w}: missing field`); if (!/^[A-Za-zÀ-ɏ'’ \-]+$/.test(t.p)) errors.push(`business term ${t.w}: pinyin "${t.p}" has unexpected characters`); });
+    u.phrases.forEach(x => { if (!x.zh || !x.p || !x.en) errors.push(`business phrase "${x.zh}": missing field`); });
+  });
+  S.BUSINESS.dialogues.forEach(d => d.lines.forEach(l => { if (!l.zh || !l.p || !l.en) errors.push(`dialogue ${d.id}: missing field`); }));
+}
 /* pronunciation days reference real keys */
 S.PINYIN.pronunciationDays.forEach((d, i) => {
   (d.initials || []).forEach(k => { if (!initialKeys.has(k)) errors.push(`pron day ${i + 1}: unknown initial ${k}`); });
@@ -79,7 +87,7 @@ S.COMPONENTS.forEach(c => { if (compSeen.has(c.c)) errors.push(`duplicate compon
 
 console.log(`Mandarin The SenLin Way — curriculum check`);
 st.levels.forEach(l => console.log(`  HSK ${l.level}: ${l.characters} characters, ${l.words} words, ${l.sentences} sentences → complete on day ${l.lastDay}`));
-console.log(`  characters: ${st.characters}   words: ${st.words}   sentences: ${st.sentences}   grammar patterns: ${st.grammar}   components: ${st.components}`);
+console.log(`  characters: ${st.characters}   words: ${st.words}   sentences: ${st.sentences}   grammar patterns: ${st.grammar}   components: ${st.components}   business terms: ${S.BIZ_TERMS.length}`);
 console.log(`  pronunciation days: ${st.pronDays}   total scheduled days: ${st.days}`);
 console.log(`  character days without a new word: ${emptyWordDays.join(', ') || 'none'}`);
 warnings.forEach(w => console.log('  warn: ' + w));

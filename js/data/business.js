@@ -1,0 +1,325 @@
+/* Mandarin The SenLin Way — Business track: cross-border private equity & venture capital
+   Vocabulary, phrases and dialogues for sourcing, negotiating and CLOSING deals with
+   Chinese counterparties. Terms may use characters beyond the learner's current HSK level;
+   the track is meant to run alongside the main road from the day you switch it on.
+   units[].terms: w (word), p (pinyin), m (meaning), note (usage)
+   units[].phrases: zh, p, en, note
+   dialogues[].lines: who, zh, p, en                                                          */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.SENLIN_BUSINESS = factory();
+})(this, function () {
+  'use strict';
+  return {
+    name: 'Deal Desk · 交易台',
+    intro: 'Mandarin for the deal room. Twelve units follow a cross-border transaction from first meeting to wire transfer: people and titles, fund structures, sourcing and pitching, valuation and terms, due diligence, negotiation, closing mechanics and China’s capital-controls paperwork, legal language, exits, banquets and relationships, numbers and money, and the WeChat / email follow-up that keeps a deal moving. Two terms and one phrase join every daily lesson once the track is on.',
+    units: [
+      { id: 'people', title: '人物与职位', en: 'People and titles', brief: 'Who is in the room, and how to address them. Titles matter: use them.',
+        terms: [
+          { w: '董事长', p: 'dǒngshìzhǎng', m: 'chairman of the board', note: 'Address as 王董 (Wáng dǒng) after the surname.' },
+          { w: '总经理', p: 'zǒngjīnglǐ', m: 'general manager / CEO', note: '王总 (Wáng zǒng) is the universal respectful address for any boss.' },
+          { w: '合伙人', p: 'héhuǒrén', m: 'partner' },
+          { w: '普通合伙人', p: 'pǔtōng héhuǒrén', m: 'general partner (GP)' },
+          { w: '有限合伙人', p: 'yǒuxiàn héhuǒrén', m: 'limited partner (LP)' },
+          { w: '创始人', p: 'chuàngshǐrén', m: 'founder' },
+          { w: '投资经理', p: 'tóuzī jīnglǐ', m: 'investment manager / associate' },
+          { w: '董事总经理', p: 'dǒngshì zǒngjīnglǐ', m: 'managing director (MD)' },
+          { w: '首席财务官', p: 'shǒuxí cáiwùguān', m: 'chief financial officer (CFO)' },
+          { w: '投资委员会', p: 'tóuzī wěiyuánhuì', m: 'investment committee (IC)' },
+          { w: '基金', p: 'jījīn', m: 'fund' },
+          { w: '母基金', p: 'mǔ jījīn', m: 'fund of funds' },
+          { w: '家族办公室', p: 'jiāzú bàngōngshì', m: 'family office' },
+          { w: '主权财富基金', p: 'zhǔquán cáifù jījīn', m: 'sovereign wealth fund' },
+          { w: '名片', p: 'míngpiàn', m: 'business card', note: 'Give and receive with both hands; read it before putting it away.' }
+        ],
+        phrases: [
+          { zh: '很荣幸认识您，王总。', p: 'Hěn róngxìng rènshi nín, Wáng zǒng.', en: 'It is an honour to meet you, Mr Wang.', note: 'Use 您 and the title, never the bare name.' },
+          { zh: '这是我的名片，请多多指教。', p: 'Zhè shì wǒ de míngpiàn, qǐng duōduō zhǐjiào.', en: 'Here is my card; I look forward to your guidance.' },
+          { zh: '我们是一家专注于跨境投资的私募股权基金。', p: 'Wǒmen shì yì jiā zhuānzhù yú kuàjìng tóuzī de sīmù gǔquán jījīn.', en: 'We are a private equity fund focused on cross-border investment.' }
+        ] },
+      { id: 'fund', title: '基金结构与募资', en: 'Fund structure and fundraising', brief: 'The vocabulary of your own vehicle: what you are raising, on what terms.',
+        terms: [
+          { w: '私募股权', p: 'sīmù gǔquán', m: 'private equity (PE)' },
+          { w: '风险投资', p: 'fēngxiǎn tóuzī', m: 'venture capital (VC)', note: 'Also 创业投资 (chuàngyè tóuzī), the regulatory term.' },
+          { w: '募资', p: 'mùzī', m: 'fundraising' },
+          { w: '出资承诺', p: 'chūzī chéngnuò', m: 'capital commitment' },
+          { w: '实缴', p: 'shíjiǎo', m: 'paid-in (capital)' },
+          { w: '认缴', p: 'rènjiǎo', m: 'subscribed / committed (capital)' },
+          { w: '管理费', p: 'guǎnlǐfèi', m: 'management fee' },
+          { w: '业绩报酬', p: 'yèjì bàochou', m: 'carried interest / performance fee', note: 'Colloquially just “carry”.' },
+          { w: '门槛收益率', p: 'ménkǎn shōuyìlǜ', m: 'hurdle rate' },
+          { w: '基金期限', p: 'jījīn qīxiàn', m: 'fund term' },
+          { w: '投资期', p: 'tóuzīqī', m: 'investment period' },
+          { w: '首次交割', p: 'shǒucì jiāogē', m: 'first close' },
+          { w: '最终交割', p: 'zuìzhōng jiāogē', m: 'final close' },
+          { w: '基石投资者', p: 'jīshí tóuzīzhě', m: 'anchor / cornerstone investor' },
+          { w: '美元基金', p: 'měiyuán jījīn', m: 'USD fund' },
+          { w: '人民币基金', p: 'rénmínbì jījīn', m: 'RMB fund' }
+        ],
+        phrases: [
+          { zh: '我们正在募集第三期美元基金，目标规模五亿美元。', p: 'Wǒmen zhèngzài mùjí dì-sān qī měiyuán jījīn, mùbiāo guīmó wǔ yì měiyuán.', en: 'We are raising our third USD fund, targeting 500 million dollars.' },
+          { zh: '管理费百分之二，业绩报酬百分之二十，门槛收益率百分之八。', p: 'Guǎnlǐfèi bǎi fēn zhī èr, yèjì bàochou bǎi fēn zhī èrshí, ménkǎn shōuyìlǜ bǎi fēn zhī bā.', en: 'Two percent management fee, twenty percent carry, eight percent hurdle.' },
+          { zh: '您有兴趣做我们的基石投资者吗？', p: 'Nín yǒu xìngqù zuò wǒmen de jīshí tóuzīzhě ma?', en: 'Would you be interested in anchoring the fund?' }
+        ] },
+      { id: 'sourcing', title: '项目与路演', en: 'Sourcing and the pitch', brief: 'Talking about deals, rounds and roles before the numbers get serious.',
+        terms: [
+          { w: '项目', p: 'xiàngmù', m: 'deal / project', note: 'Investors call every target company a 项目.' },
+          { w: '赛道', p: 'sàidào', m: 'sector / vertical', note: 'Literally “race track”: the hot sector.' },
+          { w: '商业模式', p: 'shāngyè móshì', m: 'business model' },
+          { w: '融资', p: 'róngzī', m: 'financing / to raise capital' },
+          { w: '轮次', p: 'lúncì', m: 'financing round', note: '天使轮 angel, A轮 Series A, B轮 Series B…' },
+          { w: '领投', p: 'lǐngtóu', m: 'to lead a round' },
+          { w: '跟投', p: 'gēntóu', m: 'to follow / co-invest' },
+          { w: '路演', p: 'lùyǎn', m: 'roadshow / pitch' },
+          { w: '商业计划书', p: 'shāngyè jìhuàshū', m: 'business plan (BP)' },
+          { w: '独角兽', p: 'dújiǎoshòu', m: 'unicorn' },
+          { w: '市场规模', p: 'shìchǎng guīmó', m: 'market size' },
+          { w: '竞争壁垒', p: 'jìngzhēng bìlěi', m: 'competitive moat' },
+          { w: '投资意向书', p: 'tóuzī yìxiàngshū', m: 'letter of intent / term sheet', note: 'Also 条款清单 (tiáokuǎn qīngdān) for the term sheet itself.' },
+          { w: '排他期', p: 'páitāqī', m: 'exclusivity period' },
+          { w: '保密协议', p: 'bǎomì xiéyì', m: 'non-disclosure agreement (NDA)' }
+        ],
+        phrases: [
+          { zh: '这个项目我们很感兴趣，想进一步了解。', p: 'Zhè ge xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyíbù liǎojiě.', en: 'We are very interested in this deal and would like to learn more.' },
+          { zh: '这一轮谁领投？我们可以考虑跟投。', p: 'Zhè yì lún shéi lǐngtóu? Wǒmen kěyǐ kǎolǜ gēntóu.', en: 'Who is leading this round? We could consider following.' },
+          { zh: '请先签保密协议，然后我们发商业计划书。', p: 'Qǐng xiān qiān bǎomì xiéyì, ránhòu wǒmen fā shāngyè jìhuàshū.', en: 'Please sign the NDA first, then we will send the business plan.' }
+        ] },
+      { id: 'terms', title: '估值与条款', en: 'Valuation and terms', brief: 'The term sheet in Chinese: every clause you will fight over.',
+        terms: [
+          { w: '估值', p: 'gūzhí', m: 'valuation' },
+          { w: '投前估值', p: 'tóuqián gūzhí', m: 'pre-money valuation' },
+          { w: '投后估值', p: 'tóuhòu gūzhí', m: 'post-money valuation' },
+          { w: '股权', p: 'gǔquán', m: 'equity' },
+          { w: '持股比例', p: 'chígǔ bǐlì', m: 'shareholding percentage' },
+          { w: '优先清算权', p: 'yōuxiān qīngsuànquán', m: 'liquidation preference' },
+          { w: '反稀释', p: 'fǎnxīshì', m: 'anti-dilution' },
+          { w: '对赌协议', p: 'duìdǔ xiéyì', m: 'valuation adjustment mechanism (VAM)', note: 'The famous “gambling agreement”: performance targets with equity or cash adjustments.' },
+          { w: '董事会席位', p: 'dǒngshìhuì xíwèi', m: 'board seat' },
+          { w: '一票否决权', p: 'yí piào fǒujuéquán', m: 'veto right' },
+          { w: '优先认购权', p: 'yōuxiān rèngòuquán', m: 'pre-emptive right' },
+          { w: '回购权', p: 'huígòuquán', m: 'redemption / buy-back right' },
+          { w: '期权池', p: 'qīquánchí', m: 'option pool (ESOP)' },
+          { w: '可转换优先股', p: 'kězhuǎnhuàn yōuxiāngǔ', m: 'convertible preferred shares' },
+          { w: '可转债', p: 'kězhuǎnzhài', m: 'convertible note' },
+          { w: '领售权', p: 'lǐngshòuquán', m: 'drag-along right' },
+          { w: '随售权', p: 'suíshòuquán', m: 'tag-along right' },
+          { w: '锁定期', p: 'suǒdìngqī', m: 'lock-up period' }
+        ],
+        phrases: [
+          { zh: '我们的报价是投前估值两亿美元，投资三千万美元。', p: 'Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.', en: 'Our offer is a 200 million pre-money valuation, investing 30 million.' },
+          { zh: '一倍不参与分配的优先清算权是我们的底线。', p: 'Yí bèi bù cānyù fēnpèi de yōuxiān qīngsuànquán shì wǒmen de dǐxiàn.', en: 'A one-times non-participating liquidation preference is our bottom line.' },
+          { zh: '估值可以谈，但是董事会席位不能少。', p: 'Gūzhí kěyǐ tán, dànshì dǒngshìhuì xíwèi bù néng shǎo.', en: 'Valuation is negotiable, but the board seat is not.' }
+        ] },
+      { id: 'dd', title: '尽职调查', en: 'Due diligence', brief: 'Financial, legal and commercial diligence: the questions you must be able to ask.',
+        terms: [
+          { w: '尽职调查', p: 'jìnzhí diàochá', m: 'due diligence', note: 'Shortened to 尽调 (jìndiào) in speech.' },
+          { w: '财务尽调', p: 'cáiwù jìndiào', m: 'financial due diligence' },
+          { w: '法律尽调', p: 'fǎlǜ jìndiào', m: 'legal due diligence' },
+          { w: '审计报告', p: 'shěnjì bàogào', m: 'audit report' },
+          { w: '数据室', p: 'shùjùshì', m: 'data room' },
+          { w: '现金流', p: 'xiànjīnliú', m: 'cash flow' },
+          { w: '营业收入', p: 'yíngyè shōurù', m: 'revenue' },
+          { w: '毛利率', p: 'máolìlǜ', m: 'gross margin' },
+          { w: '净利润', p: 'jìnglìrùn', m: 'net profit' },
+          { w: '应收账款', p: 'yīngshōu zhàngkuǎn', m: 'accounts receivable' },
+          { w: '负债', p: 'fùzhài', m: 'liabilities / debt' },
+          { w: '关联交易', p: 'guānlián jiāoyì', m: 'related-party transaction' },
+          { w: '合规', p: 'héguī', m: 'compliance' },
+          { w: '税务', p: 'shuìwù', m: 'tax affairs' },
+          { w: '知识产权', p: 'zhīshi chǎnquán', m: 'intellectual property' },
+          { w: '客户集中度', p: 'kèhù jízhōngdù', m: 'customer concentration' }
+        ],
+        phrases: [
+          { zh: '请把最近三年的审计报告放进数据室。', p: 'Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàng jìn shùjùshì.', en: 'Please put the last three years of audit reports in the data room.' },
+          { zh: '这笔关联交易是怎么定价的？', p: 'Zhè bǐ guānlián jiāoyì shì zěnme dìngjià de?', en: 'How was this related-party transaction priced?' },
+          { zh: '毛利率为什么去年下降了五个百分点？', p: 'Máolìlǜ wèi shénme qùnián xiàjiàng le wǔ ge bǎifēndiǎn?', en: 'Why did gross margin fall five percentage points last year?' }
+        ] },
+      { id: 'negotiation', title: '谈判用语', en: 'Negotiation language', brief: 'Pushing, conceding and holding without losing face on either side.',
+        terms: [
+          { w: '谈判', p: 'tánpàn', m: 'negotiation' },
+          { w: '让步', p: 'ràngbù', m: 'to concede / a concession' },
+          { w: '底线', p: 'dǐxiàn', m: 'bottom line' },
+          { w: '条件', p: 'tiáojiàn', m: 'condition / terms' },
+          { w: '双赢', p: 'shuāngyíng', m: 'win-win' },
+          { w: '妥协', p: 'tuǒxié', m: 'compromise' },
+          { w: '分歧', p: 'fēnqí', m: 'disagreement / gap' },
+          { w: '达成一致', p: 'dáchéng yízhì', m: 'reach agreement' },
+          { w: '原则上', p: 'yuánzé shang', m: 'in principle' },
+          { w: '灵活', p: 'línghuó', m: 'flexible' },
+          { w: '诚意', p: 'chéngyì', m: 'sincerity / good faith', note: 'Chinese counterparties speak of 诚意 constantly; show it with concrete steps.' },
+          { w: '面子', p: 'miànzi', m: 'face (reputation)', note: 'Never make the other side lose face in front of their team; push hard in private.' },
+          { w: '折中', p: 'zhézhōng', m: 'to split the difference' },
+          { w: '最后报价', p: 'zuìhòu bàojià', m: 'final offer' }
+        ],
+        phrases: [
+          { zh: '我们原则上同意，细节还需要再讨论。', p: 'Wǒmen yuánzé shang tóngyì, xìjié hái xūyào zài tǎolùn.', en: 'We agree in principle; the details need more discussion.' },
+          { zh: '这一点我们可以让步，但估值上希望您也灵活一些。', p: 'Zhè yì diǎn wǒmen kěyǐ ràngbù, dàn gūzhí shang xīwàng nín yě línghuó yìxiē.', en: 'We can concede this point, but we hope you can be flexible on valuation too.' },
+          { zh: '我们内部再讨论一下，明天给您答复。', p: 'Wǒmen nèibù zài tǎolùn yíxià, míngtiān gěi nín dáfù.', en: 'We will discuss internally and reply tomorrow.', note: 'The polite way to buy time without saying no.' },
+          { zh: '这已经是我们最后的报价了。', p: 'Zhè yǐjīng shì wǒmen zuìhòu de bàojià le.', en: 'This is already our final offer.' },
+          { zh: '我看我们各让一步，折中一下怎么样？', p: 'Wǒ kàn wǒmen gè ràng yí bù, zhézhōng yíxià zěnmeyàng?', en: 'How about we each give a little and split the difference?' }
+        ] },
+      { id: 'closing', title: '签约与交割', en: 'Signing, closing and money movement', brief: 'The mechanics of actually getting a cross-border deal done: conditions, wires, FX and the filings that gate them.',
+        terms: [
+          { w: '签约', p: 'qiānyuē', m: 'signing' },
+          { w: '交割', p: 'jiāogē', m: 'closing (completion)' },
+          { w: '交割条件', p: 'jiāogē tiáojiàn', m: 'conditions precedent (CPs)' },
+          { w: '交割日', p: 'jiāogērì', m: 'closing date' },
+          { w: '付款', p: 'fùkuǎn', m: 'payment' },
+          { w: '电汇', p: 'diànhuì', m: 'wire transfer' },
+          { w: '托管账户', p: 'tuōguǎn zhànghù', m: 'escrow account' },
+          { w: '外汇管制', p: 'wàihuì guǎnzhì', m: 'foreign-exchange control' },
+          { w: '结汇', p: 'jiéhuì', m: 'to convert foreign currency into RMB' },
+          { w: '购汇', p: 'gòuhuì', m: 'to buy foreign currency (with RMB)' },
+          { w: '汇率', p: 'huìlǜ', m: 'exchange rate' },
+          { w: '境外直接投资备案', p: 'jìngwài zhíjiē tóuzī bèi’àn', m: 'ODI filing (outbound direct investment)', note: 'Required for RMB money going out: NDRC and MOFCOM filings, then SAFE bank registration.' },
+          { w: '国家外汇管理局', p: 'Guójiā Wàihuì Guǎnlǐjú', m: 'SAFE (State Administration of Foreign Exchange)' },
+          { w: '发改委', p: 'Fāgǎiwěi', m: 'NDRC (National Development and Reform Commission)' },
+          { w: '商务部', p: 'Shāngwùbù', m: 'MOFCOM (Ministry of Commerce)' },
+          { w: '三十七号文登记', p: 'sānshíqī hào wén dēngjì', m: 'SAFE Circular 37 registration', note: 'Chinese founders holding offshore shares must register; check it in DD.' },
+          { w: '红筹架构', p: 'hóngchóu jiàgòu', m: 'red-chip structure (offshore holding)' },
+          { w: 'VIE结构', p: 'VIE jiégòu', m: 'variable-interest-entity structure' },
+          { w: '开曼公司', p: 'Kāimàn gōngsī', m: 'Cayman company' },
+          { w: '境内', p: 'jìngnèi', m: 'onshore' },
+          { w: '境外', p: 'jìngwài', m: 'offshore' },
+          { w: '工商变更', p: 'gōngshāng biàngēng', m: 'company registry update (SAMR)' }
+        ],
+        phrases: [
+          { zh: '所有交割条件满足后三个工作日内付款。', p: 'Suǒyǒu jiāogē tiáojiàn mǎnzú hòu sān ge gōngzuòrì nèi fùkuǎn.', en: 'Payment within three business days after all conditions precedent are satisfied.' },
+          { zh: '资金先打到托管账户，工商变更完成后再释放。', p: 'Zījīn xiān dǎ dào tuōguǎn zhànghù, gōngshāng biàngēng wánchéng hòu zài shìfàng.', en: 'Funds go to escrow first and are released after the registry update is complete.' },
+          { zh: '境外直接投资备案大概需要多长时间？', p: 'Jìngwài zhíjiē tóuzī bèi’àn dàgài xūyào duō cháng shíjiān?', en: 'Roughly how long will the ODI filing take?' },
+          { zh: '我们按签约日的汇率结算。', p: 'Wǒmen àn qiānyuē rì de huìlǜ jiésuàn.', en: 'We settle at the exchange rate on the signing date.' },
+          { zh: '钱到账了，交割完成，合作愉快！', p: 'Qián dàozhàng le, jiāogē wánchéng, hézuò yúkuài!', en: 'The funds have arrived, closing is complete, here’s to working together!' }
+        ] },
+      { id: 'legal', title: '法律文件', en: 'Legal documents and governance', brief: 'The agreements and clauses that carry the deal.',
+        terms: [
+          { w: '股东协议', p: 'gǔdōng xiéyì', m: 'shareholders’ agreement' },
+          { w: '股份购买协议', p: 'gǔfèn gòumǎi xiéyì', m: 'share purchase agreement (SPA)' },
+          { w: '公司章程', p: 'gōngsī zhāngchéng', m: 'articles of association' },
+          { w: '陈述与保证', p: 'chénshù yǔ bǎozhèng', m: 'representations and warranties' },
+          { w: '违约', p: 'wéiyuē', m: 'breach of contract' },
+          { w: '赔偿', p: 'péicháng', m: 'indemnity / compensation' },
+          { w: '仲裁', p: 'zhòngcái', m: 'arbitration', note: 'HKIAC (香港国际仲裁中心) or SIAC are the usual cross-border venues.' },
+          { w: '管辖法律', p: 'guǎnxiá fǎlǜ', m: 'governing law' },
+          { w: '生效', p: 'shēngxiào', m: 'to come into effect' },
+          { w: '终止', p: 'zhōngzhǐ', m: 'to terminate' },
+          { w: '附件', p: 'fùjiàn', m: 'schedule / attachment' },
+          { w: '盖章', p: 'gàizhāng', m: 'to stamp with the company seal', note: 'In China the red company chop (公章) binds the company more than a signature.' },
+          { w: '律师事务所', p: 'lǜshī shìwùsuǒ', m: 'law firm' }
+        ],
+        phrases: [
+          { zh: '协议适用香港法律，争议提交香港国际仲裁中心仲裁。', p: 'Xiéyì shìyòng Xiānggǎng fǎlǜ, zhēngyì tíjiāo Xiānggǎng Guójì Zhòngcái Zhōngxīn zhòngcái.', en: 'The agreement is governed by Hong Kong law; disputes go to HKIAC arbitration.' },
+          { zh: '请贵方律师尽快回复我们的修改意见。', p: 'Qǐng guìfāng lǜshī jǐnkuài huífù wǒmen de xiūgǎi yìjiàn.', en: 'Please have your counsel respond to our mark-up as soon as possible.', note: '贵方 = your side (formal); 我方 = our side.' },
+          { zh: '合同一式两份，双方签字盖章后生效。', p: 'Hétong yí shì liǎng fèn, shuāngfāng qiānzì gàizhāng hòu shēngxiào.', en: 'Two originals; effective once both sides sign and chop.' }
+        ] },
+      { id: 'exit', title: '退出与回报', en: 'Exits and returns', brief: 'How the money comes back, and how to talk about performance.',
+        terms: [
+          { w: '退出', p: 'tuìchū', m: 'exit' },
+          { w: '上市', p: 'shàngshì', m: 'to list / IPO' },
+          { w: '首次公开募股', p: 'shǒucì gōngkāi mùgǔ', m: 'initial public offering (IPO)' },
+          { w: '并购', p: 'bìnggòu', m: 'mergers and acquisitions (M&A)' },
+          { w: '老股转让', p: 'lǎogǔ zhuǎnràng', m: 'secondary sale of existing shares' },
+          { w: '科创板', p: 'Kēchuàngbǎn', m: 'STAR Market (Shanghai)' },
+          { w: '港交所', p: 'Gǎngjiāosuǒ', m: 'Hong Kong Stock Exchange (HKEX)' },
+          { w: '纳斯达克', p: 'Nàsīdákè', m: 'NASDAQ' },
+          { w: '回报倍数', p: 'huíbào bèishù', m: 'multiple on invested capital (MOIC)' },
+          { w: '内部收益率', p: 'nèibù shōuyìlǜ', m: 'internal rate of return (IRR)' },
+          { w: '账面价值', p: 'zhàngmiàn jiàzhí', m: 'book value' },
+          { w: '分配', p: 'fēnpèi', m: 'distribution' },
+          { w: '减持', p: 'jiǎnchí', m: 'to reduce a holding / sell down' }
+        ],
+        phrases: [
+          { zh: '我们计划三到五年内通过上市或并购退出。', p: 'Wǒmen jìhuà sān dào wǔ nián nèi tōngguò shàngshì huò bìnggòu tuìchū.', en: 'We plan to exit within three to five years via IPO or M&A.' },
+          { zh: '上一期基金的内部收益率是百分之二十五，回报倍数三倍。', p: 'Shàng yì qī jījīn de nèibù shōuyìlǜ shì bǎi fēn zhī èrshíwǔ, huíbào bèishù sān bèi.', en: 'The previous fund’s IRR was 25 percent with a 3x multiple.' }
+        ] },
+      { id: 'banquet', title: '饭局与关系', en: 'Banquets and relationships', brief: 'Deals in China are closed at the table as much as at the desk.',
+        terms: [
+          { w: '关系', p: 'guānxi', m: 'relationships / connections' },
+          { w: '饭局', p: 'fànjú', m: 'business dinner' },
+          { w: '请客', p: 'qǐngkè', m: 'to host / treat', note: 'The host pays, always; fight for the bill politely and lose.' },
+          { w: '敬酒', p: 'jìngjiǔ', m: 'to toast someone', note: 'Clink your glass lower than a senior person’s.' },
+          { w: '干杯', p: 'gānbēi', m: 'cheers (bottoms up)' },
+          { w: '白酒', p: 'báijiǔ', m: 'Chinese liquor' },
+          { w: '随意', p: 'suíyì', m: 'as you like (not bottoms up)', note: 'Say 我随意 to sip rather than drain the glass.' },
+          { w: '主宾', p: 'zhǔbīn', m: 'guest of honour', note: 'Seated facing the door, to the host’s right.' },
+          { w: '买单', p: 'mǎidān', m: 'to pay the bill' },
+          { w: '客气', p: 'kèqi', m: 'polite / to stand on ceremony' },
+          { w: '长期合作', p: 'chángqī hézuò', m: 'long-term cooperation' },
+          { w: '朋友', p: 'péngyou', m: 'friend', note: '先做朋友，再做生意: be friends first, then do business.' }
+        ],
+        phrases: [
+          { zh: '我敬您一杯，感谢您的信任和支持。', p: 'Wǒ jìng nín yì bēi, gǎnxiè nín de xìnrèn hé zhīchí.', en: 'A toast to you, with thanks for your trust and support.' },
+          { zh: '合作愉快，以后常来往！', p: 'Hézuò yúkuài, yǐhòu cháng láiwǎng!', en: 'To a happy partnership; let’s stay in close touch!' },
+          { zh: '今天我做东，大家别客气。', p: 'Jīntiān wǒ zuòdōng, dàjiā bié kèqi.', en: 'Tonight is on me, everyone; please don’t stand on ceremony.' },
+          { zh: '先做朋友，再做生意。', p: 'Xiān zuò péngyou, zài zuò shēngyi.', en: 'Friends first, business second.' }
+        ] },
+      { id: 'numbers', title: '数字与金额', en: 'Numbers and money', brief: 'Chinese counts in ten-thousands. Get 万 and 亿 wrong and the deal is off by a hundredfold.',
+        terms: [
+          { w: '万', p: 'wàn', m: 'ten thousand', note: '一百万 = 1,000,000. Think in units of 万.' },
+          { w: '亿', p: 'yì', m: 'hundred million', note: '十亿 = 1 billion; 一千亿 = 100 billion.' },
+          { w: '人民币', p: 'rénmínbì', m: 'renminbi (RMB, CNY)' },
+          { w: '美元', p: 'měiyuán', m: 'US dollar' },
+          { w: '港币', p: 'gǎngbì', m: 'Hong Kong dollar' },
+          { w: '百分之', p: 'bǎi fēn zhī', m: 'percent (百分之二十 = 20%)' },
+          { w: '基点', p: 'jīdiǎn', m: 'basis point' },
+          { w: '倍', p: 'bèi', m: 'times / multiple (三倍 = 3x)' },
+          { w: '折扣', p: 'zhékòu', m: 'discount', note: '八折 = 20% off (you pay 80%).' },
+          { w: '利率', p: 'lìlǜ', m: 'interest rate' },
+          { w: '成本', p: 'chéngběn', m: 'cost' },
+          { w: '预算', p: 'yùsuàn', m: 'budget' },
+          { w: '大约', p: 'dàyuē', m: 'approximately' }
+        ],
+        phrases: [
+          { zh: '三千万美元，大约两亿一千万人民币。', p: 'Sānqiān wàn měiyuán, dàyuē liǎng yì yìqiān wàn rénmínbì.', en: 'Thirty million dollars, roughly 210 million RMB.' },
+          { zh: '估值打八折，我们就可以马上签。', p: 'Gūzhí dǎ bā zhé, wǒmen jiù kěyǐ mǎshàng qiān.', en: 'A 20 percent discount on valuation and we can sign immediately.' }
+        ] },
+      { id: 'followup', title: '会议与跟进', en: 'Meetings, email and WeChat', brief: 'The follow-up rhythm that keeps a Chinese deal moving between meetings.',
+        terms: [
+          { w: '会议', p: 'huìyì', m: 'meeting' },
+          { w: '议程', p: 'yìchéng', m: 'agenda' },
+          { w: '会议纪要', p: 'huìyì jìyào', m: 'meeting minutes' },
+          { w: '跟进', p: 'gēnjìn', m: 'to follow up' },
+          { w: '对接', p: 'duìjiē', m: 'to liaise / connect with a counterpart' },
+          { w: '落实', p: 'luòshí', m: 'to implement / nail down' },
+          { w: '推进', p: 'tuījìn', m: 'to push forward' },
+          { w: '尽快', p: 'jǐnkuài', m: 'as soon as possible' },
+          { w: '确认', p: 'quèrèn', m: 'to confirm' },
+          { w: '附件', p: 'fùjiàn', m: 'attachment' },
+          { w: '时间表', p: 'shíjiānbiǎo', m: 'timeline' },
+          { w: '微信', p: 'Wēixìn', m: 'WeChat', note: 'Business happens on WeChat, not email. Add contacts at the first meeting.' },
+          { w: '视频会议', p: 'shìpín huìyì', m: 'video call' },
+          { w: '时差', p: 'shíchā', m: 'time difference' }
+        ],
+        phrases: [
+          { zh: '王总您好，附件是今天的会议纪要，请您确认。', p: 'Wáng zǒng nín hǎo, fùjiàn shì jīntiān de huìyì jìyào, qǐng nín quèrèn.', en: 'Hello Mr Wang, attached are today’s minutes, please confirm.' },
+          { zh: '方便的话，我们下周三北京时间上午十点视频会议？', p: 'Fāngbiàn de huà, wǒmen xià zhōusān Běijīng shíjiān shàngwǔ shí diǎn shìpín huìyì?', en: 'If convenient, a video call next Wednesday at 10 a.m. Beijing time?' },
+          { zh: '麻烦您加一下我的微信，方便后续对接。', p: 'Máfan nín jiā yíxià wǒ de Wēixìn, fāngbiàn hòuxù duìjiē.', en: 'Please add my WeChat so we can coordinate going forward.' },
+          { zh: '我们尽快推进，争取月底前完成交割。', p: 'Wǒmen jǐnkuài tuījìn, zhēngqǔ yuèdǐ qián wánchéng jiāogē.', en: 'We will push ahead quickly and aim to close before month-end.' }
+        ] }
+    ],
+    dialogues: [
+      { id: 'd-termsheet', title: '谈条款清单', en: 'Negotiating the term sheet', level: 'Deal desk', lines: [
+        { who: '投资人', zh: '李总，我们的报价是投前估值两亿美元，投资三千万。', p: 'Lǐ zǒng, wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn.', en: 'Mr Li, our offer is 200 million pre-money, investing 30 million.' },
+        { who: '创始人', zh: '坦白说，我们期望的估值是两亿五千万。', p: 'Tǎnbái shuō, wǒmen qīwàng de gūzhí shì liǎng yì wǔqiān wàn.', en: 'Frankly, we were expecting 250 million.' },
+        { who: '投资人', zh: '估值我们可以再谈，但一倍优先清算权和一个董事会席位是底线。', p: 'Gūzhí wǒmen kěyǐ zài tán, dàn yí bèi yōuxiān qīngsuànquán hé yí ge dǒngshìhuì xíwèi shì dǐxiàn.', en: 'Valuation is open, but a 1x liquidation preference and one board seat are our bottom line.' },
+        { who: '创始人', zh: '席位没问题。清算权我们希望是不参与分配的。', p: 'Xíwèi méi wèntí. Qīngsuànquán wǒmen xīwàng shì bù cānyù fēnpèi de.', en: 'The seat is fine. On the preference we want non-participating.' },
+        { who: '投资人', zh: '可以。那估值我们折中，两亿两千五百万，怎么样？', p: 'Kěyǐ. Nà gūzhí wǒmen zhézhōng, liǎng yì liǎngqiān wǔbǎi wàn, zěnmeyàng?', en: 'Agreed. Then let’s split the difference on valuation: 225 million?' },
+        { who: '创始人', zh: '我们内部讨论一下，明天给您答复。', p: 'Wǒmen nèibù tǎolùn yíxià, míngtiān gěi nín dáfù.', en: 'We will discuss internally and reply tomorrow.' }
+      ] },
+      { id: 'd-closing', title: '交割前的电话', en: 'The pre-closing call', level: 'Deal desk', lines: [
+        { who: '我方律师', zh: '交割条件还剩两项：境外直接投资备案和工商变更。', p: 'Jiāogē tiáojiàn hái shèng liǎng xiàng: jìngwài zhíjiē tóuzī bèi’àn hé gōngshāng biàngēng.', en: 'Two conditions precedent remain: the ODI filing and the registry update.' },
+        { who: '对方', zh: '备案下周能拿到，工商变更大概需要十个工作日。', p: 'Bèi’àn xià zhōu néng nádào, gōngshāng biàngēng dàgài xūyào shí ge gōngzuòrì.', en: 'The filing comes next week; the registry update needs about ten business days.' },
+        { who: '我方', zh: '那我们先把资金打到托管账户，变更完成后释放。', p: 'Nà wǒmen xiān bǎ zījīn dǎ dào tuōguǎn zhànghù, biàngēng wánchéng hòu shìfàng.', en: 'Then we will wire the funds to escrow and release them once the update is done.' },
+        { who: '对方', zh: '同意。汇率按签约日计算，对吧？', p: 'Tóngyì. Huìlǜ àn qiānyuē rì jìsuàn, duì ba?', en: 'Agreed. The exchange rate is fixed at the signing date, correct?' },
+        { who: '我方', zh: '对。我今天把时间表发给大家，请确认。', p: 'Duì. Wǒ jīntiān bǎ shíjiānbiǎo fā gěi dàjiā, qǐng quèrèn.', en: 'Correct. I will send the timeline today; please confirm.' }
+      ] },
+      { id: 'd-lp', title: '向出资人路演', en: 'Pitching an LP', level: 'Deal desk', lines: [
+        { who: '普通合伙人', zh: '张总，感谢您抽时间。我们正在募集第三期美元基金，目标五亿。', p: 'Zhāng zǒng, gǎnxiè nín chōu shíjiān. Wǒmen zhèngzài mùjí dì-sān qī měiyuán jījīn, mùbiāo wǔ yì.', en: 'Mr Zhang, thank you for your time. We are raising our third USD fund, targeting 500 million.' },
+        { who: '有限合伙人', zh: '前两期的业绩怎么样？', p: 'Qián liǎng qī de yèjì zěnmeyàng?', en: 'How did the first two funds perform?' },
+        { who: '普通合伙人', zh: '一期已经全部退出，内部收益率百分之二十八，回报倍数三点二倍。', p: 'Yī qī yǐjīng quánbù tuìchū, nèibù shōuyìlǜ bǎi fēn zhī èrshíbā, huíbào bèishù sān diǎn èr bèi.', en: 'Fund I is fully exited: 28 percent IRR, 3.2x.' },
+        { who: '有限合伙人', zh: '管理费和业绩报酬呢？', p: 'Guǎnlǐfèi hé yèjì bàochou ne?', en: 'And the fees?' },
+        { who: '普通合伙人', zh: '二和二十，门槛收益率百分之八。基石投资者可以享受费用优惠。', p: 'Èr hé èrshí, ménkǎn shōuyìlǜ bǎi fēn zhī bā. Jīshí tóuzīzhě kěyǐ xiǎngshòu fèiyòng yōuhuì.', en: 'Two and twenty, eight percent hurdle. Anchor investors get a fee discount.' },
+        { who: '有限合伙人', zh: '有意思。把材料发我，我们投委会下个月讨论。', p: 'Yǒu yìsi. Bǎ cáiliào fā wǒ, wǒmen tóuwěihuì xià ge yuè tǎolùn.', en: 'Interesting. Send me the materials; our IC will discuss next month.' }
+      ] }
+    ]
+  };
+});

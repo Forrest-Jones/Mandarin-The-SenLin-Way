@@ -12,7 +12,7 @@
     set(k, v) { try { localStorage.setItem('senlin.' + k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
   };
   const state = {
-    settings: Object.assign({ startDate: S.CONFIG.startDate, charsPerDay: 3, rate: 0.85, voice: '', showPinyin: true, theme: 'auto' }, store.get('settings', {})),
+    settings: Object.assign({ startDate: S.CONFIG.startDate, charsPerDay: 3, rate: 0.85, voice: '', showPinyin: true, theme: 'auto', business: true }, store.get('settings', {})),
     cast: store.get('cast', { actors: {}, sets: {}, rooms: {}, props: {} }),
     srs: store.get('srs', {}),
     scenes: store.get('scenes', {}),
@@ -154,6 +154,19 @@
     const ps = Array.from({ length: 140 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5, r: 4 + Math.random() * 6, vx: -1.5 + Math.random() * 3, vy: 2 + Math.random() * 3, rot: Math.random() * 6, vr: -.2 + Math.random() * .4, col: cols[Math.floor(Math.random() * cols.length)] }));
     let t = 0; (function frame() { ctx.clearRect(0, 0, c.width, c.height); ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.rot += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.col; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); ctx.restore(); }); if (++t < 220) requestAnimationFrame(frame); else c.remove(); })();
   }
+  /** Where the learner stands on the HSK ladder, with dates at the current pace. */
+  function levelStatus() {
+    const st = S.curriculumStats(DAYS); const today = todayDay(); const done = state.progress.completed;
+    let prevEnd = 12;
+    return st.levels.map(l => {
+      const start = prevEnd + 1, end = l.lastDay; prevEnd = end;
+      const total = end - start + 1; let completed = 0; for (let d = start; d <= end; d++) if (done[d]) completed++;
+      const status = completed >= total ? 'done' : today >= start ? 'current' : 'locked';
+      return Object.assign({}, l, { start, end, total, completed, status, startDate: S.dateForDay(start, state.settings.startDate), endDate: S.dateForDay(end, state.settings.startDate) });
+    });
+  }
+  const currentLevelInfo = () => { const ls = levelStatus(); return ls.find(l => l.status === 'current') || ls.filter(l => l.status === 'done').pop() || ls[0]; };
+  const monthsBetween = (a, b) => Math.max(1, Math.round((b - a) / (30.44 * 86400000)));
   const learnedChars = () => S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => i.type === 'c' && state.progress.completed[i.day]).length;
   const dueCount = () => { const now = Date.now(); return Object.values(state.srs).filter(s => s.due <= now).length; };
 
@@ -186,6 +199,7 @@
       <div class="stack-lg">
         <section class="card card-accent stack">
           <span class="eyebrow">${fmtDate(new Date())} · Day ${day}${beyond ? ' · beyond the scheduled curriculum' : ''}</span>
+          ${(() => { const L = currentLevelInfo(); if (!L) return ''; const info = (S.LEVELINFO && S.LEVELINFO.levels.find(x => x.level === L.level)) || {}; return `<div class="row"><a class="chip chip-gold" href="#/levels"><b>${esc(L.name)}</b> · ${esc(info.cefr || '')} · ${L.completed}/${L.total} days</a><span class="muted small">${L.status === 'done' ? 'level complete' : `on track to finish ${esc(L.name)} by ${esc(fmtDate(L.endDate))}`}</span></div>`; })()}
           <h1 class="h1">${done ? 'Today’s tree is planted. 🌳' : beyond ? 'Consolidation day' : esc(info.phase)}</h1>
           <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
           <div class="row">
@@ -322,7 +336,7 @@
 
   function renderNew(L) {
     if (L.type === 'pron') return renderPron(L.pron);
-    if (!L.chars.length) return `<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>` + (L.words.length ? renderWords(L.words) : '') + renderGrammar(L.grammar);
+    if (!L.chars.length) return `<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>` + (L.words.length ? renderWords(L.words) : '') + renderGrammar(L.grammar) + renderDealDesk(L.business);
     return `<div class="stack" style="margin-top:1rem">
       <p class="muted small">For each character: look, listen, then close your eyes and <b>see the scene</b> for ten seconds. The actor gives you the initial, the set gives the final, the room gives the tone, the props give the shape.</p>
       ${L.chars.map(({ ch, scene: sc }) => `<div class="card stack" data-char="${ch.h}">
@@ -342,8 +356,12 @@
       </div>`).join('')}
       ${L.words.length ? renderWords(L.words) : ''}
       ${renderGrammar(L.grammar)}
+      ${renderDealDesk(L.business)}
     </div>`;
   }
+  const renderDealDesk = b => !b || !state.settings.business ? '' : `<div class="card stack" style="border-left:4px solid var(--sky-500)"><div class="row between"><span class="eyebrow">Deal desk · business Mandarin · ${esc(b.terms[0].unitTitle)}</span><a class="small muted" href="#/business">all units →</a></div>
+    ${b.terms.map(t => `<div class="row between"><div><span class="mid-hz">${esc(t.w)}</span> <span class="py">${pinyinHTML(t.p)}</span> <span class="muted">${esc(t.m)}</span>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ''}</div><span class="row">${playBtn(t.w)}${sayBtn(t.w)}<button class="btn btn-sm" data-addword="${esc(JSON.stringify({ w: t.w, p: t.p, m: t.m }))}">＋ deck</button></span></div>`).join('')}
+    <div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.25rem">${esc(b.phrase.zh)}</span><span class="row">${playBtn(b.phrase.zh)}${sayBtn(b.phrase.zh)}</span></div><div class="py small">${pinyinHTML(b.phrase.p)}</div><div class="muted small">${esc(b.phrase.en)}${b.phrase.note ? ' · ' + esc(b.phrase.note) : ''}</div></div></div>`;
   const renderGrammar = list => list.map(g => `<div class="card stack" style="border-left:4px solid var(--accent)"><span class="eyebrow">Pattern of the day · ${esc(g.name)}</span>
     <div class="mid-hz" style="font-size:1.3rem;font-family:var(--font-body)">${esc(g.pattern)}</div>
     <div class="row between"><div><span class="mid-hz">${esc(g.zh)}</span> <span class="py">${pinyinHTML(g.p)}</span><div class="muted">${esc(g.en)}</div></div><span class="row">${playBtn(g.zh)}${sayBtn(g.zh)}</span></div>
@@ -423,6 +441,7 @@
     document.querySelectorAll('[data-scene]').forEach(t => t.oninput = () => { state.scenes[t.dataset.scene] = t.value.trim(); save(); });
     document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
     document.querySelectorAll('[data-reveal]').forEach(e => e.onclick = () => e.classList.remove('hidden'));
+    document.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { if (window.SenLinApp.addWord) { window.SenLinApp.addWord(JSON.parse(b.dataset.addword)); b.textContent = '✓ in deck'; } });
     document.querySelectorAll('[data-shadow]').forEach(b => b.onclick = () => { lesson.shadow[b.dataset.shadow] = +b.dataset.n; renderSegment(); });
     if (id === 'quiz') { const q = L.quiz[lesson.quiz.i]; if (q && q.kind === 'listen' && !lesson.quiz.answered) setTimeout(() => tts.speak(q.prompt), 300); }
     if (id === 'quiz') document.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => {
@@ -555,6 +574,47 @@
     </div>`;
   };
 
+  /* ------------------------------------------------------------ LEVELS */
+  routes.levels = function () {
+    const info = S.LEVELINFO; const ls = levelStatus(); const start = S.parseISO(state.settings.startDate);
+    const perDay = state.settings.charsPerDay;
+    return `<div class="stack-lg">
+      <div><span class="eyebrow">The ladder</span><h1 class="h2">What each HSK level means, and when you reach it</h1><p class="lead">${esc(info.about)}</p></div>
+      <div class="card stack"><div class="row between"><b>Your road at ${perDay} characters a day, starting ${esc(fmtDate(start))}</b><a class="btn btn-sm" href="#/settings">change pace</a></div>
+        <table class="table"><thead><tr><th>Level</th><th>CEFR</th><th>Words</th><th>Typical study hours</th><th>SenLin days</th><th>Target date</th><th>Status</th></tr></thead><tbody>
+        ${ls.map(l => { const i = info.levels.find(x => x.level === l.level); return `<tr${l.status === 'current' ? ' style="background:var(--accent-soft)"' : ''}><td><b>${esc(l.name)}</b></td><td>${esc(i.cefr)}</td><td>${i.cumWords.toLocaleString()} total</td><td>${i.hours[0]}–${i.hours[1]} h</td><td>Day ${l.start}–${l.end} <span class="muted small">(${monthsBetween(S.dateForDay(1, state.settings.startDate), l.endDate)} months)</span></td><td>${esc(fmtDate(l.endDate))}</td><td>${l.status === 'done' ? '✅ done' : l.status === 'current' ? `🟢 ${l.completed}/${l.total}` : '🔒'}</td></tr>`; }).join('')}
+        </tbody></table>
+        <p class="small muted">“Typical study hours” are the ranges Hanban and university programmes cite for classroom learners. SenLin’s ten-minute lessons cover the vocabulary and grammar on the dates above; the Talk, Tone gym, Write and Deal Desk sessions on top of them are what turn that into the hours of real practice each level needs.</p></div>
+      ${info.levels.map(i => { const l = ls.find(x => x.level === i.level); return `<section class="card stack">
+        <div class="row between"><div><span class="eyebrow">${esc(i.name)} · ${esc(i.cefr)} · ${i.words} new words (${i.cumWords.toLocaleString()} cumulative)</span><h2 class="h3">${esc(i.canDo.split('.')[0])}.</h2></div><span class="chip${l.status === 'done' ? ' chip-accent' : l.status === 'current' ? ' chip-gold' : ''}">${l.status === 'done' ? 'complete' : l.status === 'current' ? 'in progress' : 'from ' + esc(fmtDate(l.startDate))}</span></div>
+        <p class="muted">${esc(i.canDo)}</p>
+        <div class="grid grid-2"><div><b>The exam</b><p class="small muted">${esc(i.exam)}</p></div><div><b>Official textbook</b><p class="small muted">${esc(i.book)}. Study hours: ${i.hours[0]}–${i.hours[1]}. In SenLin: days ${l.start}–${l.end} (${l.total} lessons, ${esc(fmtDate(l.startDate))} → ${esc(fmtDate(l.endDate))}).</p></div></div>
+        <details class="small"><summary class="muted">Units and topics this level covers</summary><ul class="stack" style="gap:.25rem;margin-top:.5rem">${i.topics.map(t => `<li>· ${esc(t)}</li>`).join('')}</ul></details>
+      </section>`; }).join('')}
+      <p class="small muted">${esc(info.note30)}</p>
+    </div>`;
+  };
+
+  /* ------------------------------------------------------------ DEAL DESK */
+  routes.business = function (arg) {
+    const B = S.BUSINESS; const unit = B.units.find(u => u.id === arg);
+    if (unit) return `<div class="stack-lg">
+      <div class="row between"><div><span class="eyebrow">Deal Desk · ${esc(unit.en)}</span><h1 class="h2"><span class="hz">${esc(unit.title)}</span></h1><p class="lead">${esc(unit.brief)}</p></div><a class="btn btn-sm btn-ghost" href="#/business">← all units</a></div>
+      <section class="card stack"><h2 class="h3">Terms</h2>${unit.terms.map(t => `<div class="row between"><div><span class="mid-hz">${esc(t.w)}</span> <span class="py">${pinyinHTML(t.p)}</span> <span class="muted">${esc(t.m)}</span>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ''}</div><span class="row">${playBtn(t.w)}${sayBtn(t.w)}<button class="btn btn-sm" data-addword="${esc(JSON.stringify({ w: t.w, p: t.p, m: t.m }))}">＋ deck</button></span></div>`).join('')}</section>
+      <section class="card stack"><h2 class="h3">Phrases that move a deal</h2>${unit.phrases.map(x => `<div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.3rem">${esc(x.zh)}</span><span class="row">${playBtn(x.zh)}${playBtn(x.zh, { slow: true, rate: 0.6 })}${sayBtn(x.zh)}</span></div><div class="py">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.en)}</div>${x.note ? `<div class="small faint">${esc(x.note)}</div>` : ''}</div>`).join('')}</section>
+      <div class="row"><a class="btn btn-primary" href="#/talk/biz-${unit.id === 'terms' ? 'terms' : unit.id === 'dd' ? 'dd' : unit.id === 'closing' || unit.id === 'legal' ? 'closing' : unit.id === 'banquet' ? 'banquet' : unit.id === 'fund' ? 'lp' : 'intro'}">Practise this live with the tutor</a></div>
+    </div>`;
+    const today = todayDay(); const desk = S.dealDesk(today, S.CONFIG.businessStartDay);
+    return `<div class="stack-lg">
+      <div><span class="eyebrow">Deal Desk · 交易台</span><h1 class="h2">Mandarin for cross-border private equity and venture deals</h1><p class="lead">${esc(B.intro)}</p></div>
+      ${desk ? `<section class="card card-accent stack"><span class="eyebrow">Today’s deal desk · cycle ${desk.cycle}</span><div class="row">${desk.terms.map(t => `<span class="chip chip-gold"><span class="hz">${esc(t.w)}</span> ${esc(t.p)} · ${esc(t.m)}</span>`).join('')}</div><div class="hz" style="font-size:1.3rem">${esc(desk.phrase.zh)}</div><div class="muted">${esc(desk.phrase.p)} — ${esc(desk.phrase.en)}</div></section>` : ''}
+      <div class="grid grid-3">${B.units.map((u, i) => `<a class="tile" href="#/business/${u.id}"><span class="faint small">Unit ${i + 1}</span><span class="hz" style="font-size:1.5rem">${esc(u.title)}</span><b>${esc(u.en)}</b><span class="small muted">${u.terms.length} terms · ${u.phrases.length} phrases</span></a>`).join('')}</div>
+      <section class="card stack"><h2 class="h3">Worked dialogues</h2>${B.dialogues.map(d => `<details><summary><b>${esc(d.en)}</b> <span class="hz muted">${esc(d.title)}</span></summary><div class="stack" style="margin-top:.6rem">${d.lines.map(l => `<div class="sentence" style="border-left-color:var(--grape-500)"><div class="row between"><span><span class="faint small">${esc(l.who)}</span><br><span class="hz" style="font-size:1.2rem">${esc(l.zh)}</span></span><span class="row">${playBtn(l.zh)}${sayBtn(l.zh)}</span></div><div class="py small">${pinyinHTML(l.p)}</div><div class="muted small">${esc(l.en)}</div></div>`).join('')}</div></details>`).join('')}</section>
+      <section class="card stack"><h2 class="h3">Live deal-room practice</h2><p class="muted small">Six role-plays with the AI tutor: first meeting, LP pitch, term-sheet negotiation, diligence call, closing call and the banquet. The tutor uses real deal vocabulary at your level and corrects every turn.</p><div class="row">${(window.SENLIN_SCENARIOS || []).filter(x => x.track === 'business').map(x => `<a class="btn btn-sm" href="#/talk/${x.id}">${esc(x.en)}</a>`).join('')}</div></section>
+    </div>`;
+  };
+  routes.business.after = () => { document.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { if (window.SenLinApp.addWord) { window.SenLinApp.addWord(JSON.parse(b.dataset.addword)); b.textContent = '✓ in deck'; } }); };
+
   /* ------------------------------------------------------------ METHOD */
   routes.method = function () {
     return `<div class="prose stack">
@@ -573,6 +633,8 @@
         ${(() => { const st = S.curriculumStats(DAYS); let start = 13; return st.levels.map(l => { const li = `<li><b>Days ${start}–${l.lastDay} · Phase ${l.level}, ${esc(l.name)}.</b> ${l.characters} characters, ${l.words} words and ${l.sentences} sentences, each unlocking exactly when you are ready for it.</li>`; start = l.lastDay + 1; return li; }).join(''); })()}
         <li><b>After the last level · Consolidation.</b> Daily review keeps the forest alive. HSK 6 is the ceiling of the standard test: at three characters a day the full road is about ${Math.round((S.CHARACTERS.length / 3 + 12) / 30)} months of ten-minute lessons, and you can raise the pace in Settings.</li>
       </ul>
+      <h2 class="h3">Levels and the Deal Desk</h2>
+      <p>The six phases follow the official HSK 2.0 vocabulary lists exactly (every listed word is taught, at its listed level) and the unit structure of the <i>HSK Standard Course</i> textbooks. The <a href="#/levels" style="text-decoration:underline">Levels</a> page defines each level, its exam and the date you reach it at your pace. The <a href="#/business" style="text-decoration:underline">Deal Desk</a> is a parallel track for cross-border private-equity and venture work: two terms and one closing phrase join every lesson, and six deal-room role-plays live in Talk.</p>
       <h2 class="h3">Credits</h2>
       <p class="small muted">This program is an original curriculum inspired by the publicly described methods of <a href="https://www.mandarinblueprint.com/" target="_blank" rel="noopener">Mandarin Blueprint</a> (Hanzi Movie Method, Pronunciation Mastery, top-down learning), James Heisig, Paul Pimsleur, Piotr Woźniak (SM-2), Stephen Krashen and Alexander Argüelles. It is not affiliated with any of them. Character decompositions are mnemonic-level approximations chosen for memorability.</p>
     </div>`;
@@ -587,6 +649,7 @@
       <section class="card stack">
         <div class="field"><label for="start">Day 1 date</label><input class="input" type="date" id="start" value="${esc(s.startDate)}"><span class="faint small">Today is Day ${todayDay()}. Change this to restart or to shift the calendar.</span></div>
         <div class="field"><label for="pace">New characters per day</label><select class="input" id="pace">${[2, 3, 4, 5].map(n => `<option value="${n}"${s.charsPerDay === n ? ' selected' : ''}>${n} per day (${Math.ceil(S.CHARACTERS.length / n) + S.PINYIN.pronunciationDays.length} days for Phase 1)</option>`).join('')}</select></div>
+        <div class="field"><label><input type="checkbox" id="biztoggle"${s.business ? ' checked' : ''}> Business track (Deal Desk) in every lesson</label><span class="faint small">Two PE/VC terms and one closing phrase a day, from Day 13. The full track lives under Deal Desk.</span></div>
         <div class="field"><label for="theme">Theme</label><select class="input" id="theme">${['auto', 'light', 'dark'].map(t => `<option value="${t}"${s.theme === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
       </section>
       <section class="card stack">
@@ -616,6 +679,7 @@
     $('#start').onchange = e => { if (e.target.value) { s.startDate = e.target.value; save(); toast('Day 1 set to ' + s.startDate); } };
     $('#pace').onchange = e => { s.charsPerDay = +e.target.value; save(); rebuild(); toast('Pace updated'); };
     $('#theme').onchange = e => { s.theme = e.target.value; save(); applyTheme(); };
+    $('#biztoggle').onchange = e => { s.business = e.target.checked; save(); toast(s.business ? 'Deal Desk on' : 'Deal Desk off'); };
     $('#voice').onchange = e => { s.voice = e.target.value; save(); };
     $('#voicesource').onchange = e => { s.voiceSource = e.target.value; save(); };
     $('#rate').oninput = e => { s.rate = +e.target.value; $('#rateval').textContent = s.rate; save(); };
@@ -628,7 +692,7 @@
   };
 
   /* ------------------------------------------------------------ bridge for add-on modules (tutor.js) */
-  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, navigate, DAYS: () => DAYS, todayDay, settingsExtra: null, settingsExtraAfter: null, extraReviewItems: () => [] };
+  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, playBtn, navigate, DAYS: () => DAYS, todayDay, levelStatus, settingsExtra: null, settingsExtraAfter: null, extraReviewItems: () => [], addWord: null };
 
   /* ------------------------------------------------------------ go */
   navigate();
