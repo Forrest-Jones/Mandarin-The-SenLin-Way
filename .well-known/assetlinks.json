@@ -1,11 +1,13 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.senlinway.mandarin",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_SHA256_FROM_PLAY_CONSOLE"
+        "7E:14:32:89:78:4F:02:A2:99:76:3A:B6:36:35:8C:D9:C3:F1:CA:A6:FD:BB:3B:75:FD:DE:6B:84:F7:69:3D:F1"
       ]
     }
   }
