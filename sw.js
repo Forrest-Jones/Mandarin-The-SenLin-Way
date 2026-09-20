@@ -1,7 +1,7 @@
 /* Mandarin The SenLin Way — service worker: works offline once visited.
    Same-origin: network first, cache fallback (so updates arrive immediately, and the last
    good copy serves offline). CDN (fonts, libraries, stroke data): cache first.               */
-const VERSION = 'senlin-v3';
+const VERSION = 'senlin-v4';
 const SHELL = ['./', './index.html', './css/senlin.css', './js/config.js', './js/loader.js', './js/engine.js', './js/native.js', './js/app.js', './js/cloud.js', './js/tutor.js', './js/practice.js',
   './js/data/pinyin.js', './js/data/components.js', './js/data/hsk1.js', './js/data/hsk2.js', './js/data/hsk3.js',
   './js/data/grammar.js', './js/data/scenarios.js', './js/data/business.js', './js/data/levelinfo.js', './assets/favicon.svg', './assets/icon-192.png', './manifest.webmanifest', './privacy.html', './terms.html'];
@@ -21,4 +21,20 @@ self.addEventListener('fetch', e => {
   } else if (/jsdelivr|cdnjs|gstatic|googleapis|sentry-cdn/.test(url.host)) {
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) { const copy = r.clone(); caches.open(VERSION).then(c => c.put(req, copy)); } return r; })));
   }
+});
+
+/* ---- daily reminder (Web Push from the SenLin API) */
+self.addEventListener('push', e => {
+  let data = { title: 'Your 10 minutes of Mandarin 🌱', body: 'One tree a day. Today’s lesson is ready.', url: '#/lesson' };
+  try { data = Object.assign(data, e.data ? e.data.json() : {}); } catch (err) { /* plain text */ }
+  e.waitUntil(self.registration.showNotification(data.title, { body: data.body, icon: './assets/icon-192.png', badge: './assets/icon-192.png', tag: 'senlin-daily', renotify: true, data: { url: data.url } }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const target = new URL('./' + ((e.notification.data && e.notification.data.url) || '#/'), self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const open = list.find(c => c.url.startsWith(self.registration.scope));
+    if (open) { open.navigate(target); return open.focus(); }
+    return self.clients.openWindow(target);
+  }));
 });

@@ -782,8 +782,9 @@
       ${window.SenLinApp && window.SenLinApp.placementExtra ? window.SenLinApp.placementExtra() : ''}
       ${window.SenLinApp && window.SenLinApp.settingsExtra ? window.SenLinApp.settingsExtra() : ''}
       <section class="card card-soft stack">
-        <h2 class="h3">Daily push</h2>
-        <p class="small muted">Add the 10-minute slot to your calendar: <a href="daily.ics" download>daily.ics</a> (7:00 every day, with a link straight to that day’s lesson). A GitHub-hosted daily reminder is described in the repository README.</p>
+        <h2 class="h3">Daily reminder</h2>
+        ${window.SenLinApp && window.SenLinApp.reminderExtra ? window.SenLinApp.reminderExtra() : ''}
+        <p class="small muted">Prefer a calendar? Add the 10-minute slot: <a href="daily.ics" download>daily.ics</a> (7:00 every day, with a link straight to that day’s lesson).</p>
       </section>
     </div>`;
   };
@@ -803,6 +804,7 @@
     if (window.SenLinApp && window.SenLinApp.settingsExtraAfter) window.SenLinApp.settingsExtraAfter();
     if (window.SenLinApp && window.SenLinApp.placementExtraAfter) window.SenLinApp.placementExtraAfter();
     if (window.SenLinApp && window.SenLinApp.accountExtraAfter) window.SenLinApp.accountExtraAfter();
+    if (window.SenLinApp && window.SenLinApp.reminderExtraAfter) window.SenLinApp.reminderExtraAfter();
   };
 
   /* ------------------------------------------------------------ bridge for add-on modules (tutor.js) */
@@ -814,7 +816,7 @@
     save(); rebuild(); applyTheme(); navigate();
   }
   const snapshot = () => ({ settings: state.settings, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress, extra: state.extra, talks: state.talks });
-  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, playBtn, navigate, rebuild, applyData, snapshot, listenOnce, listenEngine, matchScore, DAYS: () => DAYS, todayDay, levelStatus, locked, settingsExtra: null, settingsExtraAfter: null, accountExtra: null, accountExtraAfter: null, extraReviewItems: () => [], addWord: null };
+  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, playBtn, navigate, rebuild, applyData, snapshot, listenOnce, listenEngine, matchScore, DAYS: () => DAYS, todayDay, levelStatus, locked, settingsExtra: null, settingsExtraAfter: null, accountExtra: null, accountExtraAfter: null, reminderExtra: null, reminderExtraAfter: null, extraReviewItems: () => [], addWord: null };
 
   /* ------------------------------------------------------------ go */
   navigate();

@@ -15,6 +15,7 @@ export const SCHEMA = {
   usage: { pk: ['user_id', 'day'], defaults: { messages: 0, input_tokens: 0, output_tokens: 0, tts_chars: 0, stt_seconds: 0 } },
   events: { pk: ['id'] },
   errors: { pk: ['id'] },
+  push_subs: { pk: ['id'], unique: [['endpoint']], defaults: { user_id: null, anon: null, hour: 7, minute: 0, tz: 'UTC', last_sent: null } },
 };
 
 export class FakeD1 {

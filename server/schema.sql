@@ -64,4 +64,19 @@ CREATE TABLE IF NOT EXISTS errors (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS errors_created ON errors (created_at);
+
+-- Web Push daily reminders (one row per browser/device subscription)
+CREATE TABLE IF NOT EXISTS push_subs (
+  id         TEXT PRIMARY KEY,
+  user_id    TEXT,
+  anon       TEXT,
+  endpoint   TEXT NOT NULL UNIQUE,
+  p256dh     TEXT NOT NULL,
+  auth       TEXT NOT NULL,
+  hour       INTEGER NOT NULL DEFAULT 7,
+  minute     INTEGER NOT NULL DEFAULT 0,
+  tz         TEXT NOT NULL DEFAULT 'UTC',
+  created_at TEXT NOT NULL,
+  last_sent  TEXT
+);
 CREATE INDEX IF NOT EXISTS users_created  ON users (created_at);

@@ -331,6 +331,54 @@
     backups().then(list => { const el = $('#backups'); if (!el) return; el.innerHTML = list.length ? list.map(b => `<div class="row between"><span>v${b.version} · ${fmt(b.createdAt)} · ${Math.round(b.bytes / 1024)} KB</span><button class="btn btn-sm" data-restore="${b.version}">Restore</button></div>`).join('') : 'No backups yet — one is kept for every sync.'; el.querySelectorAll('[data-restore]').forEach(b => { b.onclick = async () => { if (confirm('Replace this device’s progress with backup v' + b.dataset.restore + '?')) { await restoreBackup(+b.dataset.restore); toast('Backup restored'); } }; }); }).catch(() => { const el = $('#backups'); if (el) el.textContent = 'Could not load backups.'; });
   };
 
+  /* ------------------------------------------------------------ daily reminder (Web Push on the web / TWA, local notifications in the native apps) */
+  const rem = () => Object.assign({ on: false, hour: 7, minute: 0, endpoint: '' }, state.settings.reminder || {});
+  const canPush = () => !!(available() && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol.startsWith('http'));
+  const b64ToU8 = s => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - s.length % 4) % 4)); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+  async function reminderOn(hour, minute) {
+    const N = window.SenLinNative;
+    if (N && N.isNative && N.notify && N.notify.available) {
+      const ok = await N.notify.schedule(hour, minute); if (!ok) throw new Error('Notifications are blocked for the app. Allow them in the phone settings.');
+      state.settings.reminder = { on: true, hour, minute, endpoint: 'native' }; A.save(); return;
+    }
+    if (!canPush()) throw new Error('This browser cannot receive reminders. Install the app or use Chrome / Edge / Android.');
+    if ((await Notification.requestPermission()) !== 'granted') throw new Error('Notifications were not allowed.');
+    const reg = await navigator.serviceWorker.ready;
+    const { publicKey } = await api('/v1/push/vapid');
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(publicKey) });
+    const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC';
+    await api('/v1/push/subscribe', { method: 'POST', json: { subscription: sub.toJSON(), hour, minute, tz }, headers: { 'X-Senlin-Anon': anon } });
+    state.settings.reminder = { on: true, hour, minute, endpoint: sub.endpoint }; A.save();
+    track('install', { reminder: true });
+  }
+  async function reminderOff() {
+    const r = rem(); const N = window.SenLinNative;
+    if (r.endpoint === 'native' && N && N.notify) { await N.notify.cancel().catch(() => {}); }
+    else if (canPush()) { try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) { await api('/v1/push/subscribe', { method: 'DELETE', json: { endpoint: sub.endpoint } }).catch(() => {}); await sub.unsubscribe(); } } catch (e) { /* ignore */ } }
+    state.settings.reminder = Object.assign(r, { on: false, endpoint: '' }); A.save();
+  }
+  A.reminderExtra = () => {
+    const r = rem(); const supported = canPush() || (window.SenLinNative && window.SenLinNative.isNative);
+    if (!supported) return `<p class="small muted">A daily notification needs the installed app (Android, iPhone) or Chrome / Edge on Android and desktop${available() ? '' : ', with the server connected'}.</p>`;
+    return `<div class="row" style="align-items:center">
+        <label class="row small" style="gap:.4rem"><input type="checkbox" id="rem-on" ${r.on ? 'checked' : ''}> Remind me every day at</label>
+        <input class="input" id="rem-time" type="time" aria-label="Reminder time" value="${String(r.hour).padStart(2, '0')}:${String(r.minute).padStart(2, '0')}" style="max-width:130px">
+        ${r.on && r.endpoint && r.endpoint !== 'native' ? '<button class="btn btn-sm btn-ghost" id="rem-test">Send a test</button>' : ''}
+      </div>
+      <p class="small muted" id="rem-note">${r.on ? 'On. Delivered even when the site is closed.' : 'Off. Uses your phone’s notifications; nothing to install.'}</p>`;
+  };
+  A.reminderExtraAfter = () => {
+    const on = $('#rem-on'); if (!on) return;
+    const apply = async () => {
+      const [h, m] = ($('#rem-time').value || '07:00').split(':').map(Number); const note = $('#rem-note');
+      try { if (on.checked) { note.textContent = 'setting up…'; await reminderOn(h, m); toast('Reminder set for ' + $('#rem-time').value); } else { await reminderOff(); toast('Reminder off'); } A.navigate(); }
+      catch (e) { on.checked = false; note.textContent = e.message || 'Could not set the reminder'; }
+    };
+    on.onchange = apply; $('#rem-time').onchange = () => { if (on.checked) apply(); };
+    const t = $('#rem-test'); if (t) t.onclick = async () => { try { const r = await api('/v1/push/test', { method: 'POST', json: { endpoint: rem().endpoint } }); toast(r.ok ? 'Sent — check your notifications' : 'The push service refused (' + r.status + ')'); } catch (e) { toast(e.message || 'Could not send'); } };
+  };
+
   /* ------------------------------------------------------------ boot */
   window.SenLinCloud = { available, signedIn, token, isPro, api, requestCode, verify, password, health, signOut, push, pull, dirty, chat, tts, stt, track, flush, reportError, buy, portal, restorePurchase: restore, plans, refreshEntitlement, backups, restore: restoreBackup, user: () => auth && auth.user };
   if (/^#\/pro/.test(location.hash)) A.navigate();

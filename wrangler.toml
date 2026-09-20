@@ -5,6 +5,9 @@ name = "senlin-api"
 main = "server/src/worker.js"
 compatibility_date = "2026-06-01"
 workers_dev = true
+
+[triggers]
+crons = ["*/15 * * * *"]   # daily reminder notifications, checked every 15 minutes across time zones
 account_id = "ccb05cb514e5966400f2edd418ca8688"
 
 # Resources are provisioned automatically on first deploy when no id is given (Wrangler 4 resource

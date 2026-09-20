@@ -11,6 +11,7 @@ import { handleStt, sttProvider } from './stt.js';
 import { handleEvents, handleErrors, handleAdminStats } from './events.js';
 import { handleRevenueCat, handleStripe, handleEntitlement, handlePlans, handleCheckout, handlePortal, handleStripeSetup } from './billing.js';
 import { ensureSchema } from './schema.js';
+import { handleVapid, handleSubscribe, handleUnsubscribe, handlePushTest, runDailyPush } from './push.js';
 
 export const VERSION = '2026.09.20';
 
@@ -60,6 +61,10 @@ export const ROUTES = [
   ['POST', '/v1/stt', handleStt],
   ['POST', '/v1/events', handleEvents],
   ['POST', '/v1/errors', handleErrors],
+  ['GET', '/v1/push/vapid', handleVapid],
+  ['POST', '/v1/push/subscribe', handleSubscribe],
+  ['DELETE', '/v1/push/subscribe', handleUnsubscribe],
+  ['POST', '/v1/push/test', handlePushTest],
   ['GET', '/v1/admin/stats', handleAdminStats],
   ['GET', '/v1/admin/stripe-setup', handleStripeSetup],
   ['POST', '/v1/admin/stripe-setup', handleStripeSetup],
@@ -111,5 +116,10 @@ export default {
   async fetch(request, env, ctx) {
     const response = await handleRequest(request, env, ctx);
     return withCors(response, request, env);
+  },
+  // Cron (wrangler.toml [triggers]): every 15 minutes, send the daily reminder to whoever is due in their time zone
+  async scheduled(event, env, ctx) {
+    await ensureSchema(env);
+    ctx.waitUntil(runDailyPush(env).then((r) => console.log('daily push', JSON.stringify(r))).catch((e) => console.error('daily push failed', e && e.message)));
   },
 };
