@@ -7,6 +7,17 @@ No build step: plain HTML, CSS and JavaScript deployed to GitHub Pages, plus an 
 
 森林 *sēnlín* means forest. 木 is a tree, 林 is woods, 森 is a forest. **Building your Mandarin Word Forest, one tree at a time.**
 
+## Launch status
+
+| Piece | State |
+| --- | --- |
+| Website (PWA) | live at the link above, CI-tested on every push |
+| API worker | live at `https://senlin-api.forrestjones2010.workers.dev` (accounts, sync, backups, Stripe, reminders, cron) |
+| Payments | Stripe wired end to end in **test mode**; swap in the live key to charge real cards (`server/README.md`) |
+| Android | signed Play bundle built by the *Build Android app* workflow; download `senlin-android` from the latest run and upload it in Play Console → Internal testing. `.well-known/assetlinks.json` already carries the signing fingerprint |
+| iOS | Xcode project generated and committed at `native/ios/App/App.xcworkspace`; open on a Mac, choose your Team, Archive, upload to App Store Connect |
+| Still needs the owner | Google Play developer account ($25) and Apple Developer Program ($99/yr); provider keys for the cloud tutor (`ANTHROPIC_API_KEY`), sign-in emails (`RESEND_API_KEY`) and voice (`AZURE_TTS_KEY`, `DEEPGRAM_API_KEY`) as GitHub secrets, synced to the worker on the next deploy |
+
 ## What it does
 
 Every day is one lesson, always the same shape, always ten minutes on a visible clock:
