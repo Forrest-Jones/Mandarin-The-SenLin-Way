@@ -1,0 +1,36 @@
+name: Deploy API worker
+
+# Deploys server/ to Cloudflare Workers whenever it changes on main.
+# Needs two repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   (dash.cloudflare.com → My Profile → API Tokens → "Edit Cloudflare Workers" template, plus D1:Edit and Workers KV Storage:Edit)
+#   CLOUDFLARE_ACCOUNT_ID  (dashboard → Workers & Pages → Account ID on the right)
+# If the repository is connected through the Cloudflare Git integration instead, this workflow is
+# redundant and skips itself when the secrets are absent.
+on:
+  push:
+    branches: [main]
+    paths: ['server/**', 'wrangler.toml', '.github/workflows/deploy-worker.yml']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests
+        run: node --test server/test/*.test.js
+      - name: Deploy with Wrangler
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        working-directory: server
+        run: |
+          npm install --no-audit --no-fund
+          npx wrangler deploy
+      - name: Skipped
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo "CLOUDFLARE_API_TOKEN not set; the Cloudflare Git integration deploys this worker instead."

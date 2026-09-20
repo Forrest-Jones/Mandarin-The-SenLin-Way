@@ -170,7 +170,12 @@
   const fmt = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'never';
   function renderStatus() { const el = $('#sync-status'); if (el) el.textContent = signedIn() ? `Synced ${fmt(sync.lastPush || sync.lastPull)} · v${sync.version || 0}` : ''; }
   A.accountExtra = () => {
-    if (!available()) return '';
+    if (!available()) return `<section class="card stack" id="account">
+      <span class="eyebrow">Account</span><h2 class="h3">Connect your server</h2>
+      <p class="muted small">Accounts, cross-device sync, the built-in tutor and the cloud voice need the SenLin API (the Cloudflare Worker in <code>server/</code>). Paste its URL once; it is remembered on this device.</p>
+      <div class="row"><input class="input" id="api-url" type="url" placeholder="https://senlin-api.you.workers.dev" style="max-width:360px"><button class="btn btn-primary" id="api-save">Connect</button></div>
+      <p class="small muted" id="api-note"></p>
+    </section>`;
     if (!signedIn()) return `<section class="card card-accent stack" id="account">
       <span class="eyebrow">Account</span><h2 class="h3">Sign in to sync your forest</h2>
       <p class="muted small">Progress, reviews and scenes follow you across phone and laptop, with automatic backups. Sign-in is a 6-digit code by email. No password.</p>
@@ -183,13 +188,24 @@
     return `<section class="card card-accent stack" id="account">
       <div class="row between"><div><span class="eyebrow">Account</span><h2 class="h3">${esc(u.email || '')}</h2><p class="small muted"><b>${isPro() ? 'Pro' : 'Free'}</b>${auth.expiresAt ? ` · renews ${fmt(auth.expiresAt)}` : ''} · <span id="sync-status"></span></p></div>
         <div class="row"><button class="btn btn-sm" id="sync-now">Sync now</button><button class="btn btn-sm btn-ghost" id="acct-out">Sign out</button></div></div>
+      <p class="small faint">Server: ${esc(BASE)}${store.get('apiBase', null) ? ' <button class="btn btn-sm btn-ghost" id="api-forget">Disconnect</button>' : ''}</p>
       ${CFG.paywall && !isPro() ? `<div class="row"><button class="btn btn-gold" id="acct-pro">Go Pro — the whole road to HSK 6</button></div>` : ''}
       <details><summary class="small">Backups</summary><div id="backups" class="small muted">loading…</div></details>
       ${CFG.analytics === 'opt-in' ? `<label class="row small"><input type="checkbox" id="analytics" ${state.settings.analytics ? 'checked' : ''}> Share anonymous usage counts (which pages and features are used; never your text, voice or email)</label>` : ''}
     </section>`;
   };
   A.accountExtraAfter = () => {
-    if (!available()) return;
+    if (!available()) {
+      const b = $('#api-save'); if (!b) return;
+      b.onclick = async () => {
+        const url = $('#api-url').value.trim().replace(/\/$/, ''); const note = $('#api-note');
+        if (!/^https?:\/\//.test(url)) { note.textContent = 'Enter the full URL, starting with https://'; return; }
+        note.textContent = 'checking…';
+        try { const r = await fetch(url + '/v1/health'); const h = await r.json(); if (!h.ok) throw new Error('not a SenLin API'); store.set('apiBase', url); note.textContent = 'Connected. Reloading…'; setTimeout(() => location.reload(), 600); }
+        catch (e) { note.textContent = 'Could not reach a SenLin API at that address (' + (e.message || e) + ')'; }
+      };
+      return;
+    }
     const send = $('#acct-send');
     if (send) {
       send.onclick = async () => {
@@ -209,6 +225,7 @@
     renderStatus();
     $('#sync-now').onclick = async () => { const b = $('#sync-now'); b.disabled = true; try { await pull(); await push(); toast('Synced'); } catch (e) { toast('Sync failed: ' + (e.message || e)); } b.disabled = false; renderStatus(); };
     $('#acct-out').onclick = () => { signOut(); A.navigate(); };
+    const forget = $('#api-forget'); if (forget) forget.onclick = () => { signOut(false); store.set('apiBase', null); location.reload(); };
     const pro = $('#acct-pro'); if (pro) pro.onclick = buy;
     const an = $('#analytics'); if (an) an.onchange = () => { state.settings.analytics = an.checked; A.save(); };
     backups().then(list => { const el = $('#backups'); if (!el) return; el.innerHTML = list.length ? list.map(b => `<div class="row between"><span>v${b.version} · ${fmt(b.createdAt)} · ${Math.round(b.bytes / 1024)} KB</span><button class="btn btn-sm" data-restore="${b.version}">Restore</button></div>`).join('') : 'No backups yet — one is kept for every sync.'; el.querySelectorAll('[data-restore]').forEach(b => { b.onclick = async () => { if (confirm('Replace this device’s progress with backup v' + b.dataset.restore + '?')) { await restore(+b.dataset.restore); toast('Backup restored'); } }; }); }).catch(() => { const el = $('#backups'); if (el) el.textContent = 'Could not load backups.'; });

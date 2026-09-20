@@ -13,3 +13,5 @@ window.SENLIN_CONFIG = {
   checkoutUrl: '',             // web purchase page (Stripe Payment Link / RevenueCat Web Billing)
   version: '2026.09.20'
 };
+/* A learner (or you, from a phone) can point the site at a server without a commit: Settings → Account → Server URL. */
+try { var _o = localStorage.getItem('senlin.apiBase'); if (_o) window.SENLIN_CONFIG.apiBase = JSON.parse(_o); } catch (e) { /* private mode */ }

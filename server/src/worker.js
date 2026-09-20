@@ -10,6 +10,7 @@ import { handleTts, ttsProvider } from './tts.js';
 import { handleStt, sttProvider } from './stt.js';
 import { handleEvents, handleErrors, handleAdminStats } from './events.js';
 import { handleRevenueCat, handleStripe, handleEntitlement } from './billing.js';
+import { ensureSchema } from './schema.js';
 
 export const VERSION = '2026.09.20';
 
@@ -24,15 +25,23 @@ export * from './billing.js';
 export * from './jwt.js';
 
 export function handleHealth(request, env) {
+  const missing = [];
+  if (!env.JWT_SECRET) missing.push('JWT_SECRET');
+  if (!env.ANTHROPIC_API_KEY) missing.push('ANTHROPIC_API_KEY');
+  if (!env.RESEND_API_KEY) missing.push('RESEND_API_KEY');
+  if (!ttsProvider(env)) missing.push(env.TTS_PROVIDER === 'google' ? 'GOOGLE_TTS_KEY' : 'AZURE_TTS_KEY + AZURE_TTS_REGION');
+  if (!sttProvider(env)) missing.push(env.STT_PROVIDER === 'openai' ? 'OPENAI_API_KEY' : 'DEEPGRAM_API_KEY');
   return json({
     ok: true,
     version: env.VERSION || VERSION,
+    ready: { db: Boolean(env.DB), cache: Boolean(env.CACHE), auth: Boolean(env.JWT_SECRET && env.DB && env.CACHE) },
     providers: {
       ai: Boolean(env.ANTHROPIC_API_KEY),
       tts: ttsProvider(env),
       stt: sttProvider(env),
       email: Boolean(env.RESEND_API_KEY),
     },
+    missing,                       // secrets still to set in Cloudflare → Workers → senlin-api → Settings → Variables and Secrets
   });
 }
 
@@ -84,6 +93,7 @@ export async function handleRequest(request, env, ctx) {
   if (!match) return err(404, 'not_found');
   if (match.methodNotAllowed) return err(405, 'method_not_allowed');
   try {
+    if (match.handler !== handleHealth) await ensureSchema(env);
     return await match.handler(request, env, ctx, match.params);
   } catch (e) {
     if (e instanceof HttpError) return json(e.body, e.status);

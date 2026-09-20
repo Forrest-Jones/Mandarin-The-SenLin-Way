@@ -8,11 +8,22 @@ Everything is optional. With `apiBase` empty in `js/config.js` the site runs exa
 - `schema.sql` D1 tables · `wrangler.toml` bindings and vars · `API.md` every endpoint with curl examples
 - `test/` 23 node:test cases with in-memory D1/KV fakes: `npm test`
 
-## Deploy in 15 minutes
+## Deploy from the Cloudflare Git integration (zero commands)
+
+If the repository is connected in the Cloudflare dashboard (Workers & Pages → Create → Import a repository), every push to `main` deploys the worker. The root `wrangler.toml` points at `server/src/worker.js`, so the default build settings work: no build command, deploy command `npx wrangler deploy`. The D1 database and KV namespace are provisioned automatically on the first deploy (no ids in the config), and the worker creates its own tables on the first request, so there is no migration step.
+
+After the first deploy, two things in the dashboard, Workers & Pages → **senlin-api** → Settings → Variables and Secrets:
+
+1. Add the secrets. Required for anything to work: `JWT_SECRET` (any long random string). For sign-in emails: `RESEND_API_KEY` (and set `EMAIL_FROM` to an address on a domain verified in Resend). For Talk: `ANTHROPIC_API_KEY`. For the cloud voice and recogniser: `AZURE_TTS_KEY` + `AZURE_TTS_REGION` (or Google), `DEEPGRAM_API_KEY`. `GET /v1/health` lists what is still `missing`.
+2. Copy the worker URL (`https://senlin-api.<your-subdomain>.workers.dev`) into `apiBase` in `js/config.js` and push, **or** open the site → Settings → Account → *Connect your server* and paste it there (stored on that device only).
+
+The GitHub Actions workflow `.github/workflows/deploy-worker.yml` does the same deploy when the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets exist, and skips itself otherwise.
+
+## Deploy by hand in 15 minutes
 
 1. **Cloudflare account** (free tier is enough to start): https://dash.cloudflare.com
 2. **Tools**: `cd server && npm install && npx wrangler login`
-3. **Database + cache**: `npm run db:create` → paste the two ids it prints into `wrangler.toml` (`database_id`, kv `id`), then `npm run db:migrate`.
+3. **Database + cache**: nothing to do; the first `deploy` provisions them and the worker creates its tables (`npm run db:create` + `npm run db:migrate` remain for the manual route).
 4. **Secrets** (each prompts for the value):
    ```bash
    openssl rand -hex 32 | npx wrangler secret put JWT_SECRET

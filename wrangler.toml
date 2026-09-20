@@ -1,8 +1,8 @@
-# Mandarin The SenLin Way — API worker
-# Deploys from the Cloudflare Git integration (root wrangler.toml → this same worker) or by hand:
-#   cd server && npm install && npx wrangler login && npm run deploy
+# Mandarin The SenLin Way — API worker (root config for the Cloudflare Git integration)
+# The worker source lives in server/; this file lets a repository connected at its root deploy it
+# with the default build settings (no build command, deploy command `npx wrangler deploy`).
 name = "senlin-api"
-main = "src/worker.js"
+main = "server/src/worker.js"
 compatibility_date = "2026-06-01"
 workers_dev = true
 
