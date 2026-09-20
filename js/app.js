@@ -153,7 +153,7 @@
     const preview = info.type === 'pron'
       ? `<p class="lead">${esc(info.pron.title)}</p><p class="muted">${esc(info.pron.brief)}</p>`
       : `<div class="row">${info.chars.map(c => `<span class="chip chip-gold"><span class="hz">${c.h}</span> ${esc(c.p)} · ${esc(c.m)}</span>`).join('')}${info.words.map(w => `<span class="chip"><span class="hz">${w.w}</span> ${esc(w.m)}</span>`).join('')}</div>
-         ${info.sentences.length ? `<p class="muted small" style="margin-top:.6rem">${info.sentences.length} new sentence${info.sentences.length > 1 ? 's' : ''} to shadow.</p>` : ''}`;
+         ${info.sentences.length || (info.grammar || []).length ? `<p class="muted small" style="margin-top:.6rem">${info.sentences.length ? `${info.sentences.length} new sentence${info.sentences.length > 1 ? 's' : ''} to shadow.` : ''}${(info.grammar || []).length ? ` Pattern: ${esc(info.grammar[0].name)}.` : ''}</p>` : ''}`;
     return `
       <div class="stack-lg">
         <section class="card card-accent stack">
@@ -288,7 +288,7 @@
 
   function renderNew(L) {
     if (L.type === 'pron') return renderPron(L.pron);
-    if (!L.chars.length) return `<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>` + (L.words.length ? renderWords(L.words) : '');
+    if (!L.chars.length) return `<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>` + (L.words.length ? renderWords(L.words) : '') + renderGrammar(L.grammar);
     return `<div class="stack" style="margin-top:1rem">
       <p class="muted small">For each character: look, listen, then close your eyes and <b>see the scene</b> for ten seconds. The actor gives you the initial, the set gives the final, the room gives the tone, the props give the shape.</p>
       ${L.chars.map(({ ch, scene: sc }) => `<div class="card stack" data-char="${ch.h}">
@@ -307,8 +307,13 @@
           <textarea class="input" data-scene="${ch.h}" placeholder="Rewrite the scene in your own words — the weirder and more vivid, the stickier.">${esc(state.scenes[ch.h] || sc.text)}</textarea></details>
       </div>`).join('')}
       ${L.words.length ? renderWords(L.words) : ''}
+      ${renderGrammar(L.grammar)}
     </div>`;
   }
+  const renderGrammar = list => list.map(g => `<div class="card stack" style="border-left:4px solid var(--accent)"><span class="eyebrow">Pattern of the day · ${esc(g.name)}</span>
+    <div class="mid-hz" style="font-size:1.3rem;font-family:var(--font-body)">${esc(g.pattern)}</div>
+    <div class="row between"><div><span class="mid-hz">${esc(g.zh)}</span> <span class="py">${pinyinHTML(g.p)}</span><div class="muted">${esc(g.en)}</div></div><span class="row">${playBtn(g.zh)}${sayBtn(g.zh)}</span></div>
+    <p class="small muted">${esc(g.note)}</p></div>`).join('');
   const renderWords = words => `<div class="card stack"><span class="eyebrow">New words — built from characters you already own</span>
     ${words.map(w => `<div class="row between"><div><span class="mid-hz">${w.w}</span> <span class="py">${pinyinHTML(w.p)}</span> <span class="muted">${esc(w.m)}</span></div>${playBtn(w.w)}</div>`).join('')}</div>`;
 
@@ -431,12 +436,13 @@
     const sentDay = {}; DAYS.forEach(d => d.sentences.forEach(s => { sentDay[s.zh] = d.day; }));
     return `<div class="stack">
       <div class="row between"><div><span class="eyebrow">Library</span><h1 class="h2">Everything in the forest</h1></div>
-        <div class="row">${['characters', 'words', 'sentences', 'props'].map(t => `<a class="btn btn-sm${t === tab ? ' btn-primary' : ''}" href="#/library/${t}">${t}</a>`).join('')}</div></div>
+        <div class="row">${['characters', 'words', 'sentences', 'grammar', 'props'].map(t => `<a class="btn btn-sm${t === tab ? ' btn-primary' : ''}" href="#/library/${t}">${t}</a>`).join('')}</div></div>
       <input class="input" id="search" placeholder="Search hanzi, pinyin or English…" autocomplete="off">
       <div id="lib">
       ${tab === 'characters' ? `<div class="grid grid-tiles">${S.CHARACTERS.map(c => `<button class="tile" data-open="${c.h}" data-q="${esc((c.h + ' ' + c.p + ' ' + c.m + ' ' + S.parsePinyin(c.p).base).toLowerCase())}" style="${charDay[c.h] > today ? 'opacity:.55' : ''}"><span class="hz">${c.h}</span><span class="py ${toneClass(c.p)}">${esc(c.p)}</span><span class="small muted">${esc(c.m)}</span><span class="faint small">HSK ${c.level} · day ${charDay[c.h]}</span></button>`).join('')}</div>` : ''}
       ${tab === 'words' ? `<table class="table"><tbody>${S.WORDS.map(w => `<tr data-q="${esc((w.w + ' ' + w.p + ' ' + w.m).toLowerCase())}"><td class="mid-hz">${w.w}</td><td class="py">${pinyinHTML(w.p)}</td><td>${esc(w.m)}</td><td class="faint small">day ${wordDay[w.w] || '—'}</td><td>${playBtn(w.w)}</td></tr>`).join('')}</tbody></table>` : ''}
       ${tab === 'sentences' ? `<div class="stack">${S.SENTENCES.map(s => `<div class="sentence" data-q="${esc((s.zh + ' ' + s.p + ' ' + s.en).toLowerCase())}"><div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row"><span class="faint small">day ${sentDay[s.zh] || '—'}</span>${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}${sayBtn(s.zh)}</span></div><div class="py">${pinyinHTML(s.p)}</div><div class="en">${esc(s.en)}</div></div>`).join('')}</div>` : ''}
+      ${tab === 'grammar' ? `<div class="stack">${S.GRAMMAR.map(g => `<div class="sentence" data-q="${esc((g.name + ' ' + g.pattern + ' ' + g.zh + ' ' + g.en).toLowerCase())}"><div class="row between"><b>${esc(g.name)} <span class="muted">· HSK ${g.level}</span></b><span class="row">${playBtn(g.zh)}</span></div><div>${esc(g.pattern)}</div><div><span class="hz" style="font-size:1.2rem">${esc(g.zh)}</span> <span class="py">${pinyinHTML(g.p)}</span> <span class="muted small">${esc(g.en)}</span></div><div class="small muted">${esc(g.note)}</div></div>`).join('')}</div>` : ''}
       ${tab === 'props' ? `<div class="grid grid-tiles">${S.COMPONENTS.map(c => `<div class="tile" data-q="${esc((c.c + ' ' + c.k + ' ' + c.prop).toLowerCase())}"><span class="hz">${c.c}</span><b>${esc(c.k)}</b><span class="small muted">${esc(S.resolveCast(state.cast).prop(c.c))}</span></div>`).join('')}</div>` : ''}
       </div></div>`;
   };

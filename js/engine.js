@@ -6,11 +6,11 @@
    - the 10-minute lesson builder                                              */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./data/pinyin.js'), require('./data/components.js'), require('./data/levels.js'));
+    module.exports = factory(require('./data/pinyin.js'), require('./data/components.js'), require('./data/levels.js'), require('./data/grammar.js'));
   } else {
-    root.SenLin = factory(root.SENLIN_PINYIN, root.SENLIN_COMPONENTS, root.SENLIN_LEVELS || []);
+    root.SenLin = factory(root.SENLIN_PINYIN, root.SENLIN_COMPONENTS, root.SENLIN_LEVELS || [], root.SENLIN_GRAMMAR || []);
   }
-})(this, function (PINYIN, BASE_COMPONENTS, RAW_LEVELS) {
+})(this, function (PINYIN, BASE_COMPONENTS, RAW_LEVELS, GRAMMAR) {
   'use strict';
 
   /* ---------- levels → flat, tagged lists (teaching order = level order, then file order) */
@@ -108,7 +108,7 @@
     const o = Object.assign({}, CONFIG, opts || {});
     const days = [];
     PINYIN.pronunciationDays.forEach((pd, i) => {
-      days.push({ day: i + 1, phase: 'Pronunciation Mastery', type: 'pron', pron: pd, chars: [], words: [], sentences: [] });
+      days.push({ day: i + 1, phase: 'Pronunciation Mastery', type: 'pron', pron: pd, chars: [], words: [], sentences: [], grammar: [] });
     });
     const charDay = {};
     const levelEnd = {};                             // level → last day that introduces its characters
@@ -118,11 +118,11 @@
         const chunk = chars.slice(i, i + o.charsPerDay);
         const day = days.length + 1;
         chunk.forEach(ch => { charDay[ch.h] = day; });
-        days.push({ day, level: L.level, phase: `Phase ${L.level} · ${L.name}`, type: 'chars', chars: chunk, words: [], sentences: [] });
+        days.push({ day, level: L.level, phase: `Phase ${L.level} · ${L.name}`, type: 'chars', chars: chunk, words: [], sentences: [], grammar: [] });
         levelEnd[L.level] = day;
       }
     }
-    const ensureDay = d => { while (days.length < d) days.push({ day: days.length + 1, phase: 'Consolidation', type: 'review', chars: [], words: [], sentences: [] }); return days[d - 1]; };
+    const ensureDay = d => { while (days.length < d) days.push({ day: days.length + 1, phase: 'Consolidation', type: 'review', chars: [], words: [], sentences: [], grammar: [] }); return days[d - 1]; };
     const place = (items, textOf, key, cap) => {
       const counts = {};
       items.forEach(item => {
@@ -136,6 +136,7 @@
     };
     place(WORDS, w => w.w, 'words', o.wordsPerDay);
     place(SENTENCES, s => s.zh, 'sentences', o.sentencesPerDay);
+    place(GRAMMAR, g => g.zh, 'grammar', 1);
     days.levelEnd = levelEnd;
     return days;
   }
@@ -240,7 +241,7 @@
       return { prompt, question: askPinyin ? 'How is it pronounced?' : 'What does it mean?', options, correct };
     });
 
-    return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review, chars, words: d.words, sentences, quiz, segments: CONFIG.segments };
+    return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review, chars, words: d.words, grammar: d.grammar || [], sentences, quiz, segments: CONFIG.segments };
   }
 
   /* ------------------------------------------------------------------ text export (CLI / email) */
@@ -280,6 +281,7 @@
       L.push('No new characters today: consolidate. Re-tell the scenes for three random characters from memory.');
     }
     if (lesson.words.length) { L.push('\n**New words**'); lesson.words.forEach(w => L.push(`- ${w.w} ${w.p} — ${w.m}`)); }
+    lesson.grammar.forEach(g => { L.push(`\n**Pattern of the day: ${g.name}** — ${g.pattern}`); L.push(`${g.zh}  ${g.p}  — ${g.en}`); L.push(g.note); });
     L.push('\n## 4 · Sentences: shadow each one 3× (2 min)');
     lesson.sentences.forEach(s => L.push(`- ${s.zh}  ${s.p}  — ${s.en}`));
     L.push('\n## 5 · Quiz (1 min)');
@@ -292,11 +294,11 @@
   function curriculumStats(days) {
     const last = days[days.length - 1].day;
     const levels = LEVELS.map(l => ({ level: l.level, name: l.name, characters: l.characters.length, words: l.words.length, sentences: l.sentences.length, lastDay: days.levelEnd ? days.levelEnd[l.level] : null }));
-    return { days: last, pronDays: PRON_DAYS, characters: CHARACTERS.length, words: WORDS.length, sentences: SENTENCES.length, components: COMPONENTS.length, levels };
+    return { days: last, pronDays: PRON_DAYS, characters: CHARACTERS.length, words: WORDS.length, sentences: SENTENCES.length, grammar: GRAMMAR.length, components: COMPONENTS.length, levels };
   }
 
   return {
-    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES, LEVELS,
+    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES, GRAMMAR, LEVELS,
     INITIAL_MAP, FINAL_MAP, TONE_MAP, COMP_MAP,
     parsePinyin, resolveCast, scene,
     buildSchedule, dayNumber, dateForDay, isoDate, parseISO,

@@ -40,6 +40,10 @@ for (const s of S.SENTENCES) {
   han(s.zh).forEach(c => { if (!charSet.has(c)) errors.push(`sentence "${s.zh}": character ${c} is never taught`); });
   if (!s.p || !s.en) errors.push(`sentence "${s.zh}": pinyin/english missing`);
 }
+for (const g of S.GRAMMAR) {
+  han(g.zh).forEach(c => { if (!charSet.has(c)) errors.push(`grammar "${g.name}": character ${c} is never taught`); });
+  if (!g.pattern || !g.p || !g.en || !g.note) errors.push(`grammar "${g.name}": missing field`);
+}
 /* pronunciation days reference real keys */
 S.PINYIN.pronunciationDays.forEach((d, i) => {
   (d.initials || []).forEach(k => { if (!initialKeys.has(k)) errors.push(`pron day ${i + 1}: unknown initial ${k}`); });
@@ -75,7 +79,7 @@ S.COMPONENTS.forEach(c => { if (compSeen.has(c.c)) errors.push(`duplicate compon
 
 console.log(`Mandarin The SenLin Way — curriculum check`);
 st.levels.forEach(l => console.log(`  HSK ${l.level}: ${l.characters} characters, ${l.words} words, ${l.sentences} sentences → complete on day ${l.lastDay}`));
-console.log(`  characters: ${st.characters}   words: ${st.words}   sentences: ${st.sentences}   components: ${st.components}`);
+console.log(`  characters: ${st.characters}   words: ${st.words}   sentences: ${st.sentences}   grammar patterns: ${st.grammar}   components: ${st.components}`);
 console.log(`  pronunciation days: ${st.pronDays}   total scheduled days: ${st.days}`);
 console.log(`  character days without a new word: ${emptyWordDays.join(', ') || 'none'}`);
 warnings.forEach(w => console.log('  warn: ' + w));
