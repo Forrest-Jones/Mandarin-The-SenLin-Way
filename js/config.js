@@ -3,7 +3,7 @@
    no accounts, no server, the learner's own AI key, the device voice.
    Fill in `apiBase` once the Cloudflare Worker in server/ is deployed. */
 window.SENLIN_CONFIG = {
-  apiBase: '',                 // e.g. 'https://senlin-api.<your-subdomain>.workers.dev' (no trailing slash)
+  apiBase: 'https://senlin-api.forrestjones2010.workers.dev',   // the Cloudflare Worker in server/ (no trailing slash)
   audioBase: 'audio/',         // pre-generated MP3s from tools/audio.js (audio/index.json)
   sentryDsn: '',               // Sentry browser DSN; empty = errors go to apiBase/v1/errors when signed in, else nowhere
   analytics: 'opt-in',         // 'off' | 'opt-in' (asks once in Settings) | 'on'

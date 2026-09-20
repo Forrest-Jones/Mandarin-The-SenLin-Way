@@ -93,8 +93,16 @@ jobs:
           WORKER_URL: ${{ steps.deploy.outputs.url }}
         working-directory: server
         run: |
+          set -o pipefail
           node scripts/stripe-setup.mjs | tee stripe.log
-          echo "### Stripe" >> "$GITHUB_STEP_SUMMARY"; cat stripe.log >> "$GITHUB_STEP_SUMMARY"
+          echo "### Stripe" >> "$GITHUB_STEP_SUMMARY"; echo '```json' >> "$GITHUB_STEP_SUMMARY"; cat stripe.log >> "$GITHUB_STEP_SUMMARY"; echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Health check
+        if: env.CLOUDFLARE_API_TOKEN != '' && steps.deploy.outputs.url != ''
+        run: |
+          url="${{ steps.deploy.outputs.url }}"
+          sleep 5
+          echo "### Health" >> "$GITHUB_STEP_SUMMARY"
+          for p in /v1/health /v1/billing/plans; do echo "GET $url$p"; curl -sS "$url$p" | tee -a "$GITHUB_STEP_SUMMARY"; echo; done
       - name: Skipped
         if: env.CLOUDFLARE_API_TOKEN == ''
         run: echo "CLOUDFLARE_API_TOKEN not set; the Cloudflare Git integration deploys this worker instead."

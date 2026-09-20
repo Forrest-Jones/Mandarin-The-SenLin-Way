@@ -3,6 +3,9 @@
 // Needs: STRIPE_SECRET_KEY, WORKER_URL (https://senlin-api.<sub>.workers.dev), CLOUDFLARE_API_TOKEN (for wrangler).
 //   node scripts/stripe-setup.mjs
 import { execFileSync } from 'node:child_process';
+import { writeFileSync, unlinkSync, mkdtempSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { handleStripeSetup } from '../src/billing.js';
 
 const KV_KEY = 'stripe:config';
@@ -37,7 +40,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (!STRIPE_SECRET_KEY || !WORKER_URL) { console.error('STRIPE_SECRET_KEY and WORKER_URL are required'); process.exit(2); }
   const nsId = findNamespaceId(wrangler(['kv', 'namespace', 'list']));
   const kvGet = async (key) => { try { return wrangler(['kv', 'key', 'get', key, '--namespace-id', nsId, '--remote']).trim() || null; } catch { return null; } };
-  const kvPut = async (key, value) => { wrangler(['kv', 'key', 'put', key, '--namespace-id', nsId, '--remote', '--path', '/dev/stdin'], value); };
+  const kvPut = async (key, value) => {
+    const f = join(mkdtempSync(join(tmpdir(), 'senlin-')), 'value.json');   // wrangler reads --path from a real file only
+    writeFileSync(f, value); try { wrangler(['kv', 'key', 'put', key, '--namespace-id', nsId, '--remote', '--path', f]); } finally { unlinkSync(f); }
+  };
   const out = await runSetup({ stripeKey: STRIPE_SECRET_KEY, workerUrl: WORKER_URL, fetchImpl: globalThis.fetch, kvGet, kvPut, siteUrl: SITE_URL });
   console.log(JSON.stringify(out, null, 2));
   if (!out.ok) process.exit(1);
