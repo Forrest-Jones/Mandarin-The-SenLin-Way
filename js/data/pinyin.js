@@ -1,7 +1,6 @@
 /* Mandarin The SenLin Way — pinyin system
    Initials -> ACTORS, finals -> SETS (places), tones -> ROOMS inside the set.
-   Every character's scene = actor + set + room + props.  (Adapted from the
-   Hanzi Movie Method popularised by Mandarin Blueprint.)                    */
+   Every character's scene = actor + set + room + props: the SenLin memory system. */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.SENLIN_PINYIN = factory();

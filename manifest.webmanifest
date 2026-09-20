@@ -1,7 +1,7 @@
 {
   "name": "Mandarin The SenLin Way",
   "short_name": "SenLin",
-  "description": "A daily 10-minute Mandarin Chinese program.",
+  "description": "Building your Mandarin Word Forest, one tree at a time. A daily 10-minute Mandarin program, HSK 1 to 6.",
   "start_url": "./#/",
   "display": "standalone",
   "background_color": "#f8f6f0",

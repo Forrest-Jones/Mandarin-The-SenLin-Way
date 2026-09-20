@@ -5,7 +5,7 @@ No accounts, no backend, no build step: plain HTML, CSS and JavaScript, deployed
 
 **Live site:** https://forrest-jones.github.io/Mandarin-The-SenLin-Way/
 
-森林 *sēnlín* means forest. 木 is a tree, 林 is woods, 森 is a forest. One tree a day.
+森林 *sēnlín* means forest. 木 is a tree, 林 is woods, 森 is a forest. **Building your Mandarin Word Forest, one tree at a time.**
 
 ## What it does
 
@@ -66,4 +66,4 @@ Each HSK level is one file, `js/data/hskN.js`, holding its characters (in teachi
 
 ## Method and credits
 
-The SenLin Way is an original curriculum inspired by the publicly described methods of [Mandarin Blueprint](https://www.mandarinblueprint.com/) (the Hanzi Movie Method, Pronunciation Mastery, top-down learning), Heisig’s *Remembering the Hanzi*, Pimsleur’s graduated recall, the SM-2 spaced-repetition algorithm, Krashen’s comprehensible input and Argüelles’ shadowing. It is not affiliated with any of them. See the Method page on the site.
+The SenLin Way is an original curriculum. It builds on James Heisig’s component mnemonics, Paul Pimsleur’s graduated recall, the SM-2 spaced-repetition algorithm, Stephen Krashen’s comprehensible input, Alexander Argüelles’ shadowing, and the official HSK vocabulary lists. See the Method page on the site.

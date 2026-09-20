@@ -202,6 +202,7 @@
           <span class="eyebrow">${fmtDate(new Date())} · Day ${day}${beyond ? ' · beyond the scheduled curriculum' : ''}</span>
           ${(() => { const L = currentLevelInfo(); if (!L) return ''; const info = (S.LEVELINFO && S.LEVELINFO.levels.find(x => x.level === L.level)) || {}; return `<div class="row"><a class="chip chip-gold" href="#/levels"><b>${esc(L.name)}</b> · ${esc(info.cefr || '')} · ${L.completed}/${L.total} days</a><span class="muted small">${L.status === 'done' ? 'level complete' : `on track to finish ${esc(L.name)} by ${esc(fmtDateY(L.endDate))}`}</span></div>`; })()}
           <h1 class="h1">${done ? 'Today’s tree is planted. 🌳' : beyond ? 'Consolidation day' : esc(info.phase)}</h1>
+          <p class="muted" style="font-weight:700">Building your Mandarin Word Forest, one tree at a time.</p>
           <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
           <div class="row">
             <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(day, DAYS.length)}">${done ? 'Do it again' : 'Start the 10-minute lesson'}</a>
@@ -427,6 +428,7 @@
     return `<div class="card done-banner" style="margin-top:1rem">
       <div class="big-hz">${L.chars.length ? L.chars.map(c => c.ch.h).join('') : '森'}</div>
       <h2 class="h2">Day ${L.day} complete</h2>
+      <p style="font-weight:800;color:var(--lime-400)">Building your Mandarin Word Forest, one tree at a time. 🌲</p>
       <p class="muted">${Math.round(lesson.elapsed / 60)} min ${lesson.elapsed % 60} s · ${streak()}-day streak · ${learnedChars()} characters planted</p>
       <div class="progress-ring" style="--p:${pct}"><div>${pct}%</div></div>
       <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
@@ -621,8 +623,8 @@
     return `<div class="prose stack">
       <div><span class="eyebrow">The method</span><h1 class="h2">The SenLin Way</h1><p class="lead">森林 sēnlín means forest. 木 is a tree; two make woods (林); three make a forest (森). That is the whole philosophy: one small tree, every single day, compounding.</p></div>
       <h2 class="h3">Seven pillars, borrowed from the best</h2>
-      <p><b>1 · Pronunciation before everything.</b> The first twelve days teach nothing but sound: every initial, every final, the four tones and the neutral tone, then all twenty tone pairs and the sandhi rules. This is Mandarin Blueprint’s “Pronunciation Mastery” principle: a bad accent fossilises if you start with vocabulary.</p>
-      <p><b>2 · The movie method for characters.</b> Popularised by Mandarin Blueprint’s <i>Hanzi Movie Method</i>, building on Heisig’s <i>Remembering the Hanzi</i> and the ancient memory palace. Each initial is an <b>actor</b>, each final is a <b>set</b> (a real place you know), each tone is a <b>room</b> inside that set, and each component is a <b>prop</b>. Every character becomes one vivid scene, which means the pronunciation, tone, shape and meaning are all stored together and retrieved together.</p>
+      <p><b>1 · Pronunciation before everything.</b> The first twelve days teach nothing but sound: every initial, every final, the four tones and the neutral tone, then all twenty tone pairs and the sandhi rules. A bad accent fossilises if you start with vocabulary, so the ear and mouth come first.</p>
+      <p><b>2 · Movie scenes for characters.</b> The SenLin memory system, built on Heisig’s <i>Remembering the Hanzi</i> and the ancient memory palace. Each initial is an <b>actor</b>, each final is a <b>set</b> (a real place you know), each tone is a <b>room</b> inside that set, and each component is a <b>prop</b>. Every character becomes one vivid scene, which means the pronunciation, tone, shape and meaning are all stored together and retrieved together.</p>
       <p><b>3 · Top-down, never bottom-up.</b> You never meet a word before you own every character in it, and never a sentence before you own every word. The scheduler enforces this automatically, so nothing you study is ever built on sand.</p>
       <p><b>4 · Spaced repetition you grade yourself.</b> Reviews follow the SM-2 algorithm (the engine behind Anki and SuperMemo): each card returns just before you would forget it. Grade honestly — “Again” is information, not failure.</p>
       <p><b>5 · Shadowing.</b> From Alexander Argüelles and the Pimsleur tradition: speak <i>with</i> the native voice, matching rhythm and tone, three passes per sentence. The site uses your device’s Mandarin voice, so every character, word and sentence can be heard instantly, at normal or slow speed.</p>
@@ -637,7 +639,7 @@
       <h2 class="h3">Levels and the Deal Desk</h2>
       <p>The six phases follow the official HSK 2.0 vocabulary lists exactly (every listed word is taught, at its listed level) and the unit structure of the <i>HSK Standard Course</i> textbooks. The <a href="#/levels" style="text-decoration:underline">Levels</a> page defines each level, its exam and the date you reach it at your pace. The <a href="#/business" style="text-decoration:underline">Deal Desk</a> is a parallel track for cross-border private-equity and venture work: two terms and one closing phrase join every lesson, and six deal-room role-plays live in Talk.</p>
       <h2 class="h3">Credits</h2>
-      <p class="small muted">This program is an original curriculum inspired by the publicly described methods of <a href="https://www.mandarinblueprint.com/" target="_blank" rel="noopener">Mandarin Blueprint</a> (Hanzi Movie Method, Pronunciation Mastery, top-down learning), James Heisig, Paul Pimsleur, Piotr Woźniak (SM-2), Stephen Krashen and Alexander Argüelles. It is not affiliated with any of them. Character decompositions are mnemonic-level approximations chosen for memorability.</p>
+      <p class="small muted">The SenLin Way is an original curriculum. It stands on the shoulders of James Heisig (component mnemonics), Paul Pimsleur (graduated recall), Piotr Woźniak (SM-2 spaced repetition), Stephen Krashen (comprehensible input) and Alexander Argüelles (shadowing), and on the official HSK vocabulary lists. Character decompositions are mnemonic-level approximations chosen for memorability.</p>
     </div>`;
   };
 
