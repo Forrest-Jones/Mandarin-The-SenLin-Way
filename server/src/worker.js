@@ -26,7 +26,6 @@ export * from './jwt.js';
 
 export function handleHealth(request, env) {
   const missing = [];
-  if (!env.JWT_SECRET) missing.push('JWT_SECRET');
   if (!env.ANTHROPIC_API_KEY) missing.push('ANTHROPIC_API_KEY');
   if (!env.RESEND_API_KEY) missing.push('RESEND_API_KEY');
   if (!ttsProvider(env)) missing.push(env.TTS_PROVIDER === 'google' ? 'GOOGLE_TTS_KEY' : 'AZURE_TTS_KEY + AZURE_TTS_REGION');
@@ -34,7 +33,7 @@ export function handleHealth(request, env) {
   return json({
     ok: true,
     version: env.VERSION || VERSION,
-    ready: { db: Boolean(env.DB), cache: Boolean(env.CACHE), auth: Boolean(env.JWT_SECRET && env.DB && env.CACHE) },
+    ready: { db: Boolean(env.DB), cache: Boolean(env.CACHE), auth: Boolean((env.JWT_SECRET || env.CACHE) && env.DB) },
     providers: {
       ai: Boolean(env.ANTHROPIC_API_KEY),
       tts: ttsProvider(env),

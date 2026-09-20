@@ -4,6 +4,22 @@ import { signJwt, verifyJwt } from './jwt.js';
 import { findOrCreateUser, getUserById, updateUser, getUsage } from './db.js';
 import { effectivePlan, limitsFor } from './limits.js';
 
+/** The token-signing secret: JWT_SECRET when set, otherwise one generated on first use and kept in KV. */
+let generatedSecret = null;
+export async function jwtSecret(env) {
+  if (env.JWT_SECRET) return env.JWT_SECRET;
+  if (generatedSecret) return generatedSecret;
+  const key = 'auth:jwt-secret';
+  let s = env.CACHE ? await env.CACHE.get(key) : null;
+  if (!s) {
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    s = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    if (env.CACHE) await env.CACHE.put(key, s);
+  }
+  generatedSecret = s;
+  return s;
+}
+
 const CODE_TTL_SEC = 10 * 60;
 const MAX_REQUESTS_PER_HOUR = 5;
 const MAX_VERIFY_ATTEMPTS = 6;
@@ -14,7 +30,7 @@ const rateKey = (email) => `auth:rl:${email}`;
 const attemptsKey = (email) => `auth:attempts:${email}`;
 
 async function codeHash(env, email, code) {
-  return sha256Hex(`${email}:${code}:${env.JWT_SECRET || ''}`);
+  return sha256Hex(`${email}:${code}:${await jwtSecret(env)}`);
 }
 
 export function publicUser(user) {
@@ -84,7 +100,7 @@ export async function handleAuthVerify(request, env) {
 
   const user = await findOrCreateUser(env, email);
   await updateUser(env, user.id, { last_seen: nowIso() });
-  const token = await signJwt({ sub: user.id, email: user.email }, env.JWT_SECRET, { expiresInSec: TOKEN_TTL_SEC });
+  const token = await signJwt({ sub: user.id, email: user.email }, await jwtSecret(env), { expiresInSec: TOKEN_TTL_SEC });
   return json({ token, user: publicUser(user) });
 }
 
@@ -93,7 +109,7 @@ export async function getUser(request, env) {
   const h = request.headers.get('authorization') || '';
   const m = /^Bearer\s+(.+)$/i.exec(h);
   if (!m) return null;
-  const payload = await verifyJwt(m[1].trim(), env.JWT_SECRET);
+  const payload = await verifyJwt(m[1].trim(), await jwtSecret(env));
   if (!payload || !payload.sub) return null;
   return getUserById(env, payload.sub);
 }

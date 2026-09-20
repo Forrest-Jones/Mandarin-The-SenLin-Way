@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_ACCOUNT_ID: ccb05cb514e5966400f2edd418ca8688   # not a secret; also in wrangler.toml
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,27 +30,20 @@ jobs:
       - name: Which secrets does this run see? (names only, never values)
         env:
           S_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          S_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           S_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          S_ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
-          S_JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          V_CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          V_CLOUDFLARE_API_TOKEN: ${{ vars.CLOUDFLARE_API_TOKEN }}
         run: |
-          missing=0
-          for n in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID STRIPE_SECRET_KEY ADMIN_KEY JWT_SECRET; do
-            v="S_$n"; val="${!v}"
-            if [ -n "$val" ]; then echo "secret $n: present (${#val} characters)"; else echo "secret $n: MISSING"; missing=1; fi
-          done
-          [ "$missing" = 1 ] && echo "Add the MISSING ones at https://github.com/${GITHUB_REPOSITORY}/settings/secrets/actions (Secrets tab, exact names)." || true
-          [ -n "$V_CLOUDFLARE_API_TOKEN" ] && echo "NOTE: CLOUDFLARE_API_TOKEN was added as a *Variable*, not a Secret. Delete it from the Variables tab and add it under Secrets." || true
-          [ -n "$V_CLOUDFLARE_ACCOUNT_ID" ] && echo "NOTE: CLOUDFLARE_ACCOUNT_ID is a Variable; that is fine, using it." || true
+          for n in CLOUDFLARE_API_TOKEN STRIPE_SECRET_KEY; do v="S_$n"; val="${!v}"; if [ -n "$val" ]; then echo "secret $n: present (${#val} characters)"; else echo "secret $n: MISSING"; fi; done
+          if [ -n "$S_CLOUDFLARE_API_TOKEN" ] && [ "${#S_CLOUDFLARE_API_TOKEN}" != 40 ]; then echo "::error::CLOUDFLARE_API_TOKEN should be exactly 40 characters (a Cloudflare API token). Re-copy it from https://dash.cloudflare.com/profile/api-tokens and save it again."; fi
       - name: Deploy with Wrangler
+        id: deploy
         if: env.CLOUDFLARE_API_TOKEN != ''
         working-directory: server
         run: |
           npm install --no-audit --no-fund
-          npx wrangler deploy
+          npx wrangler deploy 2>&1 | tee deploy.log
+          url=$(grep -o 'https://[a-z0-9.-]*workers.dev' deploy.log | head -1 || true)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "### Worker deployed" >> "$GITHUB_STEP_SUMMARY"; echo "URL: $url" >> "$GITHUB_STEP_SUMMARY"
       # Any of these GitHub repository secrets that exist are pushed into the worker as Cloudflare secrets,
       # so keys can be pasted in GitHub (Settings → Secrets and variables → Actions) instead of the Cloudflare dashboard.
       - name: Sync secrets into the worker
@@ -74,17 +67,15 @@ jobs:
             value="${!name}"
             if [ -n "$value" ]; then printf '%s' "$value" | npx wrangler secret put "$name" && echo "set $name"; else echo "skip $name (no GitHub secret)"; fi
           done
-      - name: Run the one-shot Stripe setup (when ADMIN_KEY and STRIPE_SECRET_KEY exist)
-        if: env.CLOUDFLARE_API_TOKEN != '' && env.ADMIN_KEY != '' && env.STRIPE_SECRET_KEY != ''
+      - name: Stripe setup (product, prices, webhook, portal) — needs only STRIPE_SECRET_KEY
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.STRIPE_SECRET_KEY != '' && steps.deploy.outputs.url != ''
         env:
-          ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          WORKER_URL: ${{ steps.deploy.outputs.url }}
         working-directory: server
         run: |
-          url=$(npx wrangler deployments list 2>/dev/null | grep -o 'https://[^ ]*workers.dev' | head -1 || true)
-          if [ -z "$url" ]; then echo "could not read the worker URL; open /v1/admin/stripe-setup?key=... by hand"; exit 0; fi
-          sleep 10
-          curl -sS -H "x-admin-key: $ADMIN_KEY" "$url/v1/admin/stripe-setup" | sed 's/"webhookSecret":"[^"]*"/"webhookSecret":"***"/'
+          node scripts/stripe-setup.mjs | tee stripe.log
+          echo "### Stripe" >> "$GITHUB_STEP_SUMMARY"; cat stripe.log >> "$GITHUB_STEP_SUMMARY"
       - name: Skipped
         if: env.CLOUDFLARE_API_TOKEN == ''
         run: echo "CLOUDFLARE_API_TOKEN not set; the Cloudflare Git integration deploys this worker instead."
