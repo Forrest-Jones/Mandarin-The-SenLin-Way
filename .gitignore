@@ -4,4 +4,3 @@ test-results/
 playwright-report/
 server/.dev.vars
 server/.wrangler/
-review/*.patch.json

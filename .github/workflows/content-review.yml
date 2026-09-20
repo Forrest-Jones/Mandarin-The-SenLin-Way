@@ -1,0 +1,52 @@
+name: Content review with Claude (HSK 4-6 + Deal Desk)
+
+# A native-editor pass over every HSK 4-6 sentence, grammar example and Deal Desk line using Claude.
+# Produces review/<name>-reviewed.csv and review/<name>.patch.json (data files are NOT modified;
+# the patch is reviewed and applied by hand with node tools/validate.js afterwards).
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'comma-separated: hsk4,hsk5,hsk6,business'
+        default: 'hsk4,hsk5,hsk6,business'
+      model:
+        description: 'Claude model id'
+        default: 'claude-opus-5'
+
+permissions:
+  contents: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Export the current text
+        run: node tools/review.js --levels 4,5,6
+      - name: Review with Claude
+        run: node tools/ai-review.mjs --files "${{ github.event.inputs.files }}" --model "${{ github.event.inputs.model }}" | tee review-run.log
+      - name: Build patches (no data files touched)
+        run: |
+          for f in $(echo "${{ github.event.inputs.files }}" | tr ',' ' '); do [ -f "review/$f-reviewed.csv" ] && node tools/review.js --apply "review/$f-reviewed.csv" | tee -a review-run.log; done
+      - name: Commit the reviewed CSVs and patches
+        run: |
+          git config user.name "senlin-bot"; git config user.email "senlin-bot@users.noreply.github.com"
+          git add review/*-reviewed.csv review/*.patch.json
+          if ! git diff --cached --quiet; then git commit -m "Content review: Claude native-editor pass" && git pull --rebase origin main && git push; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: content-review
+          path: |
+            review/*-reviewed.csv
+            review/*.patch.json
+            review-run.log
+      - name: Summary
+        run: |
+          { echo "### Content review"; echo '```'; cat review-run.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

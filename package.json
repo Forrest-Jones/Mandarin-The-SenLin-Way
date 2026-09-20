@@ -11,7 +11,9 @@
   },
   "license": "UNLICENSED",
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.127.0",
     "@playwright/test": "^1.56.1",
-    "axe-core": "^4.13.0"
+    "axe-core": "^4.13.0",
+    "zod": "^4.6.5"
   }
 }
