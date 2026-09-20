@@ -1,0 +1,38 @@
+name: Live check (deployed site + worker)
+
+# Exercises the real, deployed stack end to end: sign-up, sync, plans, a Stripe Checkout session (no charge),
+# push subscription, the AI tutor through the server, and the public site's pages. Runs after every worker deploy,
+# every morning, and on demand. A red run here means customers are affected.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 11 * * *'
+  workflow_run:
+    workflows: ["Deploy API worker", "Validate and deploy"]
+    types: [completed]
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Worker API end to end
+        working-directory: server
+        run: node scripts/live-check.mjs | tee ../live-api.log
+      - name: Public site pages
+        run: |
+          set -e
+          base="https://forrest-jones.github.io/Mandarin-The-SenLin-Way"
+          for p in "" "privacy.html" "terms.html" "manifest.webmanifest" ".well-known/assetlinks.json" "js/config.js" "assets/icon-512.png"; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$base/$p"); echo "$code  $base/$p"; [ "$code" = 200 ] || exit 1
+          done
+          curl -s "$base/js/config.js" | grep -q "apiBase: 'https://senlin-api.forrestjones2010.workers.dev'" && echo "site points at the worker"
+          curl -s "$base/.well-known/assetlinks.json" | grep -q '"sha256_cert_fingerprints": \[' && echo "assetlinks present"
+      - name: Summary
+        if: always()
+        run: |
+          { echo "### Live check"; echo '```'; cat live-api.log 2>/dev/null || echo "no api log"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
