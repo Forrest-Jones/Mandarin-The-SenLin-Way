@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "source": "review/hsk5-reviewed.csv",
+  "generated": "2026-09-20T23:21:34.926Z",
+  "summary": {
+    "rows": 495,
+    "ok": 0,
+    "fix": 0,
+    "drop": 0,
+    "blank": 495,
+    "unknownStatus": 0,
+    "unknownId": 0,
+    "fixWithoutCorrection": 0,
+    "unchanged": 0
+  },
+  "changes": [],
+  "problems": []
+}
