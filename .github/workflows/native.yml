@@ -44,7 +44,7 @@ jobs:
           git config user.name "senlin-bot"; git config user.email "senlin-bot@users.noreply.github.com"
           git add native/ios native/android native/package-lock.json 2>/dev/null || true
           git reset -q native/www 2>/dev/null || true
-          if ! git diff --cached --quiet; then git commit -m "Native: generate the Capacitor iOS and Android projects" && git push; else echo "nothing new to commit"; fi
+          if ! git diff --cached --quiet; then git commit -m "Native: generate the Capacitor iOS and Android projects"; git pull --rebase origin main; git push; else echo "nothing new to commit"; fi
       - name: Summary
         run: |
           { echo "### Native projects"; echo "- iOS: open \`native/ios/App/App.xcworkspace\` in Xcode, set your Team under Signing & Capabilities, Product → Archive → Distribute (TestFlight / App Store)."; echo "- Android (Capacitor variant): open \`native/android\` in Android Studio. The Play Store bundle is also built by the *Build Android app* workflow without Android Studio."; } >> "$GITHUB_STEP_SUMMARY"
