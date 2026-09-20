@@ -1,0 +1,40 @@
+# Mandarin The SenLin Way — API worker
+# Deploy:  npm install && npx wrangler login && npm run deploy   (see README.md)
+name = "senlin-api"
+main = "src/worker.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "senlin"
+database_id = "REPLACE_WITH_ID_FROM: wrangler d1 create senlin"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_WITH_ID_FROM: wrangler kv namespace create CACHE"
+
+[vars]
+# Non-secret configuration. Anything sensitive goes in `wrangler secret put <NAME>` instead.
+ALLOWED_ORIGINS = "https://forrest-jones.github.io"   # comma-separated; add your custom domain and app origins (capacitor://localhost, https://localhost)
+VERSION = "2026.09.20"
+ANTHROPIC_MODEL = "claude-sonnet-5"                  # default tutor model (fast, cheap); the client may request one from ANTHROPIC_ALLOWED_MODELS
+ANTHROPIC_ALLOWED_MODELS = "claude-sonnet-5,claude-opus-5,claude-haiku-4-5-20251001"
+TTS_PROVIDER = "azure"                               # 'azure' | 'google'
+STT_PROVIDER = "deepgram"                            # 'deepgram' | 'openai'
+EMAIL_FROM = "SenLin <hello@your-domain.com>"        # a domain verified in Resend
+# PAYWALL = "1"                                      # uncomment to gate HSK 3+ and the Deal Desk behind Pro
+# DEV = "1"                                          # allows http://localhost:8080 as an origin
+# DEV_ECHO_CODE = "1"                                # returns the sign-in code in the API response (never in production)
+
+# Secrets to set once with `npx wrangler secret put NAME`:
+#   JWT_SECRET                 long random string (openssl rand -hex 32) — signs sign-in tokens
+#   ANTHROPIC_API_KEY          console.anthropic.com — the AI tutor
+#   RESEND_API_KEY             resend.com — sign-in code emails
+#   AZURE_TTS_KEY + AZURE_TTS_REGION   portal.azure.com → Speech resource (e.g. region "eastus")   [if TTS_PROVIDER=azure]
+#   GOOGLE_TTS_KEY             console.cloud.google.com → Text-to-Speech API key                    [if TTS_PROVIDER=google]
+#   DEEPGRAM_API_KEY           console.deepgram.com — speech-to-text for iOS/Safari                  [if STT_PROVIDER=deepgram]
+#   OPENAI_API_KEY             Whisper speech-to-text                                                [if STT_PROVIDER=openai]
+#   REVENUECAT_WEBHOOK_SECRET  RevenueCat → Integrations → Webhooks → Authorization header value
+#   STRIPE_WEBHOOK_SECRET      Stripe → Developers → Webhooks → signing secret (whsec_…)
+#   ADMIN_KEY                  any long random string — protects GET /v1/admin/stats

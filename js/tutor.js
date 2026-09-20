@@ -19,8 +19,10 @@
   const getSDK = () => sdkPromise || (sdkPromise = import(SDK_URL).then(m => m.default || m.Anthropic || m).catch(err => { sdkPromise = null; throw err; }));
   const apiKey = () => (state.settings.apiKey || '').trim();
 
+  const cloud = () => (window.SenLinCloud && window.SenLinCloud.signedIn()) ? window.SenLinCloud : null;
   async function providerName() {
     if (await getSample()) return 'artifact';
+    if (cloud()) return 'cloud';
     if (apiKey()) return 'sdk';
     return null;
   }
@@ -33,7 +35,8 @@
       const { text } = await sample(turns, { cache: false, signal, onText: ({ text }) => onText(text), modelTier: 'default' });
       return text;
     }
-    const key = apiKey(); if (!key) throw { code: 'no_key', message: 'No API key' };
+    if (cloud() && !apiKey()) return cloud().chat(system, messages, onText, signal);
+    const key = apiKey(); if (!key) throw { code: 'no_key', message: window.SenLinCloud && window.SenLinCloud.available() ? 'Sign in (Settings) to talk with the tutor, or add your own API key' : 'No API key' };
     const Anthropic = await getSDK();
     const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
     const stream = client.beta.messages.stream({
@@ -124,6 +127,7 @@ ${FORMAT}`;
     if (T.sc && T.sc.id === sc.id && T.turns.length) return;      // resume
     const chars = learnedCharacters();
     T.sc = sc; T.level = currentLevel(chars); T.known = chars.join(''); T.turns = []; T.busy = false; T.startedAt = Date.now(); T.handsFree = false;
+    if (window.SenLinCloud) window.SenLinCloud.track('talk_start', { scenario: sc.id, level: T.level });
     T.turns.push({ role: 'assistant', content: `ZH: ${sc.opener.zh}\nPY: ${sc.opener.p}\nEN: ${sc.opener.en}\nFIX: ✓\nNEW: -`, parsed: { zh: sc.opener.zh, py: sc.opener.p, en: sc.opener.en, fix: '✓', words: [] } });
   }
 
@@ -141,7 +145,7 @@ ${FORMAT}`;
 
   function renderSession() {
     const el = document.getElementById('talk'); if (!el || !T.sc) return;
-    const ASR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const ASR = A.listenEngine();
     el.innerHTML = `<div class="stack">
       <div class="row between"><div><span class="eyebrow">${esc(T.sc.en)} · HSK ${T.level}</span><h1 class="h3"><span class="hz">${esc(T.sc.title)}</span> — ${esc(T.sc.persona)}</h1><p class="small muted">Goal: ${esc(T.sc.goal)}</p></div>
         <div class="row"><button class="btn btn-sm${T.showEn ? ' btn-primary' : ''}" id="toggle-en">EN</button>${ASR ? `<button class="btn btn-sm${T.handsFree ? ' btn-gold' : ''}" id="handsfree" title="Voice loop: the tutor speaks, then listens for your answer">🎧 Hands-free</button>` : ''}<button class="btn btn-sm btn-ghost" id="end">End &amp; review</button></div></div>
@@ -151,7 +155,7 @@ ${FORMAT}`;
         ${ASR ? `<button type="button" class="btn btn-icon" id="mic" title="Speak" ${T.busy ? 'disabled' : ''}>🎤</button>` : ''}
         <button class="btn btn-primary" type="submit" ${T.busy ? 'disabled' : ''}>Send</button>
       </form>
-      <div class="small muted" id="talk-note">${ASR ? '' : '🎤 Microphone input needs Chrome (desktop or Android). Here you can type your replies; the tutor still speaks.'}</div>
+      <div class="small muted" id="talk-note">${ASR ? '' : '🎤 Microphone input needs Chrome (desktop or Android), the app, or a signed-in account for the cloud recogniser. Here you can type your replies; the tutor still speaks.'}</div>
     </div>`;
     const chat = document.getElementById('chat'); chat.scrollTop = chat.scrollHeight;
     document.getElementById('composer').onsubmit = e => { e.preventDefault(); const v = document.getElementById('say').value.trim(); if (v) send(v); };
@@ -210,16 +214,17 @@ ${FORMAT}`;
   }
 
   function listen() {
-    const ASR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!ASR) return;
-    if (window.speechSynthesis) speechSynthesis.cancel();
+    if (!A.listenEngine()) return;
+    if (T.stopListen) { T.stopListen(); T.stopListen = null; return; }
+    tts.stop();
     const inp = document.getElementById('say'); const mic = document.getElementById('mic'); const note = document.getElementById('talk-note');
-    let r; try { r = new ASR(); } catch (err) { if (note) note.textContent = 'Speech recognition unavailable.'; return; }
-    r.lang = 'zh-CN'; r.interimResults = true; r.maxAlternatives = 1;
-    if (mic) mic.classList.add('btn-primary'); if (note) note.textContent = '🎤 listening… speak Chinese';
-    r.onresult = ev => { const t = Array.from(ev.results).map(x => x[0].transcript).join(''); if (inp) inp.value = t; if (ev.results[ev.results.length - 1].isFinal) { if (T.handsFree && t.trim()) send(t.trim()); } };
-    r.onerror = ev => { if (note) note.textContent = ev.error === 'not-allowed' ? 'Microphone blocked — allow it in the browser.' : ev.error === 'no-speech' ? 'No speech heard.' : 'Error: ' + ev.error; if (mic) mic.classList.remove('btn-primary'); };
-    r.onend = () => { if (mic) mic.classList.remove('btn-primary'); if (note && note.textContent.startsWith('🎤')) note.textContent = ''; if (T.handsFree && !T.busy && inp && !inp.value.trim()) setTimeout(() => { if (T.handsFree && !T.busy) listen(); }, 600); };
-    r.start();
+    if (mic) mic.classList.add('btn-primary'); if (note) note.textContent = A.listenEngine() === 'cloud' ? '🎤 recording… speak Chinese, tap the mic again to stop' : '🎤 listening… speak Chinese';
+    T.stopListen = A.listenOnce({
+      seconds: 8,
+      onResult: alts => { const t = (alts[0] || '').trim(); if (inp) inp.value = t; if (T.handsFree && t) send(t); },
+      onError: msg => { if (note) note.textContent = msg; },
+      onEnd: () => { T.stopListen = null; if (mic) mic.classList.remove('btn-primary'); if (note && note.textContent.startsWith('🎤')) note.textContent = ''; if (T.handsFree && !T.busy && inp && !inp.value.trim()) setTimeout(() => { if (T.handsFree && !T.busy) listen(); }, 600); }
+    });
   }
 
   async function endSession() {
@@ -227,6 +232,7 @@ ${FORMAT}`;
     if (T.ctl) T.ctl.abort();
     T.handsFree = false; if (window.speechSynthesis) speechSynthesis.cancel();
     const userTurns = T.turns.filter(t => t.role === 'user');
+    if (window.SenLinCloud) window.SenLinCloud.track('talk_end', { turns: userTurns.length, seconds: Math.round((Date.now() - T.startedAt) / 1000) });
     const el = document.getElementById('talk');
     if (!userTurns.length) { T.sc = null; T.turns = []; location.hash = '#/talk'; return; }
     el.innerHTML = `<div class="card stack"><h2 class="h3">Reviewing your session…</h2><p class="muted small">森林老师 is writing your feedback.</p></div>`;
@@ -263,7 +269,7 @@ WORDS: <up to 5 useful words for this learner: 词|pinyin|meaning separated by ;
   /* ------------------------------------------------------------ settings section */
   A.settingsExtra = () => `<section class="card stack">
       <h2 class="h3">AI tutor</h2>
-      <p class="muted small">The Talk page runs live conversations with Claude. Inside the claude.ai preview it uses your Claude account automatically. On the public site it needs your own Anthropic API key, stored only in this browser and sent only to api.anthropic.com. Model: ${MODEL}; each turn costs a fraction of a cent.</p>
+      <p class="muted small">The Talk page runs live conversations with Claude. ${window.SenLinCloud && window.SenLinCloud.available() ? 'Signed-in learners use the SenLin tutor service (no key needed; daily limits apply). ' : ''}Inside the claude.ai preview it uses your Claude account automatically. You can also bring your own Anthropic API key, stored only in this browser and sent only to api.anthropic.com. Model: ${MODEL}; each turn costs a fraction of a cent.</p>
       <div class="field"><label for="apikey">Anthropic API key</label><input class="input" id="apikey" type="password" placeholder="sk-ant-…" value="${esc(state.settings.apiKey || '')}" autocomplete="off"></div>
       <div class="row"><button class="btn" id="testkey">Test connection</button><span class="small muted" id="keystatus"></span></div>
     </section>`;

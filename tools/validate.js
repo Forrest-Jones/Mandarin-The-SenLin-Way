@@ -78,7 +78,8 @@ const emptyWordDays = days.filter(d => d.type === 'chars' && !d.words.length).ma
 
 /* level files must be wired in index.html and each level's words/sentences only use characters from its level or earlier */
 const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf8');
-S.LEVELS.forEach(l => { if (!html.includes(`js/data/hsk${l.level}.js`)) errors.push(`index.html does not load js/data/hsk${l.level}.js`); });
+const loaderJs = require('fs').readFileSync(require('path').join(__dirname, '..', 'js', 'loader.js'), 'utf8');
+S.LEVELS.forEach(l => { if (!html.includes(`js/data/hsk${l.level}.js`) && !loaderJs.includes(`js/data/hsk${l.level}.js`)) errors.push(`neither index.html nor js/loader.js loads js/data/hsk${l.level}.js`); });
 const charLevel = Object.fromEntries(S.CHARACTERS.map(c => [c.h, c.level]));
 S.WORDS.forEach(w => han(w.w).forEach(c => { if (charLevel[c] > w.level) errors.push(`word ${w.w} (HSK ${w.level}) uses ${c}, taught in HSK ${charLevel[c]}`); }));
 S.SENTENCES.forEach(s => han(s.zh).forEach(c => { if (charLevel[c] > s.level) errors.push(`sentence "${s.zh}" (HSK ${s.level}) uses ${c}, taught in HSK ${charLevel[c]}`); }));

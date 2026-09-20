@@ -14,12 +14,29 @@
   'use strict';
 
   /* ---------- levels → flat, tagged lists (teaching order = level order, then file order) */
-  const LEVELS = RAW_LEVELS.slice().sort((a, b) => a.level - b.level).filter(l => l.characters.length);
+  /* The level arrays are mutable so the site can load HSK 4–6 lazily (see js/loader.js): addLevels() appends
+     data files that arrive after boot and refreshes every derived list in place, keeping the exported
+     array identities stable for code that captured them. */
+  const RAW = RAW_LEVELS.slice();
+  const LEVELS = [], COMPONENTS = [], CHARACTERS = [], WORDS = [], SENTENCES = [];
   const tag = (l, arr) => arr.map(x => Object.assign({ level: l.level }, x));
-  const COMPONENTS = BASE_COMPONENTS.concat(LEVELS.flatMap(l => l.components || []));
-  const CHARACTERS = LEVELS.flatMap(l => tag(l, l.characters));
-  const WORDS = LEVELS.flatMap(l => tag(l, l.words));
-  const SENTENCES = LEVELS.flatMap(l => tag(l, l.sentences));
+  const COMP_MAP = {};
+  function refreshLevels() {
+    const lv = RAW.slice().sort((a, b) => a.level - b.level).filter(l => l.characters.length);
+    LEVELS.length = 0; LEVELS.push(...lv);
+    COMPONENTS.length = 0; COMPONENTS.push(...BASE_COMPONENTS, ...lv.flatMap(l => l.components || []));
+    CHARACTERS.length = 0; CHARACTERS.push(...lv.flatMap(l => tag(l, l.characters)));
+    WORDS.length = 0; WORDS.push(...lv.flatMap(l => tag(l, l.words)));
+    SENTENCES.length = 0; SENTENCES.push(...lv.flatMap(l => tag(l, l.sentences)));
+    Object.keys(COMP_MAP).forEach(k => delete COMP_MAP[k]); COMPONENTS.forEach(c => { COMP_MAP[c.c] = c; });
+  }
+  /** Add (or replace) level data files that were loaded after the engine. Returns the level numbers now present. */
+  function addLevels(list) {
+    (Array.isArray(list) ? list : [list]).forEach(l => { if (!l || !l.characters) return; const i = RAW.findIndex(x => x.level === l.level); if (i >= 0) RAW[i] = l; else RAW.push(l); });
+    refreshLevels();
+    return LEVELS.map(l => l.level);
+  }
+  refreshLevels();
 
   const CONFIG = {
     name: 'Mandarin The SenLin Way',
@@ -73,7 +90,6 @@
   const INITIAL_MAP = byKey(PINYIN.initials, 'key');
   const FINAL_MAP = byKey(PINYIN.finals, 'key');
   const TONE_MAP = byKey(PINYIN.tones, 'n');
-  const COMP_MAP = byKey(COMPONENTS, 'c');
 
   /** cast = { actors:{b:'…'}, sets:{a:'…'}, rooms:{1:'…'}, props:{口:'…'} } — user overrides */
   function resolveCast(cast) {
@@ -317,7 +333,7 @@
   }
 
   return {
-    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES, GRAMMAR, LEVELS, BUSINESS, LEVELINFO, BIZ_TERMS, BIZ_PHRASES, dealDesk,
+    CONFIG, GRADE, PINYIN, COMPONENTS, CHARACTERS, WORDS, SENTENCES, GRAMMAR, LEVELS, BUSINESS, LEVELINFO, BIZ_TERMS, BIZ_PHRASES, dealDesk, addLevels,
     INITIAL_MAP, FINAL_MAP, TONE_MAP, COMP_MAP,
     parsePinyin, resolveCast, scene,
     buildSchedule, dayNumber, dateForDay, isoDate, parseISO,

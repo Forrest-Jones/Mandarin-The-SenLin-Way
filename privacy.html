@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy · Mandarin The SenLin Way</title>
+  <meta name="description" content="What Mandarin The SenLin Way stores, where it goes, and how to delete it. Plain English, no walls of legalese.">
+  <meta name="theme-color" content="#14a066">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+  <link rel="stylesheet" href="css/senlin.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <a class="brand" href="./">
+        <span class="mark" aria-hidden="true">森</span>
+        <span>Mandarin The SenLin Way<small>One tree at a time</small></span>
+      </a>
+      <nav class="nav" aria-label="Legal">
+        <a href="./">← Back to the app</a>
+        <a href="privacy.html" aria-current="page">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <article class="stack-lg">
+      <section class="card card-accent stack">
+        <span class="eyebrow">Privacy policy</span>
+        <h1 class="h1">Your forest stays yours.</h1>
+        <p class="lead">Mandarin The SenLin Way is built to work with no account at all. Almost everything lives in your own browser or phone. This page says exactly what leaves your device, when, and how to wipe it.</p>
+        <p class="small">Effective date: 20 September 2026 · Applies to the website, the Android app and the iOS app.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">The short version</h2>
+        <ul>
+          <li>Your lessons, reviews and progress are stored <strong>on your device</strong>. We do not see them unless you turn on cloud sync.</li>
+          <li>An account is <strong>optional</strong> and needs only an email address. No password, no name, no phone number.</li>
+          <li>The AI tutor sends the text of your conversation to <strong>Anthropic</strong> so Claude can answer. Nothing else is sent.</li>
+          <li>Pronunciation feedback may send a short <strong>audio clip</strong> to a speech provider. We do not keep the audio.</li>
+          <li><strong>No ads. No data brokers. No selling or renting your data.</strong> Ever.</li>
+          <li>Analytics are anonymous and <strong>opt-in</strong>. You are asked once in Settings.</li>
+          <li>Payments go through Google Play, Apple, Stripe or RevenueCat. We never see card numbers.</li>
+          <li>Delete everything from <strong>Settings → Reset</strong>, or email us and we delete the server side too.</li>
+        </ul>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">1. What is stored on your device</h2>
+        <p>The app saves its state in your browser's local storage (or the app's private storage on Android and iOS). Nothing here is uploaded unless you switch on cloud sync (section 3). The keys are all prefixed <code class="mono">senlin.</code> and hold:</p>
+        <ul>
+          <li><strong>settings</strong> – your preferences (voice speed, level, reminder time, theme) and, if you typed one in, your own Anthropic API key.</li>
+          <li><strong>cast</strong> – the movie-scene characters you created as memory hooks.</li>
+          <li><strong>srs</strong> – your spaced-repetition schedule: which words you have seen and how well you remembered them.</li>
+          <li><strong>scenes</strong> – the scenes and stories you have built around words.</li>
+          <li><strong>progress</strong> – completed lessons, streak and stats.</li>
+          <li><strong>extra</strong> – words you added yourself.</li>
+          <li><strong>talks</strong> – transcripts of your AI tutor conversations, so you can re-read them.</li>
+          <li><strong>auth</strong> – a sign-in token, only if you created an account.</li>
+        </ul>
+        <p>Clearing site data in your browser, uninstalling the app, or pressing <strong>Settings → Reset</strong> removes all of it.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">2. Optional account</h2>
+        <p>You never need an account to learn. If you want your progress on more than one device, or you buy a Pro plan on the web, you can sign in with just an <strong>email address</strong>. We email you a one-time code; there is no password to remember and nothing else to fill in.</p>
+        <p>We store: your email address, the date you signed up, the date of your last sync, and (if you bought something) which plan you have and until when. That is the whole record.</p>
+        <p>We use your email only to send sign-in codes, receipts and important service notices (for example a change to these terms). No newsletters unless you ask for them.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">3. Cloud sync and backups</h2>
+        <p>When you are signed in and turn on sync, the local data listed in section 1 (except your API key, which never leaves your device) is copied to our server so you can pick up on another device. Sync is off until you turn it on.</p>
+        <p>The server runs on <strong>Cloudflare</strong> (Workers, KV and D1). Cloudflare stores data in its global network with the primary copy in a data centre near where you first connect; for most learners that is the United States or the European Union. Cloudflare is a processor acting on our instructions and does not use your data for its own purposes. Backups are kept for 30 days and then overwritten.</p>
+        <p>You can turn sync off at any time; the copy on the server is deleted when you delete your account (section 9).</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">4. The AI tutor (Talk)</h2>
+        <p>The Talk page and the Deal Desk role-plays are powered by Claude, a model made by <strong>Anthropic</strong>. When you send a message, the text of your conversation (your messages, the tutor's previous replies and a short description of the lesson you are on) is sent to Anthropic's API so it can produce the next reply.</p>
+        <p>It reaches Anthropic in one of two ways, and you can see which one in Settings:</p>
+        <ul>
+          <li><strong>Through our server</strong> – when you use the built-in tutor, our Cloudflare Worker forwards your messages to Anthropic and returns the answer. The Worker does not log the content of your conversations; it counts requests per account to prevent abuse.</li>
+          <li><strong>Directly with your own key</strong> – if you paste your own Anthropic API key in Settings, your browser talks to <code class="mono">api.anthropic.com</code> directly. The key is stored only on your device and we never receive it.</li>
+        </ul>
+        <p>Either way, <a href="https://www.anthropic.com/legal/privacy" rel="noopener">Anthropic's privacy policy</a> and <a href="https://www.anthropic.com/legal/aup" rel="noopener">usage policies</a> apply to the data they receive. Anthropic does not train its models on API conversations by default. Transcripts you keep are stored on your device (section 1); we do not keep a copy on our server unless you sync.</p>
+        <p>Please do not type passwords, card numbers or other people's personal details into the tutor. It is a language teacher, not a vault.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">5. Your voice</h2>
+        <p>"Say it" and the tutor's microphone button turn your speech into text so the app can check your tones and words. By default this uses the speech recognition built into your browser or phone (Chrome, Android, iOS), which is governed by Google's or Apple's privacy policy.</p>
+        <p>If you enable enhanced pronunciation feedback, a short audio clip (a few seconds, just the phrase you said) is sent through our server to a speech provider: <strong>Microsoft Azure Speech</strong>, <strong>Google Cloud Speech</strong> or <strong>Deepgram</strong>, depending on the language feature. The provider returns a transcript and a pronunciation score. <strong>We do not store the audio</strong>, and we ask the providers not to retain it either (all three offer no-retention modes, which we use).</p>
+        <p>Text-to-speech (the app reading Chinese aloud) uses your device's voice, our pre-recorded MP3s, or an online voice; only the sentence to be read is sent.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">6. Analytics and error reports</h2>
+        <p>Analytics are <strong>off until you say yes</strong>. The first time you open Settings, the app asks once. If you agree, it sends anonymous event names such as <code class="mono">lesson_completed</code> or <code class="mono">tone_gym_opened</code>, with your HSK level and the app version. That is all.</p>
+        <ul>
+          <li>No IP address is stored (Cloudflare strips it before the event is written).</li>
+          <li>No advertising identifier, no device fingerprint, no cookies for tracking.</li>
+          <li>No third-party analytics SDK; the events go only to our own server.</li>
+        </ul>
+        <p>If the app crashes, it can send an error report (the error message, the page you were on, the browser version and the app version). If you are signed in, the report is tagged with your account id so we can reply if you contact us. If a Sentry key is configured, the report goes to <strong>Sentry</strong> instead, under the same rules. Error reports never include your lesson data, transcripts or email.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">7. Purchases</h2>
+        <p>The core course is free. If you buy a Pro plan, the payment is handled by the store you bought it from:</p>
+        <ul>
+          <li><strong>Google Play</strong> (Android) – Google's privacy policy and refund rules apply.</li>
+          <li><strong>Apple App Store</strong> (iPhone and iPad) – Apple's privacy policy and refund rules apply.</li>
+          <li><strong>Stripe</strong> (website) – Stripe processes the card; we receive a customer id, the plan and the payment status.</li>
+          <li><strong>RevenueCat</strong> links these together and tells our server whether your plan is active.</li>
+        </ul>
+        <p>We never see or store your card number. What we keep is: which plan you have, when it started, when it renews or ends, and the store's anonymous transaction id.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">8. Children</h2>
+        <p>The app is for learners aged <strong>13 and older</strong>. We do not knowingly collect personal information from anyone under 13. If you believe a child under 13 has created an account, email us (section 11) and we will delete it. Younger learners are welcome to use the app without an account under a parent's supervision, because then nothing personal is collected at all.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">9. Deleting your data</h2>
+        <ul>
+          <li><strong>On your device:</strong> Settings → Reset removes every <code class="mono">senlin.</code> entry, including transcripts and your API key. Uninstalling the app or clearing site data does the same.</li>
+          <li><strong>On our server:</strong> Settings → Account → Delete account (when signed in) removes your email, sync data, backups and purchase record within 24 hours. Or email <a href="mailto:forrestjones2010@gmail.com">forrestjones2010@gmail.com</a> from the address you signed up with and we will do it by hand within 7 days.</li>
+          <li><strong>At the providers:</strong> we do not keep audio at all; AI conversations are subject to Anthropic's retention (typically 30 days for trust-and-safety, then deleted); store purchase history stays with Google, Apple or Stripe under their own rules.</li>
+        </ul>
+        <p>Deleting your account does not cancel a subscription: cancel it in Google Play, the App Store or the Stripe customer portal first, or your store may keep charging you.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">10. Your rights</h2>
+        <p>Wherever you live, you can ask us to show you, correct, export or delete the data we hold about you, and you can withdraw consent to analytics at any time in Settings. If you are in the EU/EEA, the UK, Switzerland, Brazil or California, these are legal rights (GDPR, UK GDPR, LGPD, CCPA); we honour them for everyone. We respond within 30 days. We do not sell or share personal data for cross-context advertising, so there is nothing to opt out of.</p>
+        <p>Data may be processed in the United States by our providers (Cloudflare, Anthropic, Microsoft, Google, Deepgram, Stripe, RevenueCat, Sentry). Each of them offers standard contractual clauses or an equivalent safeguard for international transfers.</p>
+      </section>
+
+      <section class="card prose">
+        <h2 class="h2">11. Changes and contact</h2>
+        <p>If we change this policy in a way that matters, we will show a notice in the app and update the effective date at the top. Small wording fixes happen without a notice.</p>
+        <p>Questions, requests, complaints: <a href="mailto:forrestjones2010@gmail.com">forrestjones2010@gmail.com</a>. The data controller is Forrest Jones, the individual developer of Mandarin The SenLin Way.</p>
+      </section>
+
+      <div class="row">
+        <a class="btn btn-primary" href="./">Back to the app</a>
+        <a class="btn btn-ghost" href="terms.html">Terms of use →</a>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <div class="container row between">
+      <span>森林 sēnlín · Building your Mandarin Word Forest, one tree at a time.</span>
+      <span><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="mailto:forrestjones2010@gmail.com">Contact</a></span>
+    </div>
+  </footer>
+</body>
+</html>

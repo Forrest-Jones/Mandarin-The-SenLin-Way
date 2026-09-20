@@ -1,7 +1,7 @@
 # Mandarin The SenLin Way 森林
 
-A daily **10-minute** Mandarin Chinese program on your own website.
-No accounts, no backend, no build step: plain HTML, CSS and JavaScript, deployed to GitHub Pages.
+A daily **10-minute** Mandarin Chinese program on your own website, installable as an app.
+No build step: plain HTML, CSS and JavaScript deployed to GitHub Pages, plus an optional Cloudflare Worker backend (`server/`) for accounts, sync, the AI tutor and voice.
 
 **Live site:** https://forrest-jones.github.io/Mandarin-The-SenLin-Way/
 
@@ -25,7 +25,7 @@ The curriculum is **top-down**: a word is never shown before all of its characte
 - **Days 13–899** Phases 1–6, the full HSK 1–6 road: 2,655 characters, 4,447 words, 1,444 sentences and 86 grammar patterns, one level after another (HSK 1 done by day 72, HSK 2 by 129, HSK 3 by 220, HSK 4 by 368, HSK 5 by 577, HSK 6 by 899).
 - **Then** Consolidation: the remaining HSK 6 vocabulary and daily review.
 
-**Levels.** The Levels page defines each HSK level as the Chinese government's test does (vocabulary, CEFR equivalent, exam format, the HSK Standard Course units, typical study hours) and shows the date you reach it at your pace. Every official HSK 2.0 word is taught at its listed level.
+**Levels.** The Levels page defines each HSK level as the test does (vocabulary, CEFR equivalent, exam format, the HSK Standard Course units, typical study hours) and shows the date you reach it at your pace. Every official HSK 2.0 word is taught at its listed level.
 
 **Deal Desk.** A business track for cross-border private-equity and venture-capital work: 12 units (people and titles, fund terms, sourcing, valuation and term sheets, due diligence, negotiation, closing and FX/ODI mechanics, legal, exits, banquets, numbers, follow-up) with 181 terms, 40 closing phrases and worked dialogues. Two terms and a phrase join every lesson from Day 13, and six deal-room role-plays live in Talk.
 
@@ -43,7 +43,27 @@ Three independent ways to receive each day’s lesson:
 
 ## AI tutor
 
-The Talk page calls Claude from the browser through the official `@anthropic-ai/sdk` (loaded from the jsdelivr CDN) with the learner's own API key, which is stored only in `localStorage` and sent only to `api.anthropic.com`. Inside the claude.ai artifact preview it uses the viewer's Claude account through the page's `sample` capability instead, so no key is needed there.
+The Talk page calls Claude three ways, in this order: signed-in learners go through the backend (`/v1/ai/chat`, key on the server, per-user limits); inside the claude.ai artifact preview it uses the viewer's Claude account through the page's `sample` capability; otherwise it uses the learner's own API key through the official `@anthropic-ai/sdk` (jsdelivr CDN), stored only in `localStorage` and sent only to `api.anthropic.com`.
+
+## Backend, accounts and apps
+
+`js/config.js` is the only file to edit when you deploy the extras. Everything is off until you fill it in.
+
+| Piece | Where | What it adds |
+| --- | --- | --- |
+| `server/` | Cloudflare Worker + D1 + KV (`server/README.md`, `server/API.md`) | email-code sign-in, cross-device sync with automatic backups, AI proxy with metering and rate limits, licensed cloud voice (Azure/Google), cloud speech-to-text for iOS/Safari, opt-in analytics, error reports, RevenueCat/Stripe webhooks, admin stats |
+| `js/cloud.js` | site | the Settings → Account card, sync merge, cloud tutor/voice/recogniser, telemetry (Sentry when `sentryDsn` is set) |
+| `js/native.js` + `native/` | Capacitor | Android and iOS shells with native TTS/STT, daily reminder notifications, haptics, RevenueCat purchases |
+| `twa-manifest.json`, `.well-known/assetlinks.json`, `store/` | Play Store | Bubblewrap/PWABuilder Trusted Web Activity, icons, feature graphic, screenshots, listing copy; the full guide is `PLAY_STORE.md` |
+| `tools/audio.js` → `audio/` | site | pre-generated MP3s from a licensed studio voice (≈ $1.50 one-off for the whole course); the site plays them first, then the device voice, then the cloud voice |
+| `tools/review.js` → `review/` | editors | CSV export of HSK 4–6 sentences, grammar and business lines for a native-speaker review pass, and `--apply` to read it back |
+| `js/loader.js` | site | HSK 4–6 (250 KB gzipped) load lazily, so first paint only needs HSK 1–3 |
+| `tests/e2e/` | CI | Playwright smoke, navigation, lesson, settings, offline, mobile (Pixel 7) and axe accessibility checks on every push |
+| `privacy.html`, `terms.html` | site | required by both stores; linked from the footer |
+
+Voice sources: the site never calls an unofficial endpoint. Recorded audio → native app voice → device Web Speech voice → cloud voice (signed in). Speech recognition: native app → browser (Chrome/Edge/Android) → cloud recogniser (signed in, any browser with a microphone).
+
+Paywall: set `paywall: true` in `js/config.js` (and `PAYWALL = "1"` on the worker) to keep HSK 1 free and put HSK 2–6 and the Deal Desk behind Pro.
 
 The site, the CLI and the calendar all compute the day from the same start date (`CONFIG.startDate` in `js/engine.js`, changeable per-device in Settings).
 
@@ -54,11 +74,16 @@ python3 -m http.server 8080      # then open http://localhost:8080
 node tools/validate.js           # checks data integrity and ordering
 node tools/lesson.js [day|date]  # prints a lesson as Markdown
 node tools/ics.js                # regenerates daily.ics
+npm install && npm test          # data checks + unit tests (tools/ and server/)
+npm run e2e                      # Playwright end-to-end suite (needs Chromium: npx playwright install chromium)
+node tools/audio.js --dry-run    # count utterances and estimate the cost of recording them
+node tools/review.js             # export HSK 4–6 text for native review
+node tools/icons.js              # regenerate PNG icons and the feature graphic
 ```
 
 ## Audio
 
-Pronunciation uses the browser’s Web Speech API with a Chinese (zh-CN) voice, so it works offline once a voice is installed. macOS: add *Tingting* under Accessibility → Spoken Content. Windows: add the Chinese (Simplified) language pack with speech. Chrome ships a Google 普通话 voice when online.
+Pronunciation plays recorded audio when `audio/` has been generated, otherwise the browser’s Web Speech API with a Chinese (zh-CN) voice, so it works offline once a voice is installed. macOS: add *Tingting* under Accessibility → Spoken Content. Windows: add the Chinese (Simplified) language pack with speech. Chrome ships a Google 普通话 voice when online.
 
 ## Extending the curriculum
 
@@ -66,4 +91,4 @@ Each HSK level is one file, `js/data/hskN.js`, holding its characters (in teachi
 
 ## Method and credits
 
-The SenLin Way is an original curriculum. It builds on James Heisig’s component mnemonics, Paul Pimsleur’s graduated recall, the SM-2 spaced-repetition algorithm, Stephen Krashen’s comprehensible input, Alexander Argüelles’ shadowing, and the official HSK vocabulary lists. See the Method page on the site.
+The SenLin Way is an original curriculum. It builds on James Heisig’s component mnemonics, Paul Pimsleur’s graduated recall, the SM-2 spaced-repetition algorithm, Stephen Krashen’s comprehensible input, Alexander Argüelles’ shadowing, and the published HSK vocabulary lists. Stroke-order animations use the MIT-licensed [Hanzi Writer](https://hanziwriter.org) and Make Me a Hanzi data. The course is HSK-aligned; it is not affiliated with or endorsed by the HSK's owners. See the Method page on the site.

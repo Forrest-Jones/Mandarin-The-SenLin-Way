@@ -24,7 +24,7 @@ jobs:
       - name: Check curriculum data (ordering, pinyin, components)
         run: node tools/validate.js
       - name: Engine tests
-        run: node --test tools/test.js
+        run: node --test tools/test.js tools/test-audio.js
       - name: Render today's lesson
         run: node tools/lesson.js
       - name: Check calendar feed is current
@@ -32,8 +32,32 @@ jobs:
           node tools/ics.js
           git diff --exit-code daily.ics || { echo "daily.ics is stale - run 'node tools/ics.js' and commit"; exit 1; }
 
-  deploy:
+  e2e:
     needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test dependencies
+        run: npm ci
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Backend unit tests
+        run: node --test server/test/*.test.js
+      - name: End-to-end, mobile and accessibility checks
+        run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
+  deploy:
+    needs: [validate, e2e]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:

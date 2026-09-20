@@ -1,0 +1,47 @@
+{
+  "packageId": "com.senlinway.mandarin",
+  "host": "forrest-jones.github.io",
+  "name": "Mandarin The SenLin Way",
+  "launcherName": "SenLin",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#14a066",
+  "themeColorDark": "#0b2a20",
+  "navigationColor": "#fbfdf8",
+  "navigationColorDark": "#071a14",
+  "navigationDividerColor": "#e6ede8",
+  "navigationDividerColorDark": "#10382b",
+  "backgroundColor": "#fbfdf8",
+  "enableNotifications": true,
+  "startUrl": "/Mandarin-The-SenLin-Way/",
+  "iconUrl": "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/assets/icon-512.png",
+  "maskableIconUrl": "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/assets/icon-maskable-512.png",
+  "monochromeIconUrl": "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/assets/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "senlin"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/",
+  "minSdkVersion": 21,
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "1.0.0"
+}

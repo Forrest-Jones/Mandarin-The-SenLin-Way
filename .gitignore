@@ -1,2 +1,7 @@
 .DS_Store
 node_modules/
+test-results/
+playwright-report/
+server/.dev.vars
+server/.wrangler/
+review/*.patch.json

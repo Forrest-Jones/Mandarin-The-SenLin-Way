@@ -31,7 +31,7 @@
   --paper-2: #f0f8f1;
   --ink: #0e1f18;
   --ink-2: #3f5a4d;
-  --ink-3: #7b9386;
+  --ink-3: #5b7466;            /* 4.6:1 on white: small helper text stays readable */
 
   /* Tone colours (consistent everywhere) */
   --tone1: #2f8bff; --tone2: #14a066; --tone3: #8b5cf6; --tone4: #ff4d5a; --tone5: #8a9a92;
@@ -46,6 +46,7 @@
   --line: rgba(14, 31, 24, .10);
   --line-strong: rgba(14, 31, 24, .18);
   --accent: var(--jade-600);
+  --accent-text: var(--jade-700);   /* accent-coloured small text (eyebrows, brand line): AA contrast on light surfaces */
   --accent-strong: var(--jade-700);
   --accent-soft: var(--jade-100);
   --accent-glow: rgba(30, 194, 124, .35);
@@ -77,7 +78,7 @@
     --bg: var(--night-950); --bg-elev: var(--night-900); --bg-soft: var(--night-800);
     --fg: #eefbf3; --fg-muted: #b5d4c3; --fg-faint: #7fa08f;
     --line: rgba(255,255,255,.09); --line-strong: rgba(255,255,255,.18);
-    --accent: var(--jade-500); --accent-strong: var(--jade-400); --accent-soft: rgba(30,194,124,.16);
+    --accent: var(--jade-500); --accent-text: var(--jade-400); --accent-strong: var(--jade-400); --accent-soft: rgba(30,194,124,.16);
     --gold: var(--sun-400); --gold-soft: rgba(255,207,77,.16);
     --hero: linear-gradient(135deg, #14a066 0%, #0f5f40 40%, #0b2a20 100%);
     --btn-shadow: 0 4px 0 0 rgba(0,0,0,.45); --btn-shadow-accent: 0 4px 0 0 #0c6b45; --btn-shadow-gold: 0 4px 0 0 #b07a00;
@@ -88,7 +89,7 @@
   --bg: var(--night-950); --bg-elev: var(--night-900); --bg-soft: var(--night-800);
   --fg: #eefbf3; --fg-muted: #b5d4c3; --fg-faint: #7fa08f;
   --line: rgba(255,255,255,.09); --line-strong: rgba(255,255,255,.18);
-  --accent: var(--jade-500); --accent-strong: var(--jade-400); --accent-soft: rgba(30,194,124,.16);
+  --accent: var(--jade-500); --accent-text: var(--jade-400); --accent-strong: var(--jade-400); --accent-soft: rgba(30,194,124,.16);
   --gold: var(--sun-400); --gold-soft: rgba(255,207,77,.16);
   --hero: linear-gradient(135deg, #14a066 0%, #0f5f40 40%, #0b2a20 100%);
   --btn-shadow: 0 4px 0 0 rgba(0,0,0,.45); --btn-shadow-accent: 0 4px 0 0 #0c6b45; --btn-shadow-gold: 0 4px 0 0 #b07a00;
@@ -124,12 +125,12 @@ ul { margin: 0; padding: 0; list-style: none; }
 .brand { display: flex; align-items: center; gap: .75rem; font-weight: 900; letter-spacing: -.01em; font-size: 1.05rem; white-space: nowrap; }
 .brand .mark { width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(140deg, var(--jade-400), var(--jade-700)); color: #fff; display: grid; place-items: center; font-family: var(--font-hanzi); font-size: 1.45rem; box-shadow: 0 6px 18px -6px var(--accent-glow), inset 0 -3px 0 rgba(0,0,0,.18); transform: rotate(-4deg); transition: transform .35s var(--bounce); }
 .brand:hover .mark { transform: rotate(6deg) scale(1.06); }
-.brand small { display: block; font-size: .68rem; font-weight: 800; color: var(--accent); letter-spacing: .14em; text-transform: uppercase; }
+.brand small { display: block; font-size: .68rem; font-weight: 800; color: var(--accent-text); letter-spacing: .14em; text-transform: uppercase; }
 .nav { margin-left: auto; display: flex; gap: .2rem; overflow-x: auto; scrollbar-width: none; }
 .nav::-webkit-scrollbar { display: none; }
-.nav a { padding: .5rem .7rem; border-radius: 999px; font-size: .86rem; font-weight: 800; color: var(--fg-muted); white-space: nowrap; transition: background .2s, color .2s, transform .2s var(--bounce); }
+.nav a { display: inline-flex; align-items: center; min-height: 44px; padding: .5rem .8rem; border-radius: 999px; font-size: .86rem; font-weight: 800; color: var(--fg-muted); white-space: nowrap; transition: background .2s, color .2s, transform .2s var(--bounce); }
 .nav a:hover { background: var(--bg-soft); color: var(--fg); transform: translateY(-1px); }
-.nav a[aria-current="page"] { background: var(--accent); color: #fff; box-shadow: 0 6px 16px -6px var(--accent-glow); }
+.nav a[aria-current="page"] { background: var(--accent-text); color: var(--bg-elev); box-shadow: 0 6px 16px -6px var(--accent-glow); }
 
 /* ---------- Layout ---------- */
 main { padding-block: clamp(1.5rem, 4vw, 3rem); min-height: 70vh; }
@@ -142,7 +143,7 @@ main { padding-block: clamp(1.5rem, 4vw, 3rem); min-height: 70vh; }
 .grid-tiles { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
 .between { justify-content: space-between; }
-.eyebrow { display: inline-flex; align-items: center; gap: .45rem; font-size: .72rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.eyebrow { display: inline-flex; align-items: center; gap: .45rem; font-size: .72rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-text); }
 .h1 { font-size: clamp(2rem, 1.3rem + 2.8vw, 3.2rem); letter-spacing: -.03em; line-height: 1.02; font-weight: 900; }
 .h2 { font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2rem); font-weight: 900; }
 .h3 { font-size: 1.2rem; font-weight: 800; }

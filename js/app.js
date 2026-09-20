@@ -20,7 +20,7 @@
     extra: store.get('extra', { words: [] }),
     talks: store.get('talks', [])
   };
-  const save = () => { store.set('settings', state.settings); store.set('cast', state.cast); store.set('srs', state.srs); store.set('scenes', state.scenes); store.set('progress', state.progress); store.set('extra', state.extra); store.set('talks', state.talks); };
+  const save = () => { store.set('settings', state.settings); store.set('cast', state.cast); store.set('srs', state.srs); store.set('scenes', state.scenes); store.set('progress', state.progress); store.set('extra', state.extra); store.set('talks', state.talks); if (window.SenLinCloud) window.SenLinCloud.dirty(); };
   const applyTheme = () => { if (state.settings.theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', state.settings.theme); };
   applyTheme();
 
@@ -29,7 +29,10 @@
   const todayDay = () => S.dayNumber(new Date(), state.settings.startDate);
   const dayInfo = d => DAYS[Math.min(d, DAYS.length) - 1];
 
-  /* ------------------------------------------------------------ speech */
+  /* ------------------------------------------------------------ speech
+     Voice order: recorded audio (audio/index.json, a licensed studio voice) → the native app's voice →
+     the device's Web Speech voice → the cloud voice (our server, when signed in). No unofficial endpoints. */
+  const CFG = window.SENLIN_CONFIG || {};
   const tts = {
     voices: [],
     load() { this.voices = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(v => /^zh([-_]|$)/i.test(v.lang) || /chinese|mandarin|putonghua/i.test(v.name)); },
@@ -39,27 +42,61 @@
       for (const p of pref) { const v = this.voices.find(v => (v.name + ' ' + v.lang).includes(p)); if (v) return v; }
       return this.voices.find(v => /zh[-_]CN/i.test(v.lang)) || this.voices[0];
     },
-    audio: null,
-    /** Online fallback voice (Google Translate's Mandarin voice) for browsers or app viewers without a speech engine. */
-    speakOnline(text, rate) {
-      try { if (this.audio) { this.audio.pause(); } } catch (e) { /* ignore */ }
-      const slow = (rate || state.settings.rate) < 0.75;
-      const a = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=zh-CN${slow ? '&ttsspeed=0.24' : ''}&q=${encodeURIComponent(text.slice(0, 190))}`);
-      this.audio = a; this.speakingOnline = true;
-      a.onended = a.onerror = () => { this.speakingOnline = false; };
-      a.onerror = () => { this.speakingOnline = false; toast('No voice available here — open the site in Chrome or Safari for audio'); };
-      a.play().catch(() => { this.speakingOnline = false; toast('Tap once more to allow audio, or open the site in Chrome'); });
+    audio: null, playing: false, index: null, hashes: new Map(),
+    /* recorded audio: audio/<sha256(text).slice(0,16)>.mp3, listed in audio/index.json (see tools/audio.js) */
+    async loadIndex() {
+      if (this.index !== null) return this.index;
+      this.index = false;
+      try { const r = await fetch((CFG.audioBase || 'audio/') + 'index.json'); if (r.ok) { const j = await r.json(); if (j && j.items) this.index = j; } } catch (e) { /* no recorded audio */ }
+      return this.index;
+    },
+    async hash(text) {
+      if (this.hashes.has(text)) return this.hashes.get(text);
+      if (!(window.crypto && crypto.subtle)) return null;
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      const id = Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+      this.hashes.set(text, id); return id;
+    },
+    async recordedUrl(text, rate) {
+      const idx = await this.loadIndex(); if (!idx) return null;
+      const id = await this.hash(text); const it = id && idx.items[id]; if (!it) return null;
+      return (CFG.audioBase || 'audio/') + id + (rate < 0.75 && it.slow ? '-slow' : '') + '.mp3';
+    },
+    playUrl(url, rate) {
+      return new Promise((resolve, reject) => {
+        const a = new Audio(url); this.audio = a; this.playing = true;
+        if (rate && rate < 0.75 && !/-slow\.mp3$/.test(url)) a.playbackRate = Math.max(0.6, rate);
+        a.onended = () => { this.playing = false; resolve(true); };
+        a.onerror = () => { this.playing = false; reject(new Error('audio failed')); };
+        a.play().catch(err => { this.playing = false; reject(err); });
+      });
     },
     hasDeviceVoice() { if (!window.speechSynthesis) return false; if (!this.voices.length) this.load(); return !!this.best(); },
-    speak(text, rate) {
-      if (state.settings.voiceSource === 'online' || !this.hasDeviceVoice()) return this.speakOnline(text, rate);
+    speakDevice(text, rate) {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'zh-CN'; u.rate = rate || state.settings.rate;
+      u.lang = 'zh-CN'; u.rate = rate;
       const v = this.best(); if (v) u.voice = v;
       speechSynthesis.speak(u);
     },
-    get speaking() { return this.speakingOnline || (!!window.speechSynthesis && speechSynthesis.speaking); }
+    async speakCloud(text, rate) {
+      const C = window.SenLinCloud; if (!C || !C.signedIn()) return false;
+      try { const blob = await C.tts(text, rate); await this.playUrl(URL.createObjectURL(blob)); return true; } catch (e) { return false; }
+    },
+    stop() { try { if (this.audio) this.audio.pause(); } catch (e) { /* ignore */ } this.playing = false; if (window.speechSynthesis) speechSynthesis.cancel(); const N = window.SenLinNative; if (N && N.isNative) { try { N.tts.stop(); } catch (e) { /* ignore */ } } },
+    async speak(text, rate) {
+      rate = rate || state.settings.rate; const src = state.settings.voiceSource || 'auto';
+      this.stop();
+      if (src === 'auto' || src === 'recorded') { const url = await this.recordedUrl(text, rate); if (url) { try { await this.playUrl(url, rate); return; } catch (e) { /* fall through */ } } }
+      const N = window.SenLinNative;
+      if (src !== 'cloud' && N && N.isNative && N.tts.available) { try { await N.tts.speak(text, rate); return; } catch (e) { /* fall through */ } }
+      if ((src === 'auto' || src === 'device' || src === 'recorded') && this.hasDeviceVoice()) return this.speakDevice(text, rate);
+      if (await this.speakCloud(text, rate)) return;
+      if (this.hasDeviceVoice()) return this.speakDevice(text, rate);
+      const C = window.SenLinCloud;
+      toast(C && C.available() && !C.signedIn() ? 'No Chinese voice on this device. Sign in (Settings) for the cloud voice, or open the site in Chrome.' : 'No Chinese voice on this device. Open the site in Chrome, or add a Chinese voice in your system settings.');
+    },
+    get speaking() { return this.playing || (!!window.speechSynthesis && speechSynthesis.speaking); }
   };
   if (window.speechSynthesis) { tts.load(); speechSynthesis.onvoiceschanged = () => tts.load(); }
   const playBtn = (text, opts = {}) => `<button class="btn btn-icon${opts.cls ? ' ' + opts.cls : ''}" data-say="${esc(text)}"${opts.rate ? ` data-rate="${opts.rate}"` : ''} title="Listen" aria-label="Listen">${opts.slow ? '🐢' : '🔊'}</button>`;
@@ -67,7 +104,8 @@
     const b = e.target.closest('[data-say]'); if (b) tts.speak(b.dataset.say, b.dataset.rate ? parseFloat(b.dataset.rate) : undefined);
   });
 
-  /* ---- "Say it": speech recognition scores what you said against the target (Chrome, Edge, Android) */
+  /* ---- "Say it": speech recognition scores what you said against the target.
+     Engines, in order: the native app (iOS/Android), the browser (Chrome, Edge, Android), the cloud (our server, signed in). */
   const ASR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const hanOnly = t => Array.from(t).filter(c => /\p{Script=Han}/u.test(c));
   function matchScore(target, said) {
@@ -78,23 +116,68 @@
     for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) dp[i][j] = t[i - 1] === sd[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
     return dp[m][n] / m;
   }
-  const sayBtn = target => ASR ? `<button class="btn btn-icon" data-listen="${esc(target)}" title="Say it — I’ll check" aria-label="Say it">🎤</button>` : '';
+  const canRecord = () => !!(navigator.mediaDevices && window.MediaRecorder);
+  /** Which recogniser would run now: 'native' | 'browser' | 'cloud' | null */
+  function listenEngine() {
+    const N = window.SenLinNative, C = window.SenLinCloud;
+    if (N && N.isNative && N.stt.available) return 'native';
+    if (ASR) return 'browser';
+    if (C && C.signedIn() && canRecord()) return 'cloud';
+    return null;
+  }
+  /** Listen once for Mandarin. Calls onResult(alternatives[]) or onError(message); always onEnd(). Returns a stop() function. */
+  function listenOnce({ onResult, onError, onEnd, seconds = 6 }) {
+    const eng = listenEngine();
+    const done = () => { if (onEnd) onEnd(); };
+    if (eng === 'native') {
+      const N = window.SenLinNative;
+      N.stt.listen({ lang: 'zh-CN', onResult: alts => { onResult(alts); }, onError: m => onError(m), onEnd: done });
+      return () => N.stt.stop();
+    }
+    if (eng === 'browser') {
+      let r; try { r = new ASR(); } catch (err) { onError('speech recognition unavailable'); done(); return () => {}; }
+      r.lang = 'zh-CN'; r.interimResults = false; r.maxAlternatives = 5; let got = false;
+      r.onresult = ev => { got = true; onResult(Array.from(ev.results[0]).map(a => a.transcript)); };
+      r.onerror = ev => { onError(ev.error === 'not-allowed' ? 'microphone blocked — allow it in the browser' : ev.error === 'no-speech' ? 'no speech heard' : 'error: ' + ev.error); };
+      r.onend = () => { if (!got) onError('nothing heard'); done(); };
+      r.start();
+      return () => { try { r.stop(); } catch (e) { /* ignore */ } };
+    }
+    if (eng === 'cloud') {
+      let rec, timer;
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        const chunks = []; rec = new MediaRecorder(stream);
+        rec.ondataavailable = ev => chunks.push(ev.data);
+        rec.onstop = async () => {
+          stream.getTracks().forEach(t => t.stop());
+          try { const text = await window.SenLinCloud.stt(new Blob(chunks, { type: rec.mimeType })); if (text) onResult([text]); else onError('nothing heard'); }
+          catch (e) { onError(e && e.message ? e.message : 'cloud recognition failed'); }
+          done();
+        };
+        rec.start(); timer = setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, seconds * 1000);
+      }).catch(err => { onError('microphone unavailable: ' + (err.message || err.name)); done(); });
+      return () => { clearTimeout(timer); if (rec && rec.state === 'recording') rec.stop(); };
+    }
+    onError('no speech recognition here — use Chrome, the app, or sign in for the cloud recogniser'); done();
+    return () => {};
+  }
+  const sayBtn = target => `<button class="btn btn-icon" data-listen="${esc(target)}" title="Say it — I’ll check" aria-label="Say it">🎤</button>`;
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-listen]'); if (!b) return;
     const target = b.dataset.listen; const out = b.parentElement.querySelector('.asr') || b.parentElement.appendChild(Object.assign(document.createElement('span'), { className: 'asr small' }));
-    out.textContent = 'listening…'; b.disabled = true;
-    let r; try { r = new ASR(); } catch (err) { out.textContent = 'speech recognition unavailable'; b.disabled = false; return; }
-    r.lang = 'zh-CN'; r.interimResults = false; r.maxAlternatives = 5;
-    r.onresult = ev => {
-      const alts = Array.from(ev.results[0]).map(a => a.transcript);
-      const best = alts.map(a => ({ a, s: matchScore(target, a) })).sort((x, y) => y.s - x.s)[0];
-      const pct = Math.round(best.s * 100);
-      state.progress.said = state.progress.said || { total: 0, good: 0 }; state.progress.said.total++; if (pct >= 80) state.progress.said.good++; save();
-      out.innerHTML = `${pct >= 80 ? '✅' : pct >= 50 ? '🟡' : '❌'} heard “<span class="hz">${esc(best.a)}</span>” · ${pct}% match`;
-    };
-    r.onerror = ev => { out.textContent = ev.error === 'not-allowed' ? 'microphone blocked — allow it in the browser' : ev.error === 'no-speech' ? 'no speech heard' : 'error: ' + ev.error; };
-    r.onend = () => { b.disabled = false; if (out.textContent === 'listening…') out.textContent = 'nothing heard'; };
-    r.start();
+    if (b.dataset.stop) { b.dataset.stop = ''; if (b._stop) b._stop(); return; }
+    out.textContent = listenEngine() === 'cloud' ? 'recording… (tap again to stop)' : 'listening…'; b.dataset.stop = '1';
+    b._stop = listenOnce({
+      onResult: alts => {
+        const best = alts.map(a => ({ a, s: matchScore(target, a) })).sort((x, y) => y.s - x.s)[0];
+        const pct = Math.round(best.s * 100);
+        state.progress.said = state.progress.said || { total: 0, good: 0 }; state.progress.said.total++; if (pct >= 80) state.progress.said.good++; save();
+        out.innerHTML = `${pct >= 80 ? '✅' : pct >= 50 ? '🟡' : '❌'} heard “<span class="hz">${esc(best.a)}</span>” · ${pct}% match`;
+        if (window.SenLinCloud) window.SenLinCloud.track('say', { pct });
+      },
+      onError: msg => { out.textContent = msg; },
+      onEnd: () => { b.dataset.stop = ''; }
+    });
   });
 
   /* ---- Record & compare: record yourself, then play it back next to the native voice */
@@ -173,11 +256,35 @@
 
   /* ------------------------------------------------------------ router */
   const routes = {};
+  const LAZY = window.SENLIN_LAZY || { pending: false, load: () => Promise.resolve() };
+  /** Routes that show the whole curriculum wait for HSK 4–6 to arrive (a few hundred KB, once). */
+  function needsAllLevels(name, arg) {
+    if (!LAZY.pending) return false;
+    if (/^(library|levels|progress|plan)$/.test(name)) return true;
+    if (name === 'lesson' || name === 'review') { const d = parseInt(arg, 10) || todayDay(); return d > (LAZY.end3 || 0) - 3; }
+    return false;
+  }
+  /** Paywall (js/config.js → paywall:true): HSK 1 stays free, the rest needs a Pro plan. */
+  const locked = day => !!CFG.paywall && day > (CFG.freeDays || 45) && !(window.SenLinCloud && window.SenLinCloud.isPro());
+  const upsell = what => `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
+      <span class="eyebrow">SenLin Pro</span><h1 class="h2">${esc(what)} is part of Pro</h1>
+      <p class="lead">HSK 1 is free forever. Pro unlocks the whole road to HSK 6, the Deal Desk, cloud sync and the cloud voice.</p>
+      <div class="row">${CFG.checkoutUrl || (window.SenLinNative && window.SenLinNative.isNative) ? `<button class="btn btn-primary" id="go-pro">Go Pro</button>` : ''}<a class="btn" href="#/settings">Sign in</a><a class="btn btn-ghost" href="#/">Back</a></div>
+    </section></div>`;
   function navigate() {
     const hash = location.hash.replace(/^#\/?/, '');
     const [name, arg] = hash.split('/');
-    const view = routes[name || 'today'] || routes.today;
-    document.querySelectorAll('.nav a').forEach(a => a.toggleAttribute('aria-current', a.dataset.route === (name || 'today')) || (a.dataset.route === (name || 'today') ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+    let view = routes[name || 'today'] || routes.today;
+    if (needsAllLevels(name, arg)) {
+      app.innerHTML = '<div class="card stack" style="max-width:520px"><p class="lead">Loading HSK 4–6…</p><p class="muted small">A few hundred kilobytes, once. The site keeps them for offline use.</p></div>';
+      LAZY.load().then(() => { rebuild(); navigate(); }).catch(() => { app.innerHTML = '<div class="card"><p>Could not load HSK 4–6. Check your connection and reload.</p></div>'; });
+      return;
+    }
+    if ((name === 'lesson' && locked(parseInt(arg, 10) || todayDay())) || (name === 'business' && CFG.paywall && !(window.SenLinCloud && window.SenLinCloud.isPro()))) {
+      const what = name === 'business' ? 'The Deal Desk' : 'This lesson';
+      view = Object.assign(() => upsell(what), { after: () => { const b = $('#go-pro'); if (b) b.onclick = () => window.SenLinCloud && window.SenLinCloud.buy(); } });
+    }
+    document.querySelectorAll('.nav a').forEach(a => { if (a.dataset.route === (name || 'today')) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     if (lesson.timer) lesson.stop();
     window.scrollTo(0, 0);
     app.innerHTML = view(arg);
@@ -263,6 +370,7 @@
     lesson.day = day; lesson.seg = 0; lesson.elapsed = 0;
     lesson.review = { i: 0, shown: false }; lesson.quiz = { i: 0, right: 0, answered: false }; lesson.shadow = {};
     lesson.data = S.buildLesson(day, DAYS, state.srs, state.cast, Date.now());
+    if (window.SenLinCloud) window.SenLinCloud.track('lesson_start', { day });
     const extraDue = window.SenLinApp.extraReviewItems().filter(i => state.srs[i.id] && state.srs[i.id].due <= Date.now());
     if (extraDue.length) lesson.data.review = extraDue.concat(lesson.data.review).slice(0, S.CONFIG.reviewCap + 4);
     lesson.timer = setInterval(() => { lesson.elapsed++; const c = $('#clock'); if (c) { const left = S.CONFIG.lessonMinutes * 60 - lesson.elapsed; c.textContent = (left < 0 ? '+' : '') + seconds(left); c.classList.toggle('over', left < 0); } }, 1000);
@@ -418,6 +526,7 @@
     const L = lesson.data; const wasDone = !!state.progress.completed[L.day];
     if (!wasDone) {
       state.progress.completed[L.day] = S.isoDate(new Date());
+      if (window.SenLinCloud) window.SenLinCloud.track('lesson_done', { day: L.day, quiz: lesson.quiz.right });
       /* enter today's new items into spaced repetition */
       const now = Date.now();
       S.learnedItems(DAYS, L.day).filter(i => i.day === L.day).forEach(i => { if (!state.srs[i.id]) { const s = S.srsInit(); s.due = now + 86400000; state.srs[i.id] = s; } });
@@ -637,9 +746,9 @@
         <li><b>After the last level · Consolidation.</b> Daily review keeps the forest alive. HSK 6 is the ceiling of the standard test: at three characters a day the full road is about ${Math.round((S.CHARACTERS.length / 3 + 12) / 30)} months of ten-minute lessons, and you can raise the pace in Settings.</li>
       </ul>
       <h2 class="h3">Levels and the Deal Desk</h2>
-      <p>The six phases follow the official HSK 2.0 vocabulary lists exactly (every listed word is taught, at its listed level) and the unit structure of the <i>HSK Standard Course</i> textbooks. The <a href="#/levels" style="text-decoration:underline">Levels</a> page defines each level, its exam and the date you reach it at your pace. The <a href="#/business" style="text-decoration:underline">Deal Desk</a> is a parallel track for cross-border private-equity and venture work: two terms and one closing phrase join every lesson, and six deal-room role-plays live in Talk.</p>
+      <p>The six phases are aligned with the published HSK 2.0 vocabulary lists (every listed word is taught, at its listed level) and mirror the unit structure of the <i>HSK Standard Course</i> textbooks. The <a href="#/levels" style="text-decoration:underline">Levels</a> page defines each level, its exam and the date you reach it at your pace. The <a href="#/business" style="text-decoration:underline">Deal Desk</a> is a parallel track for cross-border private-equity and venture work: two terms and one closing phrase join every lesson, and six deal-room role-plays live in Talk.</p>
       <h2 class="h3">Credits</h2>
-      <p class="small muted">The SenLin Way is an original curriculum. It stands on the shoulders of James Heisig (component mnemonics), Paul Pimsleur (graduated recall), Piotr Woźniak (SM-2 spaced repetition), Stephen Krashen (comprehensible input) and Alexander Argüelles (shadowing), and on the official HSK vocabulary lists. Character decompositions are mnemonic-level approximations chosen for memorability.</p>
+      <p class="small muted">The SenLin Way is an original curriculum. It stands on the shoulders of James Heisig (component mnemonics), Paul Pimsleur (graduated recall), Piotr Woźniak (SM-2 spaced repetition), Stephen Krashen (comprehensible input) and Alexander Argüelles (shadowing), and on the published HSK vocabulary lists. Character decompositions are mnemonic-level approximations chosen for memorability. Stroke-order animations use the open-source <a href="https://hanziwriter.org" rel="noopener" target="_blank" style="text-decoration:underline">Hanzi Writer</a> library and Make Me a Hanzi data. HSK is a trademark of its owners; this course is HSK-aligned and is not affiliated with or endorsed by them. <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>.</p>
     </div>`;
   };
 
@@ -648,6 +757,7 @@
     const s = state.settings;
     const voices = tts.voices;
     return `<div class="stack-lg" style="max-width:640px">
+      ${window.SenLinApp && window.SenLinApp.accountExtra ? window.SenLinApp.accountExtra() : ''}
       <div><span class="eyebrow">Settings</span><h1 class="h2">Make it yours</h1></div>
       <section class="card stack">
         <div class="field"><label for="start">Day 1 date</label><input class="input" type="date" id="start" value="${esc(s.startDate)}"><span class="faint small">Today is Day ${todayDay()}. Change this to restart or to shift the calendar.</span></div>
@@ -657,7 +767,7 @@
       </section>
       <section class="card stack">
         <h2 class="h3">Voice</h2>
-        <div class="field"><label for="voicesource">Voice source</label><select class="input" id="voicesource">${[['auto', 'Device voice when available, otherwise online voice'], ['online', 'Always the online voice (Google Mandarin)']].map(([v, l]) => `<option value="${v}"${(s.voiceSource || 'auto') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+        <div class="field"><label for="voicesource">Voice source</label><select class="input" id="voicesource">${[['auto', 'Best available: recorded audio, then device voice, then cloud voice'], ['recorded', 'Recorded audio first, device voice as backup'], ['device', 'Device voice only'], ['cloud', 'Cloud voice (needs an account)']].map(([v, l]) => `<option value="${v}"${(s.voiceSource || 'auto') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
           <span class="faint small">Best browsers: Chrome (desktop and Android) for both speaking and the microphone; Safari for speaking. The preview inside the Claude app has no speech engine, so it uses the online voice; the microphone needs Chrome.</span></div>
         <div class="field"><label for="voice">Mandarin voice</label><select class="input" id="voice"><option value="">Automatic${voices.length ? '' : ' (no Chinese voice found yet)'}</option>${voices.map(v => `<option value="${esc(v.name)}"${s.voice === v.name ? ' selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
           <span class="faint small">No Chinese voice? macOS: System Settings → Accessibility → Spoken Content → add Tingting. Windows: Settings → Time & Language → add Chinese (Simplified) speech. Chrome also ships a Google 普通话 voice online.</span></div>
@@ -666,7 +776,7 @@
       </section>
       <section class="card stack">
         <h2 class="h3">Your data</h2>
-        <p class="muted small">Everything lives in this browser (no account, no server). Export a backup before switching devices.</p>
+        <p class="muted small">Your progress lives in this browser. Sign in above to sync it across devices with automatic backups, or export a file here.</p>
         <div class="row"><button class="btn" id="export">Export backup</button><label class="btn">Import backup<input type="file" id="import" accept="application/json" class="sr-only"></label><button class="btn btn-ghost" id="reset" style="color:var(--vermilion)">Reset everything</button></div>
       </section>
       ${window.SenLinApp && window.SenLinApp.placementExtra ? window.SenLinApp.placementExtra() : ''}
@@ -692,11 +802,22 @@
     $('#reset').onclick = () => { if (confirm('Delete all progress, reviews, scenes and cast? This cannot be undone.')) { ['settings', 'cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => localStorage.removeItem('senlin.' + k)); location.reload(); } };
     if (window.SenLinApp && window.SenLinApp.settingsExtraAfter) window.SenLinApp.settingsExtraAfter();
     if (window.SenLinApp && window.SenLinApp.placementExtraAfter) window.SenLinApp.placementExtraAfter();
+    if (window.SenLinApp && window.SenLinApp.accountExtraAfter) window.SenLinApp.accountExtraAfter();
   };
 
   /* ------------------------------------------------------------ bridge for add-on modules (tutor.js) */
-  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, playBtn, navigate, DAYS: () => DAYS, todayDay, levelStatus, settingsExtra: null, settingsExtraAfter: null, extraReviewItems: () => [], addWord: null };
+  /** Replace the learner's data (cloud pull / backup restore) and re-render. */
+  function applyData(d) {
+    if (!d) return;
+    Object.assign(state.settings, d.settings || {});
+    ['cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => { if (d[k]) state[k] = d[k]; });
+    save(); rebuild(); applyTheme(); navigate();
+  }
+  const snapshot = () => ({ settings: state.settings, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress, extra: state.extra, talks: state.talks });
+  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, playBtn, navigate, rebuild, applyData, snapshot, listenOnce, listenEngine, matchScore, DAYS: () => DAYS, todayDay, levelStatus, locked, settingsExtra: null, settingsExtraAfter: null, accountExtra: null, accountExtraAfter: null, extraReviewItems: () => [], addWord: null };
 
   /* ------------------------------------------------------------ go */
   navigate();
+  /* pull in HSK 4–6 in the background once the first screen is up, so Library and Levels are instant later */
+  if (LAZY.pending) (window.requestIdleCallback || (f => setTimeout(f, 1500)))(() => { LAZY.load().then(() => { rebuild(); if (/^#\/(library|levels|progress|plan)/.test(location.hash)) navigate(); }).catch(() => {}); });
 })();

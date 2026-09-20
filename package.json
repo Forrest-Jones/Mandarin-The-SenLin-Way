@@ -1,0 +1,17 @@
+{
+  "name": "mandarin-the-senlin-way",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mandarin The SenLin Way - a daily 10-minute Mandarin program, HSK 1 to 6 (static PWA).",
+  "scripts": {
+    "test": "node tools/validate.js && node --test tools/test.js tools/test-audio.js && node --test server/test/*.test.js",
+    "e2e": "playwright test",
+    "icons": "node tools/icons.js",
+    "serve": "python3 -m http.server 8080"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "axe-core": "^4.13.0"
+  }
+}

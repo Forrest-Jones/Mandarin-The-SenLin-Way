@@ -1,0 +1,19 @@
+{
+  "name": "senlin-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Accounts, sync, AI tutor proxy, licensed voice, speech-to-text and billing webhooks for Mandarin The SenLin Way (Cloudflare Worker, no runtime dependencies).",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create senlin && wrangler kv namespace create CACHE",
+    "db:migrate": "wrangler d1 execute senlin --file=schema.sql --remote",
+    "db:migrate:local": "wrangler d1 execute senlin --file=schema.sql --local",
+    "tail": "wrangler tail",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}
