@@ -3,7 +3,7 @@
 // so tests can call them directly with fake bindings.
 import { HttpError, json, err } from './util.js';
 import { preflight, withCors } from './cors.js';
-import { handleAuthRequest, handleAuthVerify, handleMe, requireUser, getUser } from './auth.js';
+import { handleAuthRequest, handleAuthVerify, handleAuthPassword, handleMe, requireUser, getUser } from './auth.js';
 import { handleSyncGet, handleSyncPut, handleBackupsList, handleBackupGet } from './sync.js';
 import { handleAiChat } from './ai.js';
 import { handleTts, ttsProvider } from './tts.js';
@@ -49,6 +49,7 @@ export const ROUTES = [
   ['GET', '/v1/health', handleHealth],
   ['POST', '/v1/auth/request', handleAuthRequest],
   ['POST', '/v1/auth/verify', handleAuthVerify],
+  ['POST', '/v1/auth/password', handleAuthPassword],
   ['GET', '/v1/me', handleMe],
   ['GET', '/v1/sync', handleSyncGet],
   ['PUT', '/v1/sync', handleSyncPut],

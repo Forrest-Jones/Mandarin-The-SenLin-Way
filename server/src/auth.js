@@ -1,5 +1,5 @@
 // Passwordless email-code auth + bearer helpers.
-import { HttpError, json, readJson, sha256Hex, randomDigits, normalizeEmail, nowIso, envFlag, upstreamFetch } from './util.js';
+import { HttpError, json, readJson, sha256Hex, randomDigits, normalizeEmail, nowIso, envFlag, upstreamFetch, timingSafeEqual } from './util.js';
 import { signJwt, verifyJwt } from './jwt.js';
 import { findOrCreateUser, getUserById, updateUser, getUsage } from './db.js';
 import { effectivePlan, limitsFor } from './limits.js';
@@ -138,4 +138,58 @@ export async function handleMe(request, env, ctx) {
     },
     limits: limitsFor(plan),
   });
+}
+
+// ---------- password sign-in (works with no email provider; hashes live in KV: pw:<email>) ----------
+const PW_ITER = 100000;
+const pwKey = (email) => `pw:${email}`;
+const pwAttemptsKey = (email) => `pwtry:${email}`;
+const MAX_PW_ATTEMPTS_PER_HOUR = 10;
+
+async function pbkdf2(password, saltBytes, iterations) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: saltBytes, iterations }, key, 256);
+  return new Uint8Array(bits);
+}
+const toB64 = (u8) => btoa(String.fromCharCode(...u8));
+const fromB64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+export async function hashPassword(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const hash = await pbkdf2(password, salt, PW_ITER);
+  return `pbkdf2$${PW_ITER}$${toB64(salt)}$${toB64(hash)}`;
+}
+export async function verifyPassword(password, stored) {
+  const [scheme, iter, salt, hash] = String(stored || '').split('$');
+  if (scheme !== 'pbkdf2') return false;
+  const got = await pbkdf2(password, fromB64(salt), Number(iter));
+  return timingSafeEqual(toB64(got), hash);
+}
+
+// POST /v1/auth/password {email, password, create?}
+//   create:true  → registers when the email has no password yet (also works for an account made by code sign-in)
+//   otherwise    → signs in; 401 on a wrong password, 404 when there is no password for that email
+export async function handleAuthPassword(request, env) {
+  const body = await readJson(request, 4096);
+  const email = normalizeEmail(body.email);
+  const password = String(body.password || '');
+  if (!email) throw new HttpError(400, 'bad_email');
+  if (password.length < 8 || password.length > 200) throw new HttpError(400, 'weak_password', { message: 'Use at least 8 characters' });
+
+  const attempts = Number((await env.CACHE.get(pwAttemptsKey(email))) || 0);
+  if (attempts >= MAX_PW_ATTEMPTS_PER_HOUR) throw new HttpError(429, 'limit', { limit: 'rate' });
+  await env.CACHE.put(pwAttemptsKey(email), String(attempts + 1), { expirationTtl: 3600 });
+
+  const stored = await env.CACHE.get(pwKey(email));
+  if (!stored) {
+    if (!body.create) throw new HttpError(404, 'no_password', { message: 'No password on this email yet. Choose "Create account".' });
+    await env.CACHE.put(pwKey(email), await hashPassword(password));
+  } else if (!(await verifyPassword(password, stored))) {
+    throw new HttpError(401, 'bad_password');
+  }
+  await env.CACHE.delete(pwAttemptsKey(email));
+  const user = await findOrCreateUser(env, email);
+  await updateUser(env, user.id, { last_seen: nowIso() });
+  const token = await signJwt({ sub: user.id, email: user.email }, await jwtSecret(env), { expiresInSec: TOKEN_TTL_SEC });
+  return json({ token, user: publicUser(user), created: !stored });
 }

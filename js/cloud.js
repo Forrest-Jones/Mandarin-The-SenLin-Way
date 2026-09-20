@@ -37,8 +37,11 @@
 
   /* ------------------------------------------------------------ auth */
   async function requestCode(email) { return api('/v1/auth/request', { method: 'POST', json: { email } }); }
-  async function verify(email, code) {
-    const d = await api('/v1/auth/verify', { method: 'POST', json: { email, code } });
+  let healthCache = null;
+  async function health() { if (healthCache) return healthCache; try { healthCache = await api('/v1/health'); } catch (e) { healthCache = { ok: false, providers: {} }; } return healthCache; }
+  async function verify(email, code) { return finishSignIn(await api('/v1/auth/verify', { method: 'POST', json: { email, code } })); }
+  async function password(email, pw, create) { return finishSignIn(await api('/v1/auth/password', { method: 'POST', json: { email, password: pw, create: !!create } })); }
+  async function finishSignIn(d) {
     auth = { token: d.token, user: d.user, plan: d.user.plan }; store.set('auth', auth);
     track('sign_in');
     await refreshEntitlement().catch(() => {});
@@ -250,10 +253,17 @@
     </section>`;
     if (!signedIn()) return `<section class="card card-accent stack" id="account">
       <span class="eyebrow">Account</span><h2 class="h3">Sign in to sync your forest</h2>
-      <p class="muted small">Progress, reviews and scenes follow you across phone and laptop, with automatic backups. Sign-in is a 6-digit code by email. No password.</p>
-      <div class="row"><input class="input" id="acct-email" type="email" placeholder="you@example.com" autocomplete="email" style="max-width:280px"><button class="btn btn-primary" id="acct-send">Send code</button></div>
-      <div class="row" id="acct-code-row" hidden><input class="input" id="acct-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit code" style="max-width:160px"><button class="btn btn-primary" id="acct-verify">Sign in</button></div>
-      <p class="small muted" id="acct-note"></p>
+      <p class="muted small">Progress, reviews, scenes and Pro follow you across phone and laptop, with automatic backups.</p>
+      <div class="row"><input class="input" id="acct-email" type="email" placeholder="you@example.com" autocomplete="email" style="max-width:280px"></div>
+      <div id="acct-pw" hidden class="stack" style="gap:.5rem">
+        <div class="row"><input class="input" id="acct-password" type="password" placeholder="password (8+ characters)" autocomplete="current-password" style="max-width:280px"></div>
+        <div class="row"><button class="btn btn-primary" id="acct-login">Sign in</button><button class="btn" id="acct-create">Create account</button></div>
+      </div>
+      <div id="acct-codeflow" hidden class="stack" style="gap:.5rem">
+        <div class="row"><button class="btn btn-primary" id="acct-send">Email me a code</button><button class="btn btn-ghost btn-sm" id="acct-usepw">Use a password instead</button></div>
+        <div class="row" id="acct-code-row" hidden><input class="input" id="acct-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit code" style="max-width:160px"><button class="btn btn-primary" id="acct-verify">Sign in</button></div>
+      </div>
+      <p class="small muted" id="acct-note">connecting…</p>
       <p class="small faint">By signing in you agree to the <a href="terms.html">terms</a> and <a href="privacy.html">privacy policy</a>.</p>
     </section>`;
     const u = auth.user || {};
@@ -280,6 +290,22 @@
     }
     const send = $('#acct-send');
     if (send) {
+      health().then(h => {
+        const hasEmail = !!(h.providers && h.providers.email); const note = $('#acct-note'); if (!note) return;
+        $('#acct-codeflow').hidden = !hasEmail; $('#acct-pw').hidden = hasEmail; note.textContent = hasEmail ? 'We email you a 6-digit code. No password needed.' : '';
+      });
+      $('#acct-usepw').onclick = () => { $('#acct-codeflow').hidden = true; $('#acct-pw').hidden = false; };
+      const pwGo = async create => {
+        const email = $('#acct-email').value.trim(); const pw = $('#acct-password').value; const note = $('#acct-note');
+        if (!/^\S+@\S+\.\S+$/.test(email)) { note.textContent = 'Enter a valid email address'; return; }
+        if (pw.length < 8) { note.textContent = 'Use a password of at least 8 characters'; return; }
+        note.textContent = create ? 'creating…' : 'signing in…';
+        try { const r = await password(email, pw, create); toast(r.created ? 'Account created' : 'Signed in'); A.navigate(); }
+        catch (e) { note.textContent = e.status === 404 ? 'No account with a password for that email yet. Tap "Create account".' : e.status === 401 ? 'Wrong password.' : (e.message || 'Could not sign in'); }
+      };
+      $('#acct-login').onclick = () => pwGo(false);
+      $('#acct-create').onclick = () => pwGo(true);
+      $('#acct-password').addEventListener('keydown', e => { if (e.key === 'Enter') pwGo(false); });
       send.onclick = async () => {
         const email = $('#acct-email').value.trim(); const note = $('#acct-note'); if (!/^\S+@\S+\.\S+$/.test(email)) { note.textContent = 'Enter a valid email address'; return; }
         send.disabled = true; note.textContent = 'sending…';
@@ -306,7 +332,7 @@
   };
 
   /* ------------------------------------------------------------ boot */
-  window.SenLinCloud = { available, signedIn, token, isPro, api, requestCode, verify, signOut, push, pull, dirty, chat, tts, stt, track, flush, reportError, buy, portal, restorePurchase: restore, plans, refreshEntitlement, backups, restore: restoreBackup, user: () => auth && auth.user };
+  window.SenLinCloud = { available, signedIn, token, isPro, api, requestCode, verify, password, health, signOut, push, pull, dirty, chat, tts, stt, track, flush, reportError, buy, portal, restorePurchase: restore, plans, refreshEntitlement, backups, restore: restoreBackup, user: () => auth && auth.user };
   if (/^#\/pro/.test(location.hash)) A.navigate();
   if (signedIn()) {
     refreshEntitlement().catch(() => {});

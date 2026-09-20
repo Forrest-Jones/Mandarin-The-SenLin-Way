@@ -81,3 +81,19 @@ test('cors: preflight and allowed origins', async () => {
   const nf = await worker.fetch(req('/v1/nope'), env, new FakeCtx());
   assert.equal(nf.status, 404);
 });
+
+test('password sign-in: create, sign in, wrong password, weak password, unknown email', async () => {
+  const env = makeEnv({ DEV_ECHO_CODE: '' });
+  const post = (body) => worker.fetch(req('/v1/auth/password', { method: 'POST', body }), env, new FakeCtx());
+  assert.equal((await post({ email: 'pw@example.com', password: 'short' })).status, 400);
+  assert.equal((await post({ email: 'pw@example.com', password: 'longenough1' })).status, 404);      // no account yet, no create flag
+  const created = await post({ email: 'pw@example.com', password: 'longenough1', create: true });
+  assert.equal(created.status, 200);
+  const c = await created.json(); assert.equal(c.created, true); assert.ok(c.token); assert.equal(c.user.email, 'pw@example.com');
+  const again = await post({ email: 'PW@example.com', password: 'longenough1' });
+  assert.equal(again.status, 200); assert.equal((await again.json()).created, false);
+  assert.equal((await post({ email: 'pw@example.com', password: 'wrongpass1' })).status, 401);
+  assert.equal((await post({ email: 'pw@example.com', password: 'wrongpass1', create: true })).status, 401);   // create cannot overwrite an existing password
+  const me = await worker.fetch(req('/v1/me', { token: c.token }), env, new FakeCtx());
+  assert.equal(me.status, 200);
+});
