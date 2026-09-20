@@ -36,7 +36,7 @@
       return text;
     }
     if (cloud() && !apiKey()) return cloud().chat(system, messages, onText, signal);
-    const key = apiKey(); if (!key) throw { code: 'no_key', message: window.SenLinCloud && window.SenLinCloud.available() ? 'Sign in (Settings) to talk with the tutor, or add your own API key' : 'No API key' };
+    const key = apiKey(); if (!key) throw { code: window.SenLinCloud && window.SenLinCloud.available() ? 'sign_in' : 'no_key', message: window.SenLinCloud && window.SenLinCloud.available() ? 'Sign in to talk with the tutor' : 'No API key' };
     const Anthropic = await getSDK();
     const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
     const stream = client.beta.messages.stream({
@@ -118,9 +118,12 @@ ${FORMAT}`;
     if (arg) { renderSession(); return; }
     const el = document.getElementById('talk-status'); if (!el) return;
     const p = await providerName();
+    const C = window.SenLinCloud;
     el.innerHTML = p === 'artifact' ? '✅ AI tutor ready (using your Claude account through this preview).'
-      : p === 'sdk' ? `✅ AI tutor ready (your API key, model ${MODEL}). Usage is billed to your key.`
-      : `⚠️ The tutor needs an Anthropic API key on this site. Add one under <a href="#/settings" style="text-decoration:underline">Settings → AI tutor</a>. Keys never leave your browser.`;
+      : p === 'cloud' ? `✅ AI tutor ready. ${C && C.isPro() ? 'Pro: up to 400 turns a day.' : 'Free plan: 25 turns a day. <a href="#/pro" style="text-decoration:underline">Pro</a> raises it to 400.'}`
+      : p === 'sdk' ? `✅ AI tutor ready (developer key, model ${MODEL}).`
+      : C && C.available() ? `<div class="row between"><span>🔒 Sign in to talk with the tutor. Free, one minute.</span><a class="btn btn-sm btn-primary" href="#/settings">Sign in</a></div>`
+      : `⚠️ This copy of the site has no tutor service configured.`;
   };
 
   function startSession(sc) {
@@ -197,7 +200,8 @@ ${FORMAT}`;
     } catch (e) {
       T.turns.pop();
       const code = e && e.code; const note = document.getElementById('talk-note');
-      const msg = code === 'no_key' ? 'Add your Anthropic API key in Settings → AI tutor to talk on this site.'
+      const msg = code === 'sign_in' ? 'Sign in (Settings → Account) to talk with the tutor. It takes a minute and is free.'
+        : code === 'no_key' ? 'This copy of the site has no tutor service configured.'
         : code === 'not_granted' ? 'You declined AI access for this page; reload to be asked again.'
         : code === 'rate_limited' ? 'Rate limited — wait a moment and try again.'
         : code === 'refused' ? 'The tutor declined that message. Try phrasing it differently.'
@@ -267,14 +271,15 @@ WORDS: <up to 5 useful words for this learner: 词|pinyin|meaning separated by ;
   }
 
   /* ------------------------------------------------------------ settings section */
-  A.settingsExtra = () => `<section class="card stack">
-      <h2 class="h3">AI tutor</h2>
+  A.settingsExtra = () => (window.SenLinCloud && window.SenLinCloud.available() && !state.settings.developer) ? '' : `<section class="card stack">
+      <h2 class="h3">AI tutor (developer option)</h2>
       <p class="muted small">The Talk page runs live conversations with Claude. ${window.SenLinCloud && window.SenLinCloud.available() ? 'Signed-in learners use the SenLin tutor service (no key needed; daily limits apply). ' : ''}Inside the claude.ai preview it uses your Claude account automatically. You can also bring your own Anthropic API key, stored only in this browser and sent only to api.anthropic.com. Model: ${MODEL}; each turn costs a fraction of a cent.</p>
       <div class="field"><label for="apikey">Anthropic API key</label><input class="input" id="apikey" type="password" placeholder="sk-ant-…" value="${esc(state.settings.apiKey || '')}" autocomplete="off"></div>
       <div class="row"><button class="btn" id="testkey">Test connection</button><span class="small muted" id="keystatus"></span></div>
     </section>`;
   A.settingsExtraAfter = () => {
     const i = document.getElementById('apikey'); if (!i) return;
+    if (!state.settings.developer && !(window.SenLinCloud && window.SenLinCloud.available())) { /* no server at all: the key is the only way */ }
     i.onchange = () => { state.settings.apiKey = i.value.trim(); save(); toast(state.settings.apiKey ? 'API key saved in this browser' : 'API key removed'); };
     document.getElementById('testkey').onclick = async () => {
       const st = document.getElementById('keystatus'); st.textContent = 'testing…';

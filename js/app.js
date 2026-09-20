@@ -753,8 +753,9 @@
   };
 
   /* ------------------------------------------------------------ SETTINGS */
-  routes.settings = function () {
+  routes.settings = function (arg) {
     const s = state.settings;
+    if (arg === 'dev') { s.developer = !s.developer; save(); toast(s.developer ? 'Developer options on' : 'Developer options off'); location.hash = '#/settings'; return ''; }
     const voices = tts.voices;
     return `<div class="stack-lg" style="max-width:640px">
       ${window.SenLinApp && window.SenLinApp.accountExtra ? window.SenLinApp.accountExtra() : ''}
