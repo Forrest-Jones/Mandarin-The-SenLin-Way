@@ -39,6 +39,8 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         working-directory: server
         run: |
+          set -o pipefail
+          if [ "${#CLOUDFLARE_API_TOKEN}" != 40 ]; then echo "::error::CLOUDFLARE_API_TOKEN is ${#CLOUDFLARE_API_TOKEN} characters; a Cloudflare API token is 40. Re-copy it and save the GitHub secret again."; exit 1; fi
           npm install --no-audit --no-fund
           npx wrangler deploy 2>&1 | tee deploy.log
           url=$(grep -o 'https://[a-z0-9.-]*workers.dev' deploy.log | head -1 || true)
