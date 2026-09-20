@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   const A = window.SenLinApp; if (!A) return;
-  const { state, esc, toast } = A;
+  const { routes, state, esc, toast } = A;
   const CFG = window.SENLIN_CONFIG || {};
   const BASE = (CFG.apiBase || '').replace(/\/$/, '');
   const $ = s => document.querySelector(s);
@@ -19,7 +19,8 @@
   const available = () => !!BASE;
   const signedIn = () => !!(BASE && auth && auth.token);
   const token = () => (auth && auth.token) || '';
-  const isPro = () => !CFG.paywall || !!(auth && (auth.plan === 'pro' || (auth.user && auth.user.plan === 'pro')) && (!auth.expiresAt || new Date(auth.expiresAt) > new Date()));
+  /** True only when this account actually holds Pro (the paywall switch is a separate question, see app.js `locked`). */
+  const isPro = () => !!(auth && (auth.plan === 'pro' || (auth.user && auth.user.plan === 'pro')) && (!auth.expiresAt || new Date(auth.expiresAt) > new Date()));
 
   async function api(path, opts = {}) {
     if (!BASE) throw new Error('No server configured');
@@ -97,7 +98,7 @@
     await push();
   }
   async function backups() { return signedIn() ? api('/v1/sync/backups') : []; }
-  async function restore(version) { const b = await api('/v1/sync/backups/' + version); A.applyData(b.data); sync.version = 0; await push(); }
+  async function restoreBackup(version) { const b = await api('/v1/sync/backups/' + version); A.applyData(b.data); sync.version = 0; await push(); }
 
   /* ------------------------------------------------------------ AI, voice */
   /** Stream a tutor reply through the server. Same signature as tutor.js complete(). */
@@ -153,18 +154,89 @@
     document.head.appendChild(s);
   }
 
-  /* ------------------------------------------------------------ billing */
-  async function buy() {
+  /* ------------------------------------------------------------ billing: #/pro, Stripe Checkout (web), RevenueCat (apps) */
+  let plansCache = null;
+  async function plans() {
+    if (plansCache) return plansCache;
+    if (BASE) { try { const r = await api('/v1/billing/plans'); plansCache = r; return r; } catch (e) { /* fall back */ } }
+    plansCache = { plans: (CFG.plans || []).map(p => Object.assign({}, p, { web: !!CFG.checkoutUrl })), web: !!CFG.checkoutUrl, portal: false, paywall: !!CFG.paywall };
+    return plansCache;
+  }
+  const money = (n, cur) => (cur === 'USD' || !cur ? '$' : cur + ' ') + n.toFixed(2);
+  const isNative = () => !!(window.SenLinNative && window.SenLinNative.isNative && window.SenLinNative.billing && window.SenLinNative.billing.available);
+  /** Start a purchase of plan id ('monthly' | 'yearly' | 'lifetime'). */
+  async function buy(planId) {
+    const cat = await plans(); const plan = cat.plans.find(p => p.id === planId) || cat.plans.find(p => p.highlight) || cat.plans[0];
+    if (!plan) { toast('No plans are configured yet'); return; }
+    track('purchase', { step: 'start', plan: plan.id });
     const N = window.SenLinNative;
-    if (N && N.isNative && N.billing) {
-      try { const ok = await N.billing.purchase('pro'); if (ok) { await refreshEntitlement(); toast('Welcome to Pro 🌱'); A.navigate(); } } catch (e) { toast('Purchase did not complete'); }
+    if (isNative()) {
+      try {
+        if (!N.billing.configured) await N.billing.configure(auth && auth.user ? auth.user.id : null);
+        const r = await N.billing.purchase(plan.rcPackage || plan.id);
+        if (r && r.active) { await refreshEntitlement().catch(() => {}); track('purchase', { step: 'done', plan: plan.id }); location.hash = '#/pro/thanks'; }
+        else if (!(r && r.cancelled)) toast('Purchase did not complete');
+      } catch (e) { toast('Purchase did not complete'); }
       return;
     }
-    if (!signedIn()) { toast('Sign in first so the purchase is attached to your account'); location.hash = '#/settings'; return; }
-    if (!CFG.checkoutUrl) { toast('Purchases are not set up yet'); return; }
-    track('purchase', { step: 'checkout' });
-    window.open(CFG.checkoutUrl + (CFG.checkoutUrl.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(auth.user.id) + '&prefilled_email=' + encodeURIComponent(auth.user.email), '_blank');
+    if (!signedIn()) { toast('Sign in first so Pro is attached to your account'); try { sessionStorage.setItem('senlin.buy', plan.id); } catch (e) { /* ignore */ } location.hash = '#/settings'; return; }
+    if (plan.web && BASE) {
+      const b = document.querySelector(`[data-buy="${plan.id}"]`); if (b) { b.disabled = true; b.textContent = 'Opening secure checkout…'; }
+      try { const r = await api('/v1/billing/checkout', { method: 'POST', json: { plan: plan.id } }); location.href = r.url; return; }
+      catch (e) { toast(e.message || 'Checkout is unavailable right now'); if (b) { b.disabled = false; b.textContent = ctaText(plan); } return; }
+    }
+    if (CFG.checkoutUrl) { window.open(CFG.checkoutUrl + (CFG.checkoutUrl.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(auth.user.id) + '&prefilled_email=' + encodeURIComponent(auth.user.email), '_blank'); return; }
+    toast('Purchases are not set up on this deployment yet');
   }
+  async function portal() {
+    if (isNative()) { toast('Manage the subscription in the store you bought it from'); return; }
+    try { const r = await api('/v1/billing/portal', { method: 'POST' }); window.open(r.url, '_blank', 'noopener'); }
+    catch (e) { toast(e.status === 404 ? 'No web subscription on this account' : (e.message || 'Could not open the billing portal')); }
+  }
+  async function restore() {
+    if (isNative()) { const r = await window.SenLinNative.billing.restore(); if (r && r.active) { await refreshEntitlement().catch(() => {}); toast('Pro restored'); A.navigate(); } else toast('No purchase found for this store account'); return; }
+    await refreshEntitlement().catch(() => {}); toast(isPro() ? 'Pro is active' : 'No purchase found — sign in with the email you bought with'); A.navigate();
+  }
+  const ctaText = p => p.trialDays ? `Start ${p.trialDays}-day free trial` : p.interval ? 'Choose ' + p.name.replace('Pro ', '') : 'Buy lifetime access';
+  const FEATURES = ['The whole road: HSK 1 to HSK 6, 2,676 characters, 4,641 words, 1,444 sentences', 'Deal Desk: 12 units of cross-border private-equity and venture Mandarin', 'Built-in AI tutor, no API key, up to 400 turns a day', 'Cloud sync across phone and laptop with automatic backups', 'Cloud studio voice and pronunciation checking on every device, including iPhone', 'Everything offline once loaded, forever'];
+  routes.pro = function (arg) {
+    if (arg === 'thanks') return `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
+      <span class="eyebrow">SenLin Pro</span><h1 class="h2">Welcome to the forest 🌱</h1>
+      <p class="lead">Your plan is active${auth && auth.user ? ' on ' + esc(auth.user.email) : ''}. Every level, the Deal Desk, the tutor and sync are yours.</p>
+      <div class="row"><a class="btn btn-primary" href="#/">Start today's lesson</a><a class="btn" href="#/settings">Account</a></div>
+      <p class="small muted" id="pro-status"></p></section></div>`;
+    return `<div class="stack-lg" style="max-width:900px">
+      <div><span class="eyebrow">SenLin Pro</span><h1 class="h2">HSK 1 is free forever. Pro is the rest of the road.</h1>
+        <p class="lead">Ten minutes a day from your first 你好 to HSK 6, with a tutor who talks back. One price, every device.</p></div>
+      <div class="grid" id="plans" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"><p class="muted">Loading plans…</p></div>
+      <section class="card stack"><h2 class="h3">What Pro unlocks</h2><ul class="stack" style="gap:.4rem;padding-left:1.2rem">${FEATURES.map(f => `<li>${esc(f)}</li>`).join('')}</ul></section>
+      <section class="card card-soft stack small">
+        <h2 class="h3">Questions</h2>
+        <p><b>Is there a free trial?</b> Yes: the yearly plan starts with 7 days free. Cancel before the trial ends and you pay nothing.</p>
+        <p><b>Can I cancel?</b> Any time. Web subscriptions: Settings → Manage subscription. App purchases: in Google Play or the App Store. You keep Pro until the end of the period you paid for.</p>
+        <p><b>Which devices?</b> All of them. Sign in with the same email on the website and in the apps and Pro follows you.</p>
+        <p><b>Refunds?</b> Web purchases: full refund within 14 days of a first purchase, just email. Store purchases follow Google's and Apple's refund rules.</p>
+        <p class="faint">Prices in US dollars; stores show local prices and tax. <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a>. HSK-aligned; not affiliated with the HSK's owners.</p>
+        <div class="row"><button class="btn btn-sm btn-ghost" id="restore">Restore purchase</button>${signedIn() ? `<button class="btn btn-sm btn-ghost" id="manage">Manage subscription</button>` : ''}</div>
+      </section>
+    </div>`;
+  };
+  routes.pro.after = async arg => {
+    track('visit', { route: 'pro' });
+    if (arg === 'thanks') { await refreshEntitlement().catch(() => {}); const el = $('#pro-status'); if (el) el.textContent = isPro() ? '' : 'Activating… if this does not update in a minute, tap Restore purchase on the plans page.'; return; }
+    const cat = await plans(); const el = $('#plans'); if (!el) return;
+    el.innerHTML = cat.plans.map(p => `<section class="card stack${p.highlight ? ' card-gold' : ''}" style="position:relative">
+        ${p.highlight ? '<span class="chip chip-gold" style="position:absolute;top:-.8rem;left:1rem">Best value · save ' + (p.savePct || 50) + '%</span>' : p.launchOffer ? '<span class="chip chip-accent" style="position:absolute;top:-.8rem;left:1rem">Launch offer</span>' : ''}
+        <h2 class="h3" style="margin-top:.4rem">${esc(p.name.replace('Pro ', ''))}</h2>
+        <div><span style="font-size:2.2rem;font-weight:900">${p.perMonth ? money(p.perMonth, p.currency) : money(p.price, p.currency)}</span><span class="muted"> ${p.perMonth ? '/ month' : p.interval ? '/ ' + p.interval : 'once'}</span></div>
+        <p class="small muted">${p.perMonth ? `${money(p.price, p.currency)} billed yearly` : p.interval ? 'Billed monthly, cancel any time' : 'One payment, yours for life'}${p.trialDays ? ` · <b>${p.trialDays}-day free trial</b>` : ''}</p>
+        ${isPro() ? '<span class="chip">Your current plan family</span>' : `<button class="btn ${p.highlight ? 'btn-primary' : ''}" data-buy="${p.id}"${(p.web || isNative() || CFG.checkoutUrl) ? '' : ' disabled title="Not available yet"'}>${ctaText(p)}</button>`}
+      </section>`).join('');
+    el.querySelectorAll('[data-buy]').forEach(b => { b.onclick = () => buy(b.dataset.buy); });
+    const r = $('#restore'); if (r) r.onclick = restore;
+    const m = $('#manage'); if (m) m.onclick = portal;
+    if (!cat.web && !isNative() && !CFG.checkoutUrl) { const n = document.createElement('p'); n.className = 'small muted'; n.textContent = 'Purchases open once the Stripe keys are set on the server (server/README.md → Billing).'; el.after(n); }
+  };
 
   /* ------------------------------------------------------------ settings UI */
   const fmt = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'never';
@@ -189,7 +261,7 @@
       <div class="row between"><div><span class="eyebrow">Account</span><h2 class="h3">${esc(u.email || '')}</h2><p class="small muted"><b>${isPro() ? 'Pro' : 'Free'}</b>${auth.expiresAt ? ` · renews ${fmt(auth.expiresAt)}` : ''} · <span id="sync-status"></span></p></div>
         <div class="row"><button class="btn btn-sm" id="sync-now">Sync now</button><button class="btn btn-sm btn-ghost" id="acct-out">Sign out</button></div></div>
       <p class="small faint">Server: ${esc(BASE)}${store.get('apiBase', null) ? ' <button class="btn btn-sm btn-ghost" id="api-forget">Disconnect</button>' : ''}</p>
-      ${CFG.paywall && !isPro() ? `<div class="row"><button class="btn btn-gold" id="acct-pro">Go Pro — the whole road to HSK 6</button></div>` : ''}
+      <div class="row">${!isPro() ? `<a class="btn btn-gold" href="#/pro">Go Pro — from $5 a month</a>` : ''}${isPro() && !isNative() ? `<button class="btn btn-sm" id="acct-manage">Manage subscription</button>` : ''}<button class="btn btn-sm btn-ghost" id="acct-restore">Restore purchase</button></div>
       <details><summary class="small">Backups</summary><div id="backups" class="small muted">loading…</div></details>
       ${CFG.analytics === 'opt-in' ? `<label class="row small"><input type="checkbox" id="analytics" ${state.settings.analytics ? 'checked' : ''}> Share anonymous usage counts (which pages and features are used; never your text, voice or email)</label>` : ''}
     </section>`;
@@ -226,13 +298,16 @@
     $('#sync-now').onclick = async () => { const b = $('#sync-now'); b.disabled = true; try { await pull(); await push(); toast('Synced'); } catch (e) { toast('Sync failed: ' + (e.message || e)); } b.disabled = false; renderStatus(); };
     $('#acct-out').onclick = () => { signOut(); A.navigate(); };
     const forget = $('#api-forget'); if (forget) forget.onclick = () => { signOut(false); store.set('apiBase', null); location.reload(); };
-    const pro = $('#acct-pro'); if (pro) pro.onclick = buy;
+    const mg = $('#acct-manage'); if (mg) mg.onclick = portal;
+    const rs = $('#acct-restore'); if (rs) rs.onclick = restore;
+    (() => { let want = null; try { want = sessionStorage.getItem('senlin.buy'); if (want) sessionStorage.removeItem('senlin.buy'); } catch (e) { /* ignore */ } if (want) buy(want); })();
     const an = $('#analytics'); if (an) an.onchange = () => { state.settings.analytics = an.checked; A.save(); };
-    backups().then(list => { const el = $('#backups'); if (!el) return; el.innerHTML = list.length ? list.map(b => `<div class="row between"><span>v${b.version} · ${fmt(b.createdAt)} · ${Math.round(b.bytes / 1024)} KB</span><button class="btn btn-sm" data-restore="${b.version}">Restore</button></div>`).join('') : 'No backups yet — one is kept for every sync.'; el.querySelectorAll('[data-restore]').forEach(b => { b.onclick = async () => { if (confirm('Replace this device’s progress with backup v' + b.dataset.restore + '?')) { await restore(+b.dataset.restore); toast('Backup restored'); } }; }); }).catch(() => { const el = $('#backups'); if (el) el.textContent = 'Could not load backups.'; });
+    backups().then(list => { const el = $('#backups'); if (!el) return; el.innerHTML = list.length ? list.map(b => `<div class="row between"><span>v${b.version} · ${fmt(b.createdAt)} · ${Math.round(b.bytes / 1024)} KB</span><button class="btn btn-sm" data-restore="${b.version}">Restore</button></div>`).join('') : 'No backups yet — one is kept for every sync.'; el.querySelectorAll('[data-restore]').forEach(b => { b.onclick = async () => { if (confirm('Replace this device’s progress with backup v' + b.dataset.restore + '?')) { await restoreBackup(+b.dataset.restore); toast('Backup restored'); } }; }); }).catch(() => { const el = $('#backups'); if (el) el.textContent = 'Could not load backups.'; });
   };
 
   /* ------------------------------------------------------------ boot */
-  window.SenLinCloud = { available, signedIn, token, isPro, api, requestCode, verify, signOut, push, pull, dirty, chat, tts, stt, track, flush, reportError, buy, refreshEntitlement, backups, restore, user: () => auth && auth.user };
+  window.SenLinCloud = { available, signedIn, token, isPro, api, requestCode, verify, signOut, push, pull, dirty, chat, tts, stt, track, flush, reportError, buy, portal, restorePurchase: restore, plans, refreshEntitlement, backups, restore: restoreBackup, user: () => auth && auth.user };
+  if (/^#\/pro/.test(location.hash)) A.navigate();
   if (signedIn()) {
     refreshEntitlement().catch(() => {});
     pull().catch(() => {});

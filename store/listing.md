@@ -65,7 +65,7 @@ Complete beginners who want a plan, not a pile. Returners who learnt some Chines
 
 FREE AND PRO
 Free: all of HSK 1, tone gym, writing practice, reviews, the tutor with a daily limit.
-Pro: HSK 2–6 (around 5,000 words), Deal Desk, unlimited tutor, cloud sync. Monthly, yearly, or a one-time lifetime purchase. Cancel any time in Google Play.
+Pro: HSK 2–6 (around 5,000 words), Deal Desk, the tutor up to 400 turns a day, cloud sync and the cloud voice. $11.99 a month, or $59.99 a year (about $5 a month) with a 7-day free trial. A one-time lifetime purchase is available as a launch offer. Cancel any time in Google Play.
 
 Mandarin The SenLin Way is an independent app. It is aligned with the HSK level system but is not affiliated with, sponsored by or endorsed by Hanban, the Center for Language Education and Cooperation, or Chinese Testing International. HSK is a trademark of its respective owner.
 

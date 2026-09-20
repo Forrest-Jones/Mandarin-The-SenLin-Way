@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../src/worker.js';
-import { makeEnv, req, FakeCtx, signIn } from './fakes.js';
+import { makeEnv, req, FakeCtx, signIn, fakeFetch } from './fakes.js';
 import { verifyStripeSignature, makeStripeSignature, revenuecatPlanChange, stripeSubscriptionChange } from '../src/billing.js';
 
 test('revenuecat webhook: auth + plan changes', async () => {
@@ -78,4 +78,50 @@ test('stripe: signature verify and webhook handling', async () => {
 
   assert.deepEqual(stripeSubscriptionChange('customer.subscription.updated', { status: 'trialing' }), { plan: 'pro', plan_expires_at: null });
   assert.equal(stripeSubscriptionChange('customer.subscription.updated', { status: 'unpaid' }).plan, 'free');
+});
+
+test('billing: plans catalogue, checkout session, portal', async () => {
+  const calls = [];
+  const FETCH = fakeFetch({
+    'checkout/sessions': (url, init) => { calls.push(new URLSearchParams(init.body)); return new Response(JSON.stringify({ id: 'cs_test_1', url: 'https://checkout.stripe.com/c/pay/cs_test_1' }), { status: 200 }); },
+    'billing_portal/sessions': (url, init) => { calls.push(new URLSearchParams(init.body)); return new Response(JSON.stringify({ url: 'https://billing.stripe.com/p/session/x' }), { status: 200 }); },
+  });
+  const env = makeEnv({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_PRICE_MONTHLY: 'price_m', STRIPE_PRICE_YEARLY: 'price_y', STRIPE_WEBHOOK_SECRET: 'whsec_x', FETCH });
+  const { token, user } = await signIn(env, worker);
+
+  const plans = await (await worker.fetch(req('/v1/billing/plans'), env, new FakeCtx())).json();
+  assert.equal(plans.web, true);
+  assert.deepEqual(plans.plans.map((p) => [p.id, p.price, p.web]), [['monthly', 11.99, true], ['yearly', 59.99, true], ['lifetime', 149.99, false]]);
+  assert.equal(plans.plans[1].trialDays, 7);
+
+  // needs sign-in
+  assert.equal((await worker.fetch(req('/v1/billing/checkout', { method: 'POST', body: { plan: 'yearly' } }), env, new FakeCtx())).status, 401);
+  // unknown plan / unconfigured price
+  assert.equal((await worker.fetch(req('/v1/billing/checkout', { method: 'POST', token, body: { plan: 'weekly' } }), env, new FakeCtx())).status, 400);
+  assert.equal((await worker.fetch(req('/v1/billing/checkout', { method: 'POST', token, body: { plan: 'lifetime' } }), env, new FakeCtx())).status, 503);
+
+  const r = await worker.fetch(req('/v1/billing/checkout', { method: 'POST', token, body: { plan: 'yearly' } }), env, new FakeCtx());
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).url, 'https://checkout.stripe.com/c/pay/cs_test_1');
+  const form = calls[0];
+  assert.equal(form.get('mode'), 'subscription');
+  assert.equal(form.get('line_items[0][price]'), 'price_y');
+  assert.equal(form.get('client_reference_id'), user.id);
+  assert.equal(form.get('customer_email'), user.email);
+  assert.equal(form.get('subscription_data[trial_period_days]'), '7');
+  assert.match(form.get('success_url'), /#\/pro\/thanks$/);
+
+  // no customer yet → portal 404
+  assert.equal((await worker.fetch(req('/v1/billing/portal', { method: 'POST', token }), env, new FakeCtx())).status, 404);
+
+  // the checkout webhook stores the customer; then the portal works and monthly uses the customer id
+  const payload = JSON.stringify({ type: 'checkout.session.completed', data: { object: { client_reference_id: user.id, customer: 'cus_123' } } });
+  const sig = await makeStripeSignature(payload, 'whsec_x');
+  assert.equal((await worker.fetch(req('/v1/webhooks/stripe', { method: 'POST', raw: payload, headers: { 'stripe-signature': sig, 'content-type': 'application/json' } }), env, new FakeCtx())).status, 200);
+  const portal = await worker.fetch(req('/v1/billing/portal', { method: 'POST', token }), env, new FakeCtx());
+  assert.equal(portal.status, 200);
+  assert.equal(calls[1].get('customer'), 'cus_123');
+  await worker.fetch(req('/v1/billing/checkout', { method: 'POST', token, body: { plan: 'monthly' } }), env, new FakeCtx());
+  assert.equal(calls[2].get('customer'), 'cus_123');
+  assert.equal(calls[2].has('subscription_data[trial_period_days]'), false);
 });

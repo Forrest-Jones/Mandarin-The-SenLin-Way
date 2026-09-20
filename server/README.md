@@ -61,10 +61,31 @@ Rough run-rate for **1 000 active learners**: Cloudflare $5, email $0–20, TTS 
 
 Set `PAYWALL = "1"` in `wrangler.toml` **and** `paywall: true` in `js/config.js` to gate HSK 3+ and the Deal Desk behind Pro; leave both off to sell nothing yet.
 
-## Billing wiring
+## Billing
 
-- **Apps (Play / App Store)**: RevenueCat SDK in `js/native.js` uses our user id as `appUserID`. In RevenueCat → Integrations → Webhooks set the URL to `https://<worker>/v1/webhooks/revenuecat` and an Authorization header value; put the same value in `REVENUECAT_WEBHOOK_SECRET`. Entitlement identifier must be `pro`.
-- **Web**: create a Stripe Payment Link (or Checkout) for the subscription, put it in `checkoutUrl` in `js/config.js` (the site appends `client_reference_id=<user id>`), and add a Stripe webhook for `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` → `https://<worker>/v1/webhooks/stripe`, secret in `STRIPE_WEBHOOK_SECRET`.
+Pricing (the rationale is in `PLAY_STORE.md` → Pricing): **$11.99 / month**, **$59.99 / year** marketed as "$5 a month" with a **7-day free trial**, and an optional **$149.99 lifetime** launch offer. HSK 1 is free forever. The catalogue lives in one place, `src/billing.js` → `PLANS`; the pricing page (`#/pro`) reads it from `GET /v1/billing/plans`.
+
+### Web (Stripe Checkout + Customer Portal), about 20 minutes
+
+1. Stripe dashboard → **Product catalogue** → add product "SenLin Pro" with three prices: recurring $11.99 monthly, recurring $59.99 yearly, one-time $149.99. Copy each `price_…` id.
+2. `wrangler.toml` `[vars]`: set `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_LIFETIME` (and `SITE_URL` if the site moves). Secrets: `STRIPE_SECRET_KEY` (Developers → API keys).
+3. **Webhook**: Developers → Webhooks → add endpoint `https://<worker>/v1/webhooks/stripe` with events `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Put the signing secret in `STRIPE_WEBHOOK_SECRET`.
+4. **Customer Portal**: Settings → Billing → Customer portal → enable, allow cancellation and plan switching between the two subscription prices. The site's "Manage subscription" button opens it.
+5. The trial: the server adds `trial_period_days=7` to yearly checkouts, so no trial needs configuring on the price. Stripe emails the trial-ending reminder if you turn on *Settings → Subscriptions and emails → "Send emails about expiring trials"*.
+6. Test with `sk_test_…` keys and card `4242 4242 4242 4242`: sign in on the site → `#/pro` → Start free trial → return to `#/pro/thanks`; `GET /v1/entitlement` shows `plan: "pro"`. Then switch to live keys.
+
+Flow: `#/pro` → `POST /v1/billing/checkout {plan}` → Stripe-hosted page → back to `#/pro/thanks` → the `checkout.session.completed` webhook sets `plan = pro` and stores the Stripe customer id → later `customer.subscription.updated/deleted` events keep `plan` and `plan_expires_at` current (cancel at period end keeps access until it ends; past-due keeps access until the period end; deleted → free). Lifetime is a one-time payment with no expiry.
+
+### Apps (RevenueCat, both stores)
+
+- Google Play Console and App Store Connect: create subscriptions `pro_monthly` ($11.99) and `pro_yearly` ($59.99 with a 7-day free-trial introductory offer) and the non-consumable `pro_lifetime` ($149.99).
+- RevenueCat: one project, both apps, entitlement **`pro`**, products attached, offering `default` with packages `$rc_monthly`, `$rc_annual`, `$rc_lifetime` (the client maps plan ids to these). Public SDK keys → `js/config.js` → `revenuecat.android` / `revenuecat.ios`.
+- RevenueCat → Integrations → Webhooks: URL `https://<worker>/v1/webhooks/revenuecat`, Authorization header value = `REVENUECAT_WEBHOOK_SECRET`. The app signs users in first, so RevenueCat's `app_user_id` is our user id and the webhook lands on the right account.
+- Store policy: the Android/iOS builds must not link to the web checkout; the pricing page detects the native shell and buys through RevenueCat instead.
+
+### Turning the paywall on
+
+`PAYWALL = "1"` in `wrangler.toml` and `paywall: true` in `js/config.js`. Until then Pro is sold only for the cloud allowances (tutor turns, voice, sync) and every lesson stays open, which is the right state while the catalogue is still being reviewed.
 
 ## Privacy
 

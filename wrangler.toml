@@ -25,6 +25,11 @@ ANTHROPIC_ALLOWED_MODELS = "claude-sonnet-5,claude-opus-5,claude-haiku-4-5-20251
 TTS_PROVIDER = "azure"                               # 'azure' | 'google'
 STT_PROVIDER = "deepgram"                            # 'deepgram' | 'openai'
 EMAIL_FROM = "SenLin <hello@your-domain.com>"        # a domain verified in Resend
+SITE_URL = "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/"   # where Stripe Checkout returns to
+# Stripe price ids (Stripe dashboard → Product catalogue). Not secret, but only needed once Stripe is set up:
+# STRIPE_PRICE_MONTHLY = "price_..."     # $11.99 / month
+# STRIPE_PRICE_YEARLY = "price_..."      # $59.99 / year (the 7-day trial is added by the server at checkout)
+# STRIPE_PRICE_LIFETIME = "price_..."    # $149.99 one-time
 # PAYWALL = "1"                                      # uncomment to gate HSK 2+ and the Deal Desk behind Pro
 # DEV = "1"                                          # allows http://localhost:8080 as an origin
 # DEV_ECHO_CODE = "1"                                # returns the sign-in code in the API response (never in production)
@@ -38,5 +43,6 @@ EMAIL_FROM = "SenLin <hello@your-domain.com>"        # a domain verified in Rese
 #   DEEPGRAM_API_KEY           console.deepgram.com — speech-to-text for iOS/Safari                        [if STT_PROVIDER=deepgram]
 #   OPENAI_API_KEY             Whisper speech-to-text                                                      [if STT_PROVIDER=openai]
 #   REVENUECAT_WEBHOOK_SECRET  RevenueCat → Integrations → Webhooks → Authorization header value
+#   STRIPE_SECRET_KEY          Stripe → Developers → API keys (sk_live_… / sk_test_…) — creates Checkout and Customer Portal sessions
 #   STRIPE_WEBHOOK_SECRET      Stripe → Developers → Webhooks → signing secret (whsec_…)
 #   ADMIN_KEY                  any long random string — protects GET /v1/admin/stats

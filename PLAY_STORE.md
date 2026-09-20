@@ -56,15 +56,21 @@ Copy every field from `store/listing.md` (title, short and full description, bot
 
 ## 5. Pricing
 
-Play keeps 15% of the first $1M/year (30% above; apply for the 15% tier in Play Console → Monetise). Suggested SKUs (create the same on Apple and Stripe):
+The market for serious Mandarin apps sits at $12–15 a month and $70–120 a year (HelloChinese $11.99/$69.99, Du Chinese $14.99/$79.99/$119.99 lifetime, Skritter $14.99, Hack Chinese $12 or $8 billed annually). SenLin matches the leaders on monthly so the price does not signal "cheaper means worse" (monthly is mostly the anchor anyway) and undercuts on annual, because a new app with no reviews needs an edge and monthly subscribers to learning apps churn within a few months: a prepaid year at $60 is worth more than a $12 monthly.
 
-| SKU | Price | Notes |
-| --- | --- | --- |
-| `pro_monthly` | $9.99 / month | 7-day free trial |
-| `pro_yearly` | $59.99 / year | the default highlight (50% off) |
-| `pro_lifetime` | $149 once | one-time, non-consumable |
+| SKU (all three stores) | Price | Marketed as | Notes |
+| --- | --- | --- | --- |
+| `pro_monthly` | **$11.99 / month** | "$11.99 a month, cancel any time" | the anchor; no trial |
+| `pro_yearly` | **$59.99 / year** | **"$5 a month, billed yearly"** — the highlighted plan | **7-day free trial**; about 58% off monthly |
+| `pro_lifetime` | **$149.99 once** | "Launch offer" | optional; retire it once reviews arrive |
 
-Free forever: all of HSK 1 (72 days), tone gym, writing, reviews, tutor with a daily cap. Turn the gate on with `paywall: true` in `js/config.js` and `PAYWALL = "1"` in `server/wrangler.toml`.
+Free forever: all of HSK 1 (72 days at the default pace), tone gym, writing, reviews, the tutor with a daily cap. Turn the gate on with `paywall: true` in `js/config.js` and `PAYWALL = "1"` in `server/wrangler.toml`.
+
+Positioning note: if the audience turns out to be intermediate-plus learners and Deal Desk professionals rather than casual beginners, there is pricing power for $14.99 / $79.99 (Du Chinese, Skritter territory). Change the numbers in one place on the server (`server/src/billing.js` → `PLANS`) plus the store consoles; the pricing page reads the server catalogue.
+
+Fees: Google and Apple keep 15% on the first $1M a year (apply for the small-business tier in each console), so $59.99 nets about $51. The same yearly plan sold on the website through Stripe nets about $58, which is why the site's own pricing page (`#/pro`) sells through Stripe Checkout and the store apps only add RevenueCat on top. Store rules allow this as long as the Android/iOS builds themselves do not link out to the web checkout.
+
+Where the rails live: `server/README.md` → *Billing* (Stripe products, prices, trial, webhook, Customer Portal; RevenueCat products, entitlement `pro`, offering packages `$rc_monthly`, `$rc_annual`, `$rc_lifetime`).
 
 ## 6. Pre-launch checklist
 

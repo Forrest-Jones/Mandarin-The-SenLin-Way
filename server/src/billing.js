@@ -1,6 +1,6 @@
 // RevenueCat + Stripe webhooks, entitlement lookup.
-import { HttpError, json, timingSafeEqual, hex, envFlag } from './util.js';
-import { getUser } from './auth.js';
+import { HttpError, json, timingSafeEqual, hex, envFlag, upstreamFetch, readJson } from './util.js';
+import { getUser, requireUser } from './auth.js';
 import { getUserById, getUserByStripeCustomer, updateUser } from './db.js';
 import { effectivePlan } from './limits.js';
 
@@ -122,4 +122,79 @@ export async function handleEntitlement(request, env) {
     expiresAt: user && plan === 'pro' ? user.plan_expires_at || null : null,
     features: { ai: true, hsk3plus: premium, dealDesk: premium },
   });
+}
+
+// ---------- Plans, Stripe Checkout and Customer Portal ----------
+// Prices are created once in the Stripe dashboard; their ids come in through env (see wrangler.toml).
+// The catalogue below is what the client shows; keep it in sync with store/listing.md and PLAY_STORE.md.
+export const PLANS = {
+  monthly:  { id: 'monthly',  name: 'Pro monthly',  price: 11.99,  currency: 'USD', interval: 'month', trialDays: 0, mode: 'subscription', rcPackage: '$rc_monthly',  sku: 'pro_monthly' },
+  yearly:   { id: 'yearly',   name: 'Pro yearly',   price: 59.99,  currency: 'USD', interval: 'year',  trialDays: 7, mode: 'subscription', rcPackage: '$rc_annual',   sku: 'pro_yearly',   perMonth: 5.00, savePct: 58, highlight: true },
+  lifetime: { id: 'lifetime', name: 'Pro lifetime', price: 149.99, currency: 'USD', interval: null,    trialDays: 0, mode: 'payment',      rcPackage: '$rc_lifetime', sku: 'pro_lifetime', launchOffer: true },
+};
+const PRICE_ENV = { monthly: 'STRIPE_PRICE_MONTHLY', yearly: 'STRIPE_PRICE_YEARLY', lifetime: 'STRIPE_PRICE_LIFETIME' };
+const siteUrl = (env) => String(env.SITE_URL || 'https://forrest-jones.github.io/Mandarin-The-SenLin-Way/').replace(/\/?$/, '/');
+
+// GET /v1/billing/plans  (public) — the catalogue plus what is actually purchasable on this deployment
+export function handlePlans(request, env) {
+  const stripe = Boolean(env.STRIPE_SECRET_KEY);
+  const plans = Object.values(PLANS).map((p) => Object.assign({}, p, { web: stripe && Boolean(env[PRICE_ENV[p.id]]) }));
+  return json({ plans, web: stripe, paywall: envFlag(env, 'PAYWALL'), portal: stripe });
+}
+
+async function stripeCall(env, path, form) {
+  const body = new URLSearchParams();
+  const add = (k, v) => { if (v === undefined || v === null) return; if (typeof v === 'object') Object.entries(v).forEach(([kk, vv]) => add(`${k}[${kk}]`, vv)); else body.append(k, String(v)); };
+  Object.entries(form).forEach(([k, v]) => add(k, v));
+  const r = await upstreamFetch(env, `https://api.stripe.com/v1/${path}`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'content-type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
+  let data = null;
+  try { data = await r.json(); } catch { /* not json */ }
+  if (!r.ok) throw new HttpError(502, 'stripe', { message: data?.error?.message || `Stripe ${r.status}` });
+  return data;
+}
+
+// POST /v1/billing/checkout {plan}  → {url}   (signed in)
+export async function handleCheckout(request, env) {
+  const user = await requireUser(request, env);
+  if (!env.STRIPE_SECRET_KEY) throw new HttpError(503, 'billing_unavailable', { message: 'Web purchases are not set up yet' });
+  const body = await readJson(request, 4096).catch(() => ({}));
+  const plan = PLANS[body.plan];
+  if (!plan) throw new HttpError(400, 'bad_plan');
+  const price = env[PRICE_ENV[plan.id]];
+  if (!price) throw new HttpError(503, 'billing_unavailable', { message: `No Stripe price configured for ${plan.id}` });
+  const site = siteUrl(env);
+  const form = {
+    mode: plan.mode,
+    'line_items[0][price]': price,
+    'line_items[0][quantity]': 1,
+    client_reference_id: user.id,
+    success_url: `${site}#/pro/thanks`,
+    cancel_url: `${site}#/pro`,
+    allow_promotion_codes: 'true',
+    'metadata[user_id]': user.id,
+    'metadata[plan]': plan.id,
+  };
+  if (user.stripe_customer) form.customer = user.stripe_customer; else form.customer_email = user.email;
+  if (plan.mode === 'subscription') {
+    form['subscription_data[metadata][user_id]'] = user.id;
+    if (plan.trialDays) form['subscription_data[trial_period_days]'] = plan.trialDays;
+  } else {
+    form.customer_creation = 'always';
+    form['payment_intent_data[metadata][user_id]'] = user.id;
+  }
+  const session = await stripeCall(env, 'checkout/sessions', form);
+  return json({ url: session.url, id: session.id, plan: plan.id });
+}
+
+// POST /v1/billing/portal → {url}   (signed in, has a Stripe customer)
+export async function handlePortal(request, env) {
+  const user = await requireUser(request, env);
+  if (!env.STRIPE_SECRET_KEY) throw new HttpError(503, 'billing_unavailable');
+  if (!user.stripe_customer) throw new HttpError(404, 'no_customer', { message: 'No web subscription on this account' });
+  const session = await stripeCall(env, 'billing_portal/sessions', { customer: user.stripe_customer, return_url: `${siteUrl(env)}#/settings` });
+  return json({ url: session.url });
 }

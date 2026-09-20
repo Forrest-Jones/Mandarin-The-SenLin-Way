@@ -63,7 +63,7 @@ The Talk page calls Claude three ways, in this order: signed-in learners go thro
 
 Voice sources: the site never calls an unofficial endpoint. Recorded audio → native app voice → device Web Speech voice → cloud voice (signed in). Speech recognition: native app → browser (Chrome/Edge/Android) → cloud recogniser (signed in, any browser with a microphone).
 
-Paywall: set `paywall: true` in `js/config.js` (and `PAYWALL = "1"` on the worker) to keep HSK 1 free and put HSK 2–6 and the Deal Desk behind Pro.
+**SenLin Pro** (`#/pro`): HSK 1 stays free forever; Pro is $11.99 a month, $59.99 a year ("$5 a month", 7-day free trial) or $149.99 lifetime as a launch offer. The website sells through Stripe Checkout created by the worker (`/v1/billing/checkout`, Customer Portal for cancellations, webhooks flip the plan), and the store apps through RevenueCat with the same three SKUs. Set `paywall: true` in `js/config.js` (and `PAYWALL = "1"` on the worker) to put HSK 2–6 and the Deal Desk behind it; until then Pro still unlocks the cloud allowances. Setup steps: `server/README.md` → Billing; pricing rationale: `PLAY_STORE.md` → Pricing.
 
 The site, the CLI and the calendar all compute the day from the same start date (`CONFIG.startDate` in `js/engine.js`, changeable per-device in Settings).
 

@@ -269,7 +269,7 @@
   const upsell = what => `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
       <span class="eyebrow">SenLin Pro</span><h1 class="h2">${esc(what)} is part of Pro</h1>
       <p class="lead">HSK 1 is free forever. Pro unlocks the whole road to HSK 6, the Deal Desk, cloud sync and the cloud voice.</p>
-      <div class="row">${CFG.checkoutUrl || (window.SenLinNative && window.SenLinNative.isNative) ? `<button class="btn btn-primary" id="go-pro">Go Pro</button>` : ''}<a class="btn" href="#/settings">Sign in</a><a class="btn btn-ghost" href="#/">Back</a></div>
+      <div class="row"><a class="btn btn-primary" href="#/pro">See plans — from $5 a month</a><a class="btn" href="#/settings">Sign in</a><a class="btn btn-ghost" href="#/">Back</a></div>
     </section></div>`;
   function navigate() {
     const hash = location.hash.replace(/^#\/?/, '');

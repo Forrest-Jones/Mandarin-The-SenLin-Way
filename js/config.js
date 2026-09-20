@@ -10,7 +10,12 @@ window.SENLIN_CONFIG = {
   paywall: false,              // true = HSK 3+ and the Deal Desk need a Pro entitlement
   freeDays: 72,                // with paywall: days 1–72 (all of HSK 1 at 3 characters a day) are free
   revenuecat: { android: '', ios: '', web: '' },  // public API keys per platform
-  checkoutUrl: '',             // web purchase page (Stripe Payment Link / RevenueCat Web Billing)
+  checkoutUrl: '',             // optional fallback: a Stripe Payment Link; normally Checkout is created by the server (/v1/billing/checkout)
+  plans: [                     // shown on #/pro when the server is not connected; the server's /v1/billing/plans wins otherwise
+    { id: 'monthly', name: 'Pro monthly', price: 11.99, currency: 'USD', interval: 'month', trialDays: 0, rcPackage: '$rc_monthly' },
+    { id: 'yearly', name: 'Pro yearly', price: 59.99, currency: 'USD', interval: 'year', trialDays: 7, perMonth: 5, savePct: 58, highlight: true, rcPackage: '$rc_annual' },
+    { id: 'lifetime', name: 'Pro lifetime', price: 149.99, currency: 'USD', interval: null, trialDays: 0, launchOffer: true, rcPackage: '$rc_lifetime' }
+  ],
   version: '2026.09.20'
 };
 /* A learner (or you, from a phone) can point the site at a server without a commit: Settings → Account → Server URL. */
