@@ -255,15 +255,15 @@
       <span class="eyebrow">Account</span><h2 class="h3">Sign in to sync your forest</h2>
       <p class="muted small">Progress, reviews, scenes and Pro follow you across phone and laptop, with automatic backups.</p>
       <div class="row"><input class="input" id="acct-email" type="email" placeholder="you@example.com" autocomplete="email" style="max-width:280px"></div>
-      <div id="acct-pw" hidden class="stack" style="gap:.5rem">
+      <div id="acct-pw" class="stack" style="gap:.5rem">
         <div class="row"><input class="input" id="acct-password" type="password" placeholder="password (8+ characters)" autocomplete="current-password" style="max-width:280px"></div>
-        <div class="row"><button class="btn btn-primary" id="acct-login">Sign in</button><button class="btn" id="acct-create">Create account</button></div>
+        <div class="row"><button class="btn btn-primary" id="acct-login">Sign in</button><button class="btn" id="acct-create">Create account</button><button class="btn btn-ghost btn-sm" id="acct-usecode" hidden>Email me a code instead</button></div>
       </div>
       <div id="acct-codeflow" hidden class="stack" style="gap:.5rem">
         <div class="row"><button class="btn btn-primary" id="acct-send">Email me a code</button><button class="btn btn-ghost btn-sm" id="acct-usepw">Use a password instead</button></div>
         <div class="row" id="acct-code-row" hidden><input class="input" id="acct-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit code" style="max-width:160px"><button class="btn btn-primary" id="acct-verify">Sign in</button></div>
       </div>
-      <p class="small muted" id="acct-note">connecting…</p>
+      <p class="small muted" id="acct-note"></p>
       <p class="small faint">By signing in you agree to the <a href="terms.html">terms</a> and <a href="privacy.html">privacy policy</a>.</p>
     </section>`;
     const u = auth.user || {};
@@ -290,11 +290,9 @@
     }
     const send = $('#acct-send');
     if (send) {
-      health().then(h => {
-        const hasEmail = !!(h.providers && h.providers.email); const note = $('#acct-note'); if (!note) return;
-        $('#acct-codeflow').hidden = !hasEmail; $('#acct-pw').hidden = hasEmail; note.textContent = hasEmail ? 'We email you a 6-digit code. No password needed.' : '';
-      });
-      $('#acct-usepw').onclick = () => { $('#acct-codeflow').hidden = true; $('#acct-pw').hidden = false; };
+      health().then(h => { const hasEmail = !!(h.providers && h.providers.email); const b = $('#acct-usecode'); if (b) b.hidden = !hasEmail; });
+      $('#acct-usecode').onclick = () => { $('#acct-codeflow').hidden = false; $('#acct-pw').hidden = true; $('#acct-note').textContent = 'We email you a 6-digit code.'; };
+      $('#acct-usepw').onclick = () => { $('#acct-codeflow').hidden = true; $('#acct-pw').hidden = false; $('#acct-note').textContent = ''; };
       const pwGo = async create => {
         const email = $('#acct-email').value.trim(); const pw = $('#acct-password').value; const note = $('#acct-note');
         if (!/^\S+@\S+\.\S+$/.test(email)) { note.textContent = 'Enter a valid email address'; return; }

@@ -28,7 +28,7 @@ ANTHROPIC_MODEL = "claude-sonnet-5"                  # default tutor model (fast
 ANTHROPIC_ALLOWED_MODELS = "claude-sonnet-5,claude-opus-5,claude-haiku-4-5-20251001"
 TTS_PROVIDER = "azure"                               # 'azure' | 'google'
 STT_PROVIDER = "deepgram"                            # 'deepgram' | 'openai'
-EMAIL_FROM = "SenLin <hello@your-domain.com>"        # a domain verified in Resend
+EMAIL_FROM = "SenLin <onboarding@resend.dev>"       # Resend's shared sender: delivers only to the Resend account owner. Verify your own domain in Resend and put e.g. "SenLin <hello@senlinway.com>" here to email everyone
 SITE_URL = "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/"   # where Stripe Checkout returns to
 # Stripe price ids are normally created and stored by GET /v1/admin/stripe-setup?key=ADMIN_KEY (needs the
 # STRIPE_SECRET_KEY and ADMIN_KEY secrets). Set these only to override what it stored:
