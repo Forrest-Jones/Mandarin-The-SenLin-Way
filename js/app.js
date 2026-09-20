@@ -129,6 +129,7 @@
     return p.split(/(\s+|['’])/).map(part => (/^\s+$/.test(part) || /^['’]$/.test(part) || !part) ? esc(part) : `<span class="${toneClass(part)}">${esc(part)}</span>`).join('');
   }
   const fmtDate = d => d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  const fmtDateY = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   const seconds = s => `${Math.floor(Math.abs(s) / 60)}:${String(Math.abs(s) % 60).padStart(2, '0')}`;
   function toneSVG(tone) {
     const paths = { 1: 'M10 20 H90', 2: 'M10 50 L90 12', 3: 'M10 30 L45 58 L90 20', 4: 'M10 12 L90 58', 5: 'M45 40 h10' };
@@ -199,7 +200,7 @@
       <div class="stack-lg">
         <section class="card card-accent stack">
           <span class="eyebrow">${fmtDate(new Date())} · Day ${day}${beyond ? ' · beyond the scheduled curriculum' : ''}</span>
-          ${(() => { const L = currentLevelInfo(); if (!L) return ''; const info = (S.LEVELINFO && S.LEVELINFO.levels.find(x => x.level === L.level)) || {}; return `<div class="row"><a class="chip chip-gold" href="#/levels"><b>${esc(L.name)}</b> · ${esc(info.cefr || '')} · ${L.completed}/${L.total} days</a><span class="muted small">${L.status === 'done' ? 'level complete' : `on track to finish ${esc(L.name)} by ${esc(fmtDate(L.endDate))}`}</span></div>`; })()}
+          ${(() => { const L = currentLevelInfo(); if (!L) return ''; const info = (S.LEVELINFO && S.LEVELINFO.levels.find(x => x.level === L.level)) || {}; return `<div class="row"><a class="chip chip-gold" href="#/levels"><b>${esc(L.name)}</b> · ${esc(info.cefr || '')} · ${L.completed}/${L.total} days</a><span class="muted small">${L.status === 'done' ? 'level complete' : `on track to finish ${esc(L.name)} by ${esc(fmtDateY(L.endDate))}`}</span></div>`; })()}
           <h1 class="h1">${done ? 'Today’s tree is planted. 🌳' : beyond ? 'Consolidation day' : esc(info.phase)}</h1>
           <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
           <div class="row">
@@ -582,13 +583,13 @@
       <div><span class="eyebrow">The ladder</span><h1 class="h2">What each HSK level means, and when you reach it</h1><p class="lead">${esc(info.about)}</p></div>
       <div class="card stack"><div class="row between"><b>Your road at ${perDay} characters a day, starting ${esc(fmtDate(start))}</b><a class="btn btn-sm" href="#/settings">change pace</a></div>
         <table class="table"><thead><tr><th>Level</th><th>CEFR</th><th>Words</th><th>Typical study hours</th><th>SenLin days</th><th>Target date</th><th>Status</th></tr></thead><tbody>
-        ${ls.map(l => { const i = info.levels.find(x => x.level === l.level); return `<tr${l.status === 'current' ? ' style="background:var(--accent-soft)"' : ''}><td><b>${esc(l.name)}</b></td><td>${esc(i.cefr)}</td><td>${i.cumWords.toLocaleString()} total</td><td>${i.hours[0]}–${i.hours[1]} h</td><td>Day ${l.start}–${l.end} <span class="muted small">(${monthsBetween(S.dateForDay(1, state.settings.startDate), l.endDate)} months)</span></td><td>${esc(fmtDate(l.endDate))}</td><td>${l.status === 'done' ? '✅ done' : l.status === 'current' ? `🟢 ${l.completed}/${l.total}` : '🔒'}</td></tr>`; }).join('')}
+        ${ls.map(l => { const i = info.levels.find(x => x.level === l.level); return `<tr${l.status === 'current' ? ' style="background:var(--accent-soft)"' : ''}><td><b>${esc(l.name)}</b></td><td>${esc(i.cefr)}</td><td>${i.cumWords.toLocaleString()} total</td><td>${i.hours[0]}–${i.hours[1]} h</td><td>Day ${l.start}–${l.end} <span class="muted small">(${monthsBetween(S.dateForDay(1, state.settings.startDate), l.endDate)} months)</span></td><td>${esc(fmtDateY(l.endDate))}</td><td>${l.status === 'done' ? '✅ done' : l.status === 'current' ? `🟢 ${l.completed}/${l.total}` : '🔒'}</td></tr>`; }).join('')}
         </tbody></table>
         <p class="small muted">“Typical study hours” are the ranges Hanban and university programmes cite for classroom learners. SenLin’s ten-minute lessons cover the vocabulary and grammar on the dates above; the Talk, Tone gym, Write and Deal Desk sessions on top of them are what turn that into the hours of real practice each level needs.</p></div>
       ${info.levels.map(i => { const l = ls.find(x => x.level === i.level); return `<section class="card stack">
         <div class="row between"><div><span class="eyebrow">${esc(i.name)} · ${esc(i.cefr)} · ${i.words} new words (${i.cumWords.toLocaleString()} cumulative)</span><h2 class="h3">${esc(i.canDo.split('.')[0])}.</h2></div><span class="chip${l.status === 'done' ? ' chip-accent' : l.status === 'current' ? ' chip-gold' : ''}">${l.status === 'done' ? 'complete' : l.status === 'current' ? 'in progress' : 'from ' + esc(fmtDate(l.startDate))}</span></div>
         <p class="muted">${esc(i.canDo)}</p>
-        <div class="grid grid-2"><div><b>The exam</b><p class="small muted">${esc(i.exam)}</p></div><div><b>Official textbook</b><p class="small muted">${esc(i.book)}. Study hours: ${i.hours[0]}–${i.hours[1]}. In SenLin: days ${l.start}–${l.end} (${l.total} lessons, ${esc(fmtDate(l.startDate))} → ${esc(fmtDate(l.endDate))}).</p></div></div>
+        <div class="grid grid-2"><div><b>The exam</b><p class="small muted">${esc(i.exam)}</p></div><div><b>Official textbook</b><p class="small muted">${esc(i.book)}. Study hours: ${i.hours[0]}–${i.hours[1]}. In SenLin: days ${l.start}–${l.end} (${l.total} lessons, ${esc(fmtDateY(l.startDate))} → ${esc(fmtDateY(l.endDate))}).</p></div></div>
         <details class="small"><summary class="muted">Units and topics this level covers</summary><ul class="stack" style="gap:.25rem;margin-top:.5rem">${i.topics.map(t => `<li>· ${esc(t)}</li>`).join('')}</ul></details>
       </section>`; }).join('')}
       <p class="small muted">${esc(info.note30)}</p>
