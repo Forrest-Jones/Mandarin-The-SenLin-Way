@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,6 +27,21 @@ jobs:
           node-version: 22
       - name: Unit tests
         run: node --test server/test/*.test.js
+      - name: Which secrets does this run see? (names only, never values)
+        env:
+          S_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          S_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          S_STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          S_ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
+          S_JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          V_CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          V_CLOUDFLARE_API_TOKEN: ${{ vars.CLOUDFLARE_API_TOKEN }}
+        run: |
+          for n in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID STRIPE_SECRET_KEY ADMIN_KEY JWT_SECRET; do
+            v="S_$n"; if [ -n "${!v}" ]; then echo "secret $n: present (${#v} chars name, value length ${#${!v}})"; else echo "secret $n: MISSING"; fi
+          done
+          [ -n "$V_CLOUDFLARE_API_TOKEN" ] && echo "NOTE: CLOUDFLARE_API_TOKEN was added as a *Variable*, not a Secret. Delete it from the Variables tab and add it under Secrets." || true
+          [ -n "$V_CLOUDFLARE_ACCOUNT_ID" ] && echo "NOTE: CLOUDFLARE_ACCOUNT_ID is a Variable; that is fine, using it." || true
       - name: Deploy with Wrangler
         if: env.CLOUDFLARE_API_TOKEN != ''
         working-directory: server
