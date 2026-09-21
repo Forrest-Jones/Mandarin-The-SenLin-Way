@@ -96,6 +96,7 @@ jobs:
           # latest SDK (its androidx.browser dependency needs 36+), so only make sure targetSdk is never below 35.
           t=$(grep -oE 'targetSdkVersion [0-9]+' app/build.gradle | grep -oE '[0-9]+' || echo 0)
           if [ "${t:-0}" -lt 35 ]; then sed -i -E 's/targetSdkVersion [0-9]+/targetSdkVersion 35/' app/build.gradle; fi
+          sed -i -E "s/versionName \"[^\"]*\"/versionName \"1.0.${GITHUB_RUN_NUMBER}\"/" app/build.gradle   # the template keeps 1.0.0; Play shows this string to testers
           grep -nE 'compileSdkVersion|compileSdk |targetSdkVersion|targetSdk |minSdkVersion|minSdk |versionCode|versionName' app/build.gradle
           bubblewrap build --skipPwaValidation < /dev/null
           ls -la *.aab *.apk
