@@ -13,10 +13,11 @@ No build step: plain HTML, CSS and JavaScript deployed to GitHub Pages, plus an 
 | --- | --- |
 | Website (PWA) | live at the link above, CI-tested on every push |
 | API worker | live at `https://senlin-api.forrestjones2010.workers.dev` (accounts, sync, backups, Stripe, reminders, cron) |
-| Payments | Stripe wired end to end in **test mode**; swap in the live key to charge real cards (`server/README.md`) |
-| Android | signed Play bundle built by the *Build Android app* workflow; download `senlin-android` from the latest run and upload it in Play Console → Internal testing. `.well-known/assetlinks.json` already carries the signing fingerprint |
+| Payments | Stripe **live**: product, three prices, webhook and Customer Portal created by the deploy; the paywall is on (HSK 1 free, HSK 2–6 and the Deal Desk need Pro; `OWNER_EMAIL` accounts are always Pro) |
+| AI tutor | live through the worker with the Anthropic key; the daily content review workflow uses the same key |
+| Android | signed bundle and APK published by the *Build Android app* workflow at the `android-latest` release (direct links in `PLAY_STORE.md`); upload the `.aab` in Play Console → Internal testing once identity verification clears. `.well-known/assetlinks.json` already carries the signing fingerprint |
 | iOS | Xcode project generated and committed at `native/ios/App/App.xcworkspace`; open on a Mac, choose your Team, Archive, upload to App Store Connect |
-| Still needs the owner | Google Play developer account ($25) and Apple Developer Program ($99/yr); provider keys for the cloud tutor (`ANTHROPIC_API_KEY`), sign-in emails (`RESEND_API_KEY`) and voice (`AZURE_TTS_KEY`, `DEEPGRAM_API_KEY`) as GitHub secrets, synced to the worker on the next deploy |
+| Still needs the owner | Play Console identity verification, then the first upload; Apple Developer Program ($99/yr); a verified sending domain in Resend so sign-in emails reach everyone (today they reach the owner only, so password sign-in is the default); optional voice keys (`GOOGLE_TTS_KEY`, `DEEPGRAM_API_KEY`) as GitHub secrets, synced to the worker on the next deploy |
 
 ## What it does
 
@@ -79,7 +80,7 @@ Sign-in: a 6-digit email code when the worker has an email provider (`RESEND_API
 
 Voice sources: the site never calls an unofficial endpoint. Recorded audio → native app voice → device Web Speech voice → cloud voice (signed in). Speech recognition: native app → browser (Chrome/Edge/Android) → cloud recogniser (signed in, any browser with a microphone).
 
-**SenLin Pro** (`#/pro`): HSK 1 stays free forever; Pro is $11.99 a month, $59.99 a year ("$5 a month", 7-day free trial) or $149.99 lifetime as a launch offer. The website sells through Stripe Checkout created by the worker (`/v1/billing/checkout`, Customer Portal for cancellations, webhooks flip the plan), and the store apps through RevenueCat with the same three SKUs. Set `paywall: true` in `js/config.js` (and `PAYWALL = "1"` on the worker) to put HSK 2–6 and the Deal Desk behind it; until then Pro still unlocks the cloud allowances. Setup steps: `server/README.md` → Billing; pricing rationale: `PLAY_STORE.md` → Pricing.
+**SenLin Pro** (`#/pro`): HSK 1 stays free forever; Pro is $11.99 a month, $59.99 a year ("$5 a month", 7-day free trial) or $149.99 lifetime as a launch offer. The website sells through Stripe Checkout created by the worker (`/v1/billing/checkout`, Customer Portal for cancellations, webhooks flip the plan), and the store apps through RevenueCat with the same three SKUs. The paywall is on: `paywall: true` in `js/config.js` and `PAYWALL = "1"` on the worker put HSK 2–6 and the Deal Desk behind Pro (set both to off to open everything); accounts listed in `OWNER_EMAIL` on the worker are always Pro. Setup steps: `server/README.md` → Billing; pricing rationale: `PLAY_STORE.md` → Pricing.
 
 The site, the CLI and the calendar all compute the day from the same start date (`CONFIG.startDate` in `js/engine.js`, changeable per-device in Settings).
 
