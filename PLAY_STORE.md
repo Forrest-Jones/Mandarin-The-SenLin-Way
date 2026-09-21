@@ -37,7 +37,7 @@ See `native/README.md` for the step-by-step. In short: `cd native && npm install
 Copy every field from `store/listing.md` (title, short and full description, both measured against the limits). Assets:
 - App icon: `assets/icon-512.png` (512×512, PNG, no alpha problems) — Play also uses the maskable version on the device.
 - Feature graphic: `store/feature-graphic-1024x500.png`.
-- Phone screenshots (2–8, 16:9 to 9:16): `node tools/icons.js --screens` captures Today, Levels, Deal Desk and Talk at 1080×1920 into `store/screenshots/`.
+- Phone screenshots (2–8, 16:9 to 9:16): `node tools/icons.js --screens` captures Today, Levels, Deal Desk and Talk at 1080×1920 into `store/screenshots/`, each with a high-contrast caption band stating the benefit (the first two or three screenshots do most of the converting). Upload them in that order.
 - Category: Education. Tags: language learning, Chinese, Mandarin, HSK.
 - Contact email and the privacy policy URL: `https://forrest-jones.github.io/Mandarin-The-SenLin-Way/privacy.html`.
 
@@ -85,7 +85,37 @@ Where the rails live: `server/README.md` → *Billing* (Stripe products, prices,
 - [ ] Lighthouse PWA audit green (installable, offline, icons, maskable)
 - [ ] Internal testing track for a week with real devices (Android 10+, Chrome 120+)
 - [ ] Keystore, passwords and RevenueCat keys backed up outside the repo
+- [ ] Listing title / short / full description pasted exactly from `store/listing.md` (section 8 below explains why each is worded as it is)
 
 ## 7. iOS
 
 The TWA route is Android-only. iOS requires Route B. Apple insists in-app digital purchases use StoreKit (RevenueCat handles it), a working "Restore purchases" button (present in `js/native.js` → `billing.restore()`), an account-deletion path (Settings → Reset plus the contact email; add an in-app "Delete account" once the backend exposes it), and a privacy nutrition label mirroring the Data safety answers above.
+
+## 8. Ranking on Google Play (ASO) — the plan
+
+Play ranks on two things: the text it indexes, and how people behave once they see and install the app. Both are in our hands.
+
+**Text (indexed like a search engine)**
+- Title (30 chars, heaviest weight): `SenLin: Learn Mandarin Chinese`. Brand + the highest-volume phrase. No "Free", "#1", emoji.
+- Short description (80 chars, second in weight and the line people read before tapping): `Learn Chinese in 10 minutes a day: HSK 1–6 words, tones, writing, AI tutor.`
+- Full description (4,000 chars, fully indexed): headed sections, bullets, natural repeats of *learn Chinese*, *Mandarin*, *HSK*, *tones*, *AI tutor*, about 2–3% each, never a keyword wall. Copy lives in `store/listing.md`.
+- Package name is permanent and already carries the core keyword: `com.senlinway.mandarin`.
+- Run store listing experiments in Play Console from day one: title alternate, the two short-description alternates in `store/listing.md`, icon and first screenshot.
+
+**Conversion (a keyword we rank for but nobody installs from sinks)**
+- Icon: the green 森 tile reads on light and dark backgrounds; keep it uncluttered.
+- Screenshots: benefit in a caption on each, benefit-first order (Today → Talk → Levels → Deal Desk). Add a 15–30 s portrait video of one lesson once there are real lessons to film.
+- The listing promises exactly what the free tier delivers (all of HSK 1). No intent mismatch, so fewer day-1 uninstalls.
+
+**Technical health (Android vitals)**
+- Thresholds Google demotes past: crash rate 1.09% (8% on any one device), ANR 0.47%. The TWA shell is a thin Chrome wrapper, so the vitals that matter are the web app's: no uncaught errors (CI runs the e2e suite with a console-error assertion), a service worker that never serves a broken shell, and `.well-known/assetlinks.json` verified so Play never shows the browser bar.
+- Keep the bundle small: the TWA is ~2 MB; the site loads HSK 4–6 lazily and audio on demand.
+
+**Ratings and reviews**
+- Stay above 4.0 or lose "similar apps" placement. The app asks for a rating only at a good moment: after a completed lesson on a streak of three or more, at most once every 90 days, never on a cold open or after an error (`js/app.js` → `reviewPrompt`). In the Capacitor build this becomes the native In-App Review API; in the TWA it opens the Play listing.
+- Reply to every 1- and 2-star review within a day, fix, then ask if they would update. Google reads the text of reviews, so replies that name the fix help twice.
+
+**Velocity and retention**
+- A steady trickle of installs beats a spike: announce in waves (personal network, HSK and Chinese-learning subreddits and Discords, LinkedIn for the Deal Desk angle, then paid UAC once organic conversion is known).
+- Day-1 / 7 / 30 retention is the ranking signal that compounds: the daily reminder, the streak, the catch-up queue and the calendar feed exist for it. Watch the Play Console retention panel weekly; a day-1 drop means the first lesson, not marketing.
+- Localise metadata (title, short, full, screenshots) by hand, not machine, for tier-one markets in this order: Spanish, Portuguese (BR), German, French, Japanese, Korean, then Traditional Chinese for Taiwan and Hong Kong learners of Putonghua. In-app text stays English until the metadata proves a market.

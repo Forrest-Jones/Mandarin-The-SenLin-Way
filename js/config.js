@@ -10,6 +10,7 @@ window.SENLIN_CONFIG = {
   paywall: true,               // true = HSK 2+ (day 73 on) and the Deal Desk need a Pro entitlement; HSK 1 stays free
   freeDays: 72,                // with paywall: days 1–72 (all of HSK 1 at 3 characters a day) are free
   revenuecat: { android: '', ios: '', web: '' },  // public API keys per platform
+  store: { android: 'https://play.google.com/store/apps/details?id=com.senlinway.mandarin', ios: '' },   // listing links for the in-app rating prompt
   checkoutUrl: '',             // optional fallback: a Stripe Payment Link; normally Checkout is created by the server (/v1/billing/checkout)
   plans: [                     // shown on #/pro when the server is not connected; the server's /v1/billing/plans wins otherwise
     { id: 'monthly', name: 'Pro monthly', price: 11.99, currency: 'USD', interval: 'month', trialDays: 0, rcPackage: '$rc_monthly' },

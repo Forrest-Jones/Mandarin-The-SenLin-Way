@@ -271,17 +271,30 @@ async function renderScreens(base) {
       } catch (e) { /* ignore */ }
     });
     const page = await ctx.newPage();
-    const shots = [['', 'today'], ['levels', 'levels'], ['business', 'business'], ['talk', 'talk']];
-    for (const [route, name] of shots) {
+    // Benefit-first order with a caption band on each: the first two or three screenshots do most of the converting.
+    const shots = [['', 'today', 'Ten minutes a day.', 'Learn Chinese one tree at a time.'], ['talk', 'talk', 'A live AI tutor.', 'Talk, get corrected, keep talking.'], ['levels', 'levels', 'HSK 1 to 6, in order.', 'Every word only after its characters.'], ['business', 'business', 'Deal-room Mandarin.', 'Term sheets, diligence, closing.']];
+    const frame = await ctx.newPage();
+    for (const [route, name, headline, sub] of shots) {
       await page.goto(`${base}/#/${route}`, { waitUntil: 'load' });
       await page.evaluate(() => document.fonts.ready);
       await page.waitForFunction(() => document.querySelector('#app') && document.querySelector('#app').children.length > 0);
       await page.waitForTimeout(400);
+      const raw = await page.screenshot({ type: 'png', fullPage: false });
+      await frame.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap"><style>
+        html,body{margin:0;width:360px;height:640px;overflow:hidden;background:#0f5a3a;font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
+        .band{height:118px;padding:20px 20px 0;color:#fff;box-sizing:border-box}
+        .band h1{margin:0;font-size:31px;line-height:1.05;font-weight:900;letter-spacing:-.02em}
+        .band p{margin:7px 0 0;font-size:15.5px;line-height:1.25;font-weight:700;color:#c9f27a}
+        .shot{position:absolute;left:18px;right:18px;top:118px;bottom:0;border-radius:22px 22px 0 0;overflow:hidden;box-shadow:0 -6px 30px rgba(0,0,0,.35);background:#fff}
+        .shot img{width:100%;display:block}
+      </style></head><body><div class="band"><h1>${headline}</h1><p>${sub}</p></div><div class="shot"><img src="data:image/png;base64,${raw.toString('base64')}"></div></body></html>`);
+      await frame.evaluate(() => document.fonts.ready);
+      await frame.waitForTimeout(250);
       const file = path.join(ROOT, 'store', 'screenshots', `${name}.png`);
       fs.mkdirSync(path.dirname(file), { recursive: true });
-      const buf = await page.screenshot({ type: 'png', fullPage: false });
+      const buf = await frame.screenshot({ type: 'png', fullPage: false });
       fs.writeFileSync(file, buf);
-      console.log(`${path.relative(ROOT, file)}  1080x1920  ${(buf.length / 1024).toFixed(1)} KB`);
+      console.log(`${path.relative(ROOT, file)}  1080x1920  ${(buf.length / 1024).toFixed(1)} KB  "${headline}"`);
     }
   } finally {
     await browser.close();

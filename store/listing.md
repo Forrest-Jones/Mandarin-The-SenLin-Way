@@ -13,16 +13,21 @@ Testing International. Do not promise exam results.
 
 ## Google Play
 
-### Title (max 30 chars) — 23
+### Title (max 30 chars) — 30
 
 ```
-Mandarin The SenLin Way
+SenLin: Learn Mandarin Chinese
 ```
 
-### Short description (max 80 chars) — 79
+The title carries the most ranking weight, so it pairs the brand with the highest-volume
+search phrase. Alternate for a store listing experiment (30 chars): `SenLin: Learn Mandarin HSK 1–6`.
+The launcher name on the phone stays `SenLin`; the full brand "Mandarin The SenLin Way" lives in the
+descriptions. Never add "Free", "#1", "Best" or emoji to the title (policy violation and a demotion).
+
+### Short description (max 80 chars) — 75
 
 ```
-Learn Mandarin in 10 minutes a day. HSK 1–6 aligned, AI tutor, tones, writing.
+Learn Chinese in 10 minutes a day: HSK 1–6 words, tones, writing, AI tutor.
 ```
 
 Alternates (A/B in Play's store listing experiments):
@@ -32,14 +37,14 @@ Ten minutes a day, HSK 1–6 aligned: AI tutor, tone gym, stroke order, real tal
 Grow a Mandarin Word Forest: 10-minute daily lessons, HSK 1–6, live AI tutor.
 ```
 
-### Full description (max 4000 chars) — about 2,900
+### Full description (max 4000 chars) — about 3,000; top terms Mandarin / Chinese / HSK / learn each land near 2–3% without stuffing
 
 ```
 Grow your Mandarin Word Forest, one tree at a time.
 
-Mandarin The SenLin Way (森林 sēnlín, "forest") is a daily ten-minute Mandarin course that takes you from your first nǐ hǎo to confident conversation. Every day you plant one small tree: a handful of words, one grammar pattern, a scene you will never forget. Miss nothing, cram nothing. In a year the forest is yours.
+Mandarin The SenLin Way (森林 sēnlín, "forest") is a daily ten-minute course to learn Mandarin Chinese, from your first nǐ hǎo to confident conversation. Every day you plant one small tree: a handful of words, one grammar pattern, a scene you will never forget. Miss nothing, cram nothing. In a year the forest is yours.
 
-WHY IT WORKS
+LEARN CHINESE THE WAY MEMORY WORKS
 • Movie-scene memory. Each new word gets a character from your own "cast" and a tiny scene. Your brain keeps stories; it drops lists.
 • Spaced repetition that respects your time. Reviews arrive exactly when you are about to forget, never as a 200-card wall.
 • Shadowing and "Say it". Hear a native-speed sentence, repeat it, and get scored on tones and words by speech recognition.
@@ -48,7 +53,7 @@ WHY IT WORKS
 • Live AI tutor. Talk with a patient tutor that corrects gently, explains grammar in plain English, and role-plays real situations: ordering food, a job interview, haggling at a market.
 
 HSK-ALIGNED, HSK 1 → 6
-The vocabulary and grammar follow the HSK level lists, so what you learn maps directly onto the exam and onto real life. HSK 1 (the first 72 days) is completely free, no account needed. SenLin Pro unlocks HSK 2–6, the Deal Desk, cloud sync and a bigger daily tutor allowance.
+The Chinese vocabulary and grammar follow the HSK level lists, so what you learn maps directly onto the HSK exam and onto real life. HSK 1 (the first 72 days) is completely free, no account needed. SenLin Pro unlocks HSK 2–6, the Deal Desk, cloud sync and a bigger daily tutor allowance.
 
 DEAL DESK: MANDARIN FOR BUSINESS
 A separate track for cross-border private-equity and venture-capital work: fund terms, valuation and term sheets, due diligence, negotiation, closing and FX mechanics, banquets, follow-up. Practise a full deal negotiation with the AI tutor playing the counterparty.
@@ -59,9 +64,10 @@ BUILT FOR REAL LIFE
 • A daily reminder you set yourself.
 • Calendar feed: put today's lesson in your calendar app.
 • No ads, ever. Nothing is sold to anyone.
+• Learn Mandarin at your own pace: change the daily character count and the calendar shifts with you.
 
 WHO IT IS FOR
-Complete beginners who want a plan, not a pile. Returners who learnt some Chinese years ago. Professionals who need to hold a meeting in Mandarin. Anyone preparing for HSK 1 through 6 who wants the vocabulary to stick.
+Complete beginners who want to learn Chinese with a plan, not a pile. Returners who learnt some Mandarin years ago. Professionals who need to hold a meeting in Chinese. Anyone preparing for HSK 1 through 6 who wants the vocabulary to stick.
 
 FREE AND PRO
 Free: all of HSK 1, tone gym, writing practice, reviews, the tutor with a daily limit.
@@ -71,6 +77,8 @@ Mandarin The SenLin Way is an independent app. It is aligned with the HSK level 
 
 Privacy policy: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/privacy.html
 Terms: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/terms.html
+
+Download SenLin and learn Chinese ten minutes a day.
 
 一天一棵树。 One tree a day.
 ```
