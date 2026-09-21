@@ -76,11 +76,13 @@ Términos: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/terms.html
 
 ## Portuguese, Brazil (pt-BR)
 
-### Title (30) — 31
+### Title (30) — 27
 
 ```
-SenLin: Aprenda Chinês Mandarim
+SenLin: Aprenda Mandarim
 ```
+
+Alternate (30): `SenLin: Aprender Chinês HSK`
 
 ### Short description (80) — 76
 
