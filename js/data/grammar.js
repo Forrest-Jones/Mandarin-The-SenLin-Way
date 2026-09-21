@@ -42,7 +42,7 @@
     { level: 2, name: '得 complement', pattern: 'verb + 得 + adjective', zh: '他说得很好。', p: 'Tā shuō de hěn hǎo.', en: 'He speaks very well.', note: '得 (de) attaches an adverb of manner after the verb. With an object, repeat the verb: 他说汉语说得很好.' },
     { level: 2, name: '要 “going to / must”', pattern: 'Subject + 要 + verb', zh: '我生病了，要吃药。', p: 'Wǒ shēngbìng le, yào chī yào.', en: 'I am sick and need to take medicine.', note: '要 covers “want to”, “am going to” and “need to”; context decides.' },
     { level: 2, name: '每…都…', pattern: '每 + measure + noun + 都 + verb', zh: '我每天都跑步。', p: 'Wǒ měi tiān dōu pǎobù.', en: 'I jog every day.', note: '每 loves to be followed by 都 before the verb.' },
-    { level: 2, name: '别 “don’t”', pattern: '别 + verb', zh: '别说话！', p: 'Bié shuō huà!', en: 'Don’t talk!', note: '别 (or 不要) makes a negative command.' },
+    { level: 2, name: '别 “don’t”', pattern: '别 + verb', zh: '别说话！', p: 'Bié shuōhuà!', en: 'Don’t talk!', note: '别 (or 不要) makes a negative command.' },
     { level: 2, name: '最 superlative', pattern: '最 + adjective', zh: '这是我最喜欢的歌。', p: 'Zhè shì wǒ zuì xǐhuan de gē.', en: 'This is my favourite song.', note: '最 before an adjective or a feeling verb makes the superlative.' },
     { level: 2, name: '吧 suggestion', pattern: 'Statement + 吧', zh: '我们走吧。', p: 'Wǒmen zǒu ba.', en: 'Let’s go.', note: '吧 softens a statement into a suggestion or a guess: 你是老师吧？ “You’re a teacher, right?”' },
     /* ---------- HSK 3 ---------- */

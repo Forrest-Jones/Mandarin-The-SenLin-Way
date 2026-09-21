@@ -375,7 +375,7 @@
     {zh: "东西在桌子上。", p: "Dōngxi zài zhuōzi shang.", en: "The things are on the table."},
     {zh: "苹果多少钱？", p: "Píngguǒ duōshao qián?", en: "How much are the apples?"},
     {zh: "三块钱一个。", p: "Sān kuài qián yí ge.", en: "Three yuan each."},
-    {zh: "我买了三本书。", p: "Wǒ mǎi le sān běn shū.", en: "I bought three books."},
+    {zh: "我买了三本书。", p: "Wǒ mǎile sān běn shū.", en: "I bought three books."},
     {zh: "现在几点？", p: "Xiànzài jǐ diǎn?", en: "What time is it now?"},
     {zh: "现在十点三十分。", p: "Xiànzài shí diǎn sānshí fēn.", en: "It is 10:30 now."},
     {zh: "我们几点吃饭？", p: "Wǒmen jǐ diǎn chī fàn?", en: "What time do we eat?"},

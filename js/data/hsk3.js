@@ -668,7 +668,7 @@
     {zh: "请安静一点儿。", p: "Qǐng ānjìng yìdiǎnr.", en: "Please be a little quieter."},
     {zh: "这个孩子很聪明。", p: "Zhège háizi hěn cōngming.", en: "This child is clever."},
     {zh: "汉语不容易学。", p: "Hànyǔ bù róngyì xué.", en: "Chinese is not easy to learn."},
-    {zh: "他不满意这个工作。", p: "Tā bù mǎnyì zhège gōngzuò.", en: "He is not satisfied with this job."},
+    {zh: "他对这个工作不满意。", p: "Tā duì zhège gōngzuò bù mǎnyì.", en: "He is not satisfied with this job."},
     {zh: "我特别喜欢这本书。", p: "Wǒ tèbié xǐhuan zhè běn shū.", en: "I especially like this book."},
     {zh: "我需要你的帮助。", p: "Wǒ xūyào nǐ de bāngzhù.", en: "I need your help."},
     {zh: "你必须去医院。", p: "Nǐ bìxū qù yīyuàn.", en: "You must go to the hospital."},
@@ -702,7 +702,7 @@
     {zh: "对不起，我迟到了。", p: "Duìbuqǐ, wǒ chídào le.", en: "Sorry, I am late."},
     {zh: "除了他，我们都去。", p: "Chúle tā, wǒmen dōu qù.", en: "Everyone is going except him."},
     {zh: "其实我不喜欢他。", p: "Qíshí wǒ bù xǐhuan tā.", en: "Actually I do not like him."},
-    {zh: "你喝茶或者咖啡？", p: "Nǐ hē chá huòzhě kāfēi?", en: "Tea or coffee?"},
+    {zh: "我们明天或者后天去。", p: "Wǒmen míngtiān huòzhě hòutiān qù.", en: "We will go tomorrow or the day after."},
     {zh: "请回答我的问题。", p: "Qǐng huídá wǒ de wèntí.", en: "Please answer my question."},
     {zh: "如果下雨，我就不去。", p: "Rúguǒ xià yǔ, wǒ jiù bú qù.", en: "If it rains, I will not go."},
     {zh: "周末你做什么？", p: "Zhōumò nǐ zuò shénme?", en: "What do you do at the weekend?"},
@@ -730,7 +730,7 @@
     {zh: "附近有银行吗？", p: "Fùjìn yǒu yínháng ma?", en: "Is there a bank nearby?"},
     {zh: "苹果三块钱一斤。", p: "Píngguǒ sān kuài qián yì jīn.", en: "Apples are three yuan a jin."},
     {zh: "欢迎你来北京！", p: "Huānyíng nǐ lái Běijīng!", en: "Welcome to Beijing!"},
-    {zh: "我洗澡以后睡觉。", p: "Wǒ xǐzǎo yǐhòu shuìjiào.", en: "I go to sleep after showering."},
+    {zh: "我洗澡以后就睡觉。", p: "Wǒ xǐzǎo yǐhòu jiù shuìjiào.", en: "I go to sleep after showering."},
     {zh: "我有一本汉语词典。", p: "Wǒ yǒu yì běn Hànyǔ cídiǎn.", en: "I have a Chinese dictionary."},
     {zh: "他往往很晚才回家。", p: "Tā wǎngwǎng hěn wǎn cái huí jiā.", en: "He often gets home very late."}
     ]
