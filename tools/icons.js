@@ -251,6 +251,25 @@ async function renderScreens(base) {
   try {
     const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, colorScheme: 'light', locale: 'en-GB' });
     await routeFontsThroughCurl(ctx);
+    // Store shots show a signed-in Pro learner a couple of weeks in, with the API answered locally (no network in CI).
+    await ctx.route(/\/v1\//, route => {
+      const u = route.request().url();
+      const body = /\/v1\/health/.test(u) ? { ok: true, ready: true, providers: { ai: true, tts: true, stt: true, email: true } }
+        : /\/v1\/entitlement/.test(u) ? { plan: 'pro', expiresAt: null, features: { ai: true, hsk3plus: true, dealDesk: true } }
+        : /\/v1\/me/.test(u) ? { user: { id: 'demo', email: 'you@example.com', plan: 'pro' }, plan: 'pro' }
+        : /\/v1\/sync\/pull/.test(u) ? { version: 0, data: null }
+        : { ok: true };
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+    });
+    await ctx.addInitScript(() => {
+      try {
+        const d = new Date(); d.setDate(d.getDate() - 14);
+        localStorage.setItem('senlin.settings', JSON.stringify({ startDate: d.toISOString().slice(0, 10) }));
+        const completed = {}; for (let i = 1; i <= 14; i++) completed[i] = new Date(Date.now() - (15 - i) * 864e5).toISOString().slice(0, 10);
+        localStorage.setItem('senlin.progress', JSON.stringify({ completed, streak: 14, reviews: { total: 42, good: 37 }, quiz: { total: 60, right: 54 } }));
+        localStorage.setItem('senlin.auth', JSON.stringify({ token: 'demo', user: { id: 'demo', email: 'you@example.com', plan: 'pro' }, plan: 'pro', expiresAt: null }));
+      } catch (e) { /* ignore */ }
+    });
     const page = await ctx.newPage();
     const shots = [['', 'today'], ['levels', 'levels'], ['business', 'business'], ['talk', 'talk']];
     for (const [route, name] of shots) {
