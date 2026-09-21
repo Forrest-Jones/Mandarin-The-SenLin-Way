@@ -1,4 +1,4 @@
-// Native-speaker review of the HSK 4–6 and Deal Desk text with Claude, filling the same columns a human
+// Native-speaker review of the course text (any HSK level, Deal Desk) with Claude, filling the same columns a human
 // editor would (status ok|fix, note "zh|pinyin|en|comment"). Reads review/<name>.csv, writes
 // review/<name>-reviewed.csv. Run from CI (ANTHROPIC_API_KEY) or a laptop:
 //   node tools/ai-review.mjs [--files hsk4,hsk5,hsk6,business] [--batch 20] [--concurrency 4] [--model claude-opus-5]
@@ -30,7 +30,7 @@ const Review = z.object({
 });
 
 const SYSTEM = `You are a native Mandarin editor (Beijing standard, mainland usage) reviewing sentences for an HSK-aligned course. For each item decide:
-- "ok": natural, correct simplified Chinese; pinyin exactly matches with tone marks (tone sandhi NOT written: 不 and 一 keep their dictionary tones, 3rd+3rd stays 3rd+3rd); English translation faithful.
+- "ok": natural, correct simplified Chinese; pinyin exactly matches with tone marks. This course WRITES the spoken tone sandhi of 不 and 一 (bú before a 4th tone: búshì, búyào; yí before a 4th tone: yíxià, yí ge; yì before 1st/2nd/3rd: yìqǐ, yìbān, yìzhí; reduplicated verbs keep the neutral yi: kàn yi kàn; numbers, ordinals and dates keep yī: dì-yī, shíyī). Never "fix" a sandhi spelling to the dictionary tone; 3rd+3rd stays written 3rd+3rd; English translation faithful.
 - "fix": anything unnatural, ungrammatical, non-mainland, wrong punctuation (Chinese must use 。，？！、), pinyin tone/spelling errors, spacing (pinyin per word, capital at sentence start), or an English rendering that misleads.
 Only mark "fix" when a careful native editor would change it; do not restyle acceptable sentences. When fixing, return the corrected field(s) and leave the others as empty strings. Business items must keep a formal finance register (您, 贵方, 我方). Never change the meaning; never add characters beyond the course's level unless required for correctness.`;
 
