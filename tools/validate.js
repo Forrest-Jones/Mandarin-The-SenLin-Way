@@ -100,7 +100,7 @@ console.log('  OK');
   const loader = require('fs').readFileSync(require('path').join(__dirname, '..', 'js', 'loader.js'), 'utf8');
   const LV = require('../js/data/levels.js');
   for (const L of LV) if (L.level > 1) {
-    const m = new RegExp('\\[' + L.level + ', (\\d+), ').exec(loader);
+    const m = new RegExp('\\[' + L.level + ',\\s*(\\d+),').exec(loader);   // tolerant of minified spacing
     if (!m || +m[1] !== L.characters.length) { console.error(`loader.js: HSK ${L.level} has ${L.characters.length} characters, loader table says ${m ? m[1] : 'nothing'}`); process.exit(1); }
   }
 }
