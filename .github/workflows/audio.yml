@@ -1,0 +1,50 @@
+name: Generate audio (Google Cloud Text-to-Speech)
+
+# Synthesises every character, word, sentence, grammar example, scenario opener, Deal Desk line and
+# pronunciation drill with a licensed WaveNet voice and commits the MP3s under audio/ (see audio/README.md).
+# Needs the GOOGLE_TTS_KEY repository secret (Google Cloud console → APIs → Text-to-Speech → API key).
+# The whole course is about 40,000 characters: inside Google's free monthly WaveNet allowance.
+on:
+  workflow_dispatch:
+    inputs:
+      levels:
+        description: 'HSK levels, comma-separated (empty = all)'
+        default: '1'
+      kinds:
+        description: 'chars,words,sentences,grammar,scenarios,business,pinyin,ui (empty = all)'
+        default: ''
+      force:
+        description: 're-synthesise files that already exist (true/false)'
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Need the key
+        run: |
+          if [ -z "$GOOGLE_TTS_KEY" ]; then echo "::error::Add the GOOGLE_TTS_KEY repository secret first (Settings → Secrets and variables → Actions)."; exit 1; fi
+      - name: Estimate
+        run: node tools/audio.js --dry-run --provider google ${{ github.event.inputs.levels && format('--levels {0}', github.event.inputs.levels) || '' }} ${{ github.event.inputs.kinds && format('--kinds {0}', github.event.inputs.kinds) || '' }}
+      - name: Synthesise
+        run: node tools/audio.js --provider google ${{ github.event.inputs.levels && format('--levels {0}', github.event.inputs.levels) || '' }} ${{ github.event.inputs.kinds && format('--kinds {0}', github.event.inputs.kinds) || '' }} ${{ github.event.inputs.force == 'true' && '--force' || '' }} | tee audio-run.log
+      - name: Check the files the site will look up
+        run: node --test tools/test-audio.js
+      - name: Commit the audio
+        run: |
+          git config user.name "senlin-bot"; git config user.email "senlin-bot@users.noreply.github.com"
+          git add audio
+          if ! git diff --cached --quiet; then git commit -m "Audio: licensed WaveNet pronunciations (levels ${{ github.event.inputs.levels || 'all' }})" && git pull --rebase --autostash origin main && git push; else echo "nothing new"; fi
+      - name: Summary
+        run: |
+          { echo "### Audio"; echo '```'; tail -30 audio-run.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

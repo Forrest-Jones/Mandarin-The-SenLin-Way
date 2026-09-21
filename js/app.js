@@ -257,7 +257,7 @@
   /* ------------------------------------------------------------ router */
   const routes = {};
   const LAZY = window.SENLIN_LAZY || { pending: false, load: () => Promise.resolve() };
-  /** Routes that show the whole curriculum wait for HSK 4–6 to arrive (a few hundred KB, once). */
+  /** Routes that show the whole curriculum wait for the remaining levels to arrive (a few hundred KB, once). */
   function needsAllLevels(name, arg) {
     if (!LAZY.pending) return false;
     if (/^(library|levels|progress|plan)$/.test(name)) return true;
@@ -277,7 +277,7 @@
     let view = routes[name || 'today'] || routes.today;
     if (needsAllLevels(name, arg)) {
       app.innerHTML = '<div class="card stack" style="max-width:520px"><p class="lead">Loading HSK 4–6…</p><p class="muted small">A few hundred kilobytes, once. The site keeps them for offline use.</p></div>';
-      LAZY.load().then(() => { rebuild(); navigate(); }).catch(() => { app.innerHTML = '<div class="card"><p>Could not load HSK 4–6. Check your connection and reload.</p></div>'; });
+      LAZY.load().then(() => { rebuild(); navigate(); }).catch(() => { app.innerHTML = '<div class="card"><p>Could not load the remaining levels. Check your connection and reload.</p></div>'; });
       return;
     }
     if ((name === 'lesson' && locked(parseInt(arg, 10) || todayDay())) || (name === 'business' && CFG.paywall && !(window.SenLinCloud && window.SenLinCloud.isPro()))) {
@@ -543,7 +543,14 @@
       <div class="progress-ring" style="--p:${pct}"><div>${pct}%</div></div>
       <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
       <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a></div>
-    </div>${reviewPrompt()}`;
+    </div>${reminderNudge()}${reviewPrompt()}`;
+  }
+  /** After the first lessons, one card that points at the daily reminder (the single biggest day-7 retention lever). */
+  function reminderNudge() {
+    const n = Object.keys(state.progress.completed).length;
+    if (n < 1 || n > 3 || (state.settings.reminder && state.settings.reminder.on) || store.get('nudge-reminder', null)) return '';
+    return `<div class="card stack" id="nudge-reminder" style="margin-top:1rem"><span class="eyebrow">Keep the streak</span><p><b>Same time tomorrow?</b> A daily reminder is the difference between a streak and a good intention.</p>
+      <div class="row"><a class="btn btn-primary" href="#/settings" id="nudge-reminder-go">Set a daily reminder</a><button class="btn btn-ghost" id="nudge-reminder-later">Not now</button></div></div>`;
   }
   /** Rating prompt at a good moment only: a finished lesson on a 3-day streak, at most once per 90 days, only where a store listing exists. */
   function storeLink() { const st = CFG.store || {}; const N = window.SenLinNative; const ua = navigator.userAgent || ''; if (N && N.isNative && N.platform === 'ios') return st.ios; if (/android/i.test(ua) || (N && N.isNative)) return st.android; return ''; }
@@ -556,6 +563,8 @@
   }
   function wireDone() {
     lesson.stop(); confetti();
+    const nudge = $('#nudge-reminder');
+    if (nudge) { const off = () => { store.set('nudge-reminder', Date.now()); nudge.remove(); }; $('#nudge-reminder-later').onclick = off; $('#nudge-reminder-go').onclick = () => store.set('nudge-reminder', Date.now()); }
     const card = $('#review-card'); if (!card) return;
     const seen = (done) => { store.set('review', { askedAt: Date.now(), done: !!done }); card.remove(); if (window.SenLinCloud) window.SenLinCloud.track('review_prompt', { done: !!done }); };
     $('#review-yes').onclick = () => { const N = window.SenLinNative; if (N && N.isNative && N.review) { try { N.review(); } catch (e) { /* fall back to the link */ } } seen(true); };
@@ -837,6 +846,6 @@
 
   /* ------------------------------------------------------------ go */
   navigate();
-  /* pull in HSK 4–6 in the background once the first screen is up, so Library and Levels are instant later */
+  /* pull in the remaining levels in the background once the first screen is up, so Library and Levels are instant later */
   if (LAZY.pending) (window.requestIdleCallback || (f => setTimeout(f, 1500)))(() => { LAZY.load().then(() => { rebuild(); if (/^#\/(library|levels|progress|plan)/.test(location.hash)) navigate(); }).catch(() => {}); });
 })();

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/sitemap.xml

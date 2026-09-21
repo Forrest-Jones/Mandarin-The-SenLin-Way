@@ -17,7 +17,7 @@ No build step: plain HTML, CSS and JavaScript deployed to GitHub Pages, plus an 
 | AI tutor | live through the worker with the Anthropic key; the daily content review workflow uses the same key |
 | Android | signed bundle and APK published by the *Build Android app* workflow at the `android-latest` release (direct links in `PLAY_STORE.md`); upload the `.aab` in Play Console → Internal testing once identity verification clears. `.well-known/assetlinks.json` already carries the signing fingerprint |
 | iOS | Xcode project generated and committed at `native/ios/App/App.xcworkspace`; open on a Mac, choose your Team, Archive, upload to App Store Connect |
-| Still needs the owner | Play Console identity verification, then the first upload; Apple Developer Program ($99/yr); a verified sending domain in Resend so sign-in emails reach everyone (today they reach the owner only, so password sign-in is the default); optional voice keys (`GOOGLE_TTS_KEY`, `DEEPGRAM_API_KEY`) as GitHub secrets, synced to the worker on the next deploy |
+| Still needs the owner | Play Console identity verification, then the first upload; Apple Developer Program ($99/yr); a verified sending domain in Resend so sign-in emails reach everyone (today they reach the owner only, so password sign-in is the default); a `GOOGLE_TTS_KEY` secret so the *Generate audio* workflow can record every word and sentence with a licensed WaveNet voice (the whole course fits Google's free monthly allowance; until then phones use their built-in Chinese voice); optional `DEEPGRAM_API_KEY` for speech-to-text on iPhone |
 
 ## What it does
 

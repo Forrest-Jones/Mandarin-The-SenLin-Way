@@ -94,3 +94,13 @@ console.log(`  character days without a new word: ${emptyWordDays.join(', ') || 
 warnings.forEach(w => console.log('  warn: ' + w));
 if (errors.length) { errors.forEach(e => console.error('  ERROR: ' + e)); process.exit(1); }
 console.log('  OK');
+
+/* js/loader.js computes day boundaries from a hard-coded characters-per-level table; keep it honest. */
+{
+  const loader = require('fs').readFileSync(require('path').join(__dirname, '..', 'js', 'loader.js'), 'utf8');
+  const LV = require('../js/data/levels.js');
+  for (const L of LV) if (L.level > 1) {
+    const m = new RegExp('\\[' + L.level + ', (\\d+), ').exec(loader);
+    if (!m || +m[1] !== L.characters.length) { console.error(`loader.js: HSK ${L.level} has ${L.characters.length} characters, loader table says ${m ? m[1] : 'nothing'}`); process.exit(1); }
+  }
+}

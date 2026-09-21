@@ -45,7 +45,7 @@ jobs:
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$sdk" > ~/.bubblewrap/config.json
           cat ~/.bubblewrap/config.json
           yes | "$sdk/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
-          "$sdk/cmdline-tools/latest/bin/sdkmanager" "build-tools;34.0.0" "platforms;android-34" > /dev/null 2>&1 || true
+          "$sdk/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0" "platforms;android-35" "build-tools;34.0.0" "platforms;android-34" > /dev/null 2>&1 || true
       - name: Clean the Cloudflare token
         id: token
         run: |
@@ -82,7 +82,19 @@ jobs:
           BUBBLEWRAP_KEY_PASSWORD: ${{ steps.key.outputs.pass }}
         run: |
           set -e
+          # Every Play upload needs a higher versionCode: derive it from the run number (1.0.<run>).
+          python3 - <<'PY'
+          import json, os
+          m = json.load(open('twa-manifest.json'))
+          n = int(os.environ['GITHUB_RUN_NUMBER'])
+          m['appVersionCode'] = n; m['appVersionName'] = f"1.0.{n}"
+          json.dump(m, open('twa-manifest.json', 'w'), indent=2)
+          print('versionCode', n, 'versionName', m['appVersionName'])
+          PY
           bubblewrap update --skipVersionUpgrade < /dev/null
+          # Play requires new apps to target a recent API level; pin compile/target to 35 whatever the template says.
+          sed -i -E 's/compileSdkVersion [0-9]+/compileSdkVersion 35/; s/targetSdkVersion [0-9]+/targetSdkVersion 35/' app/build.gradle
+          grep -nE 'compileSdkVersion|targetSdkVersion|minSdkVersion|versionCode|versionName' app/build.gradle
           bubblewrap build --skipPwaValidation < /dev/null
           ls -la *.aab *.apk
       - name: Write the fingerprint into .well-known/assetlinks.json and commit it

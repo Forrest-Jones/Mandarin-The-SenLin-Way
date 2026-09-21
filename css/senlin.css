@@ -207,6 +207,7 @@ textarea.input { min-height: 84px; resize: vertical; line-height: 1.5; }
 .table th { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-faint); font-weight: 900; }
 .table .input { padding: .45rem .7rem; }
 .table tr:hover td { background: var(--bg-soft); }
+#app { min-height: 85vh; }   /* the footer never paints above the fold before the app renders (no layout shift) */
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
 .show-sm { display: none; }
 
