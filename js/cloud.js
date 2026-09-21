@@ -1,218 +1,14 @@
-/* Mandarin The SenLin Way — accounts, cloud sync, AI/voice proxy, telemetry
-   Talks to the Cloudflare Worker in server/ (see server/API.md). Everything is optional:
-   with SENLIN_CONFIG.apiBase empty the site behaves exactly as before. */
-(function () {
-  'use strict';
-  const A = window.SenLinApp; if (!A) return;
-  const { routes, state, esc, toast } = A;
-  const CFG = window.SENLIN_CONFIG || {};
-  const BASE = (CFG.apiBase || '').replace(/\/$/, '');
-  const $ = s => document.querySelector(s);
-  const store = {
-    get(k, d) { try { const v = localStorage.getItem('senlin.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-    set(k, v) { try { if (v === null) localStorage.removeItem('senlin.' + k); else localStorage.setItem('senlin.' + k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
-  };
-  let auth = store.get('auth', null);                       // { token, user:{id,email,plan}, plan, expiresAt }
-  let sync = store.get('sync', { version: 0, updatedAt: null, lastPush: null, lastPull: null });
-  const anon = store.get('anon', null) || (() => { const id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)); store.set('anon', id); return id; })();
+(function(){"use strict";const u=window.SenLinApp;if(!u)return;const{routes:Y,state:x,esc:$,toast:h}=u,m=window.SENLIN_CONFIG||{},b=(m.apiBase||"").replace(/\/$/,""),i=t=>document.querySelector(t),w={get(t,e){try{const s=localStorage.getItem("senlin."+t);return s?JSON.parse(s):e}catch{return e}},set(t,e){try{e===null?localStorage.removeItem("senlin."+t):localStorage.setItem("senlin."+t,JSON.stringify(e))}catch{}}};let l=w.get("auth",null),p=w.get("sync",{version:0,updatedAt:null,lastPush:null,lastPull:null});const X=w.get("anon",null)||(()=>{const t=crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2);return w.set("anon",t),t})(),E=()=>!!b,g=()=>!!(b&&l&&l.token),S=()=>l&&l.token||"",k=()=>!!(l&&(l.plan==="pro"||l.user&&l.user.plan==="pro")&&(!l.expiresAt||new Date(l.expiresAt)>new Date));async function f(t,e={}){if(!b)throw new Error("No server configured");const s=Object.assign({},e.headers||{});e.json!==void 0&&(s["Content-Type"]="application/json",e.body=JSON.stringify(e.json)),S()&&(s.Authorization="Bearer "+S());const r=await fetch(b+t,Object.assign({},e,{headers:s}));if(r.status===401&&S())throw L(!1),new Error("Signed out — please sign in again");if(e.raw)return r;const o=r.status===204?null:await r.json().catch(()=>null);if(!r.ok){const n=new Error(o&&(o.message||o.error)||"HTTP "+r.status);throw n.status=r.status,n.data=o,n}return o}async function Q(t){return f("/v1/auth/request",{method:"POST",json:{email:t}})}let j=null;async function V(){if(j)return j;try{j=await f("/v1/health")}catch{j={ok:!1,providers:{}}}return j}async function Z(t,e){return et(await f("/v1/auth/verify",{method:"POST",json:{email:t,code:e}}))}async function tt(t,e,s){return et(await f("/v1/auth/password",{method:"POST",json:{email:t,password:e,create:!!s}}))}async function et(t){if(l={token:t.token,user:t.user,plan:t.user.plan},w.set("auth",l),O("sign_in"),await P().catch(()=>{}),await N().catch(()=>{}),window.SenLinNative&&window.SenLinNative.billing)try{window.SenLinNative.billing.configure(t.user.id)}catch{}return l}function L(t){l=null,w.set("auth",null),p={version:0,updatedAt:null,lastPush:null,lastPull:null},w.set("sync",p),t!==!1&&h("Signed out. Your progress stays on this device.")}async function P(){if(!g())return null;const t=await f("/v1/entitlement");return l.plan=t.plan,l.expiresAt=t.expiresAt||null,l.features=t.features,w.set("auth",l),t}let nt=null,U=!1;function lt(){g()&&(clearTimeout(nt),nt=setTimeout(()=>C().catch(()=>{}),4e3))}function st(t,e){const s=Object.assign({},e,t);s.srs=Object.assign({},e.srs||{}),Object.entries(t.srs||{}).forEach(([a,d])=>{const y=s.srs[a];s.srs[a]=!y||(d.due||0)>=(y.due||0)?d:y});const r=e.progress||{},o=t.progress||{};s.progress=Object.assign({},r,o,{completed:Object.assign({},r.completed||{},o.completed||{})}),["reviews","quiz","said","tones","write"].forEach(a=>{r[a]&&o[a]&&(s.progress[a]=Object.fromEntries(Object.keys(Object.assign({},r[a],o[a])).map(d=>[d,Math.max(r[a][d]||0,o[a][d]||0)])))}),s.scenes=Object.assign({},e.scenes||{},t.scenes||{}),s.cast={actors:Object.assign({},(e.cast||{}).actors,(t.cast||{}).actors),sets:Object.assign({},(e.cast||{}).sets,(t.cast||{}).sets),rooms:Object.assign({},(e.cast||{}).rooms,(t.cast||{}).rooms),props:Object.assign({},(e.cast||{}).props,(t.cast||{}).props)};const n={};[...(e.extra||{}).words||[],...(t.extra||{}).words||[]].forEach(a=>{n[a.w]=a}),s.extra={words:Object.values(n)};const c={};return[...e.talks||[],...t.talks||[]].forEach(a=>{c[a.at||JSON.stringify(a).slice(0,80)]=a}),s.talks=Object.values(c).slice(-50),s}async function C(){if(!(!g()||U)){U=!0;try{const t={version:p.version||0,data:u.snapshot()};try{const e=await f("/v1/sync",{method:"PUT",json:t});p.version=e.version,p.updatedAt=e.updatedAt,p.lastPush=new Date().toISOString(),w.set("sync",p)}catch(e){if(e.status!==409||!e.data)throw e;const s=st(u.snapshot(),e.data.data||{});p.version=e.data.version;const r=await f("/v1/sync",{method:"PUT",json:{version:p.version,data:s}});p.version=r.version,p.updatedAt=r.updatedAt,p.lastPush=new Date().toISOString(),w.set("sync",p),u.applyData(s)}}finally{U=!1,J()}}}async function N(){if(!g())return;let t;try{t=await f("/v1/sync")}catch(s){if(s.status===404){await C();return}throw s}if(t.version===p.version&&p.lastPull)return;const e=st(u.snapshot(),t.data||{});p.version=t.version,p.updatedAt=t.updatedAt,p.lastPull=new Date().toISOString(),w.set("sync",p),u.applyData(e),await C()}async function at(){if(!g())return[];const t=await f("/v1/sync/backups");return Array.isArray(t)?t:t&&t.backups||[]}async function it(t){const e=await f("/v1/sync/backups/"+t);u.applyData(e.data),p.version=0,await C()}async function dt(t,e,s,r){const o=await f("/v1/ai/chat",{method:"POST",json:{system:t,messages:e,stream:!0},raw:!0,signal:r});if(!o.ok){const y=await o.json().catch(()=>({})),v=new Error(y.error==="limit"?`Daily tutor limit reached (${y.limit}). ${m.paywall&&!k()?"Pro removes it.":"Try again tomorrow."}`:y.message||y.error||"AI error");throw v.code=y.error,v}const n=o.body.getReader(),c=new TextDecoder;let a="",d="";for(;;){const{value:y,done:v}=await n.read();if(v)break;a+=c.decode(y,{stream:!0});let F;for(;(F=a.indexOf(`
 
-  const available = () => !!BASE;
-  const signedIn = () => !!(BASE && auth && auth.token);
-  const token = () => (auth && auth.token) || '';
-  /** True only when this account actually holds Pro (the paywall switch is a separate question, see app.js `locked`). */
-  const isPro = () => !!(auth && (auth.plan === 'pro' || (auth.user && auth.user.plan === 'pro')) && (!auth.expiresAt || new Date(auth.expiresAt) > new Date()));
-
-  async function api(path, opts = {}) {
-    if (!BASE) throw new Error('No server configured');
-    const headers = Object.assign({}, opts.headers || {});
-    if (opts.json !== undefined) { headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(opts.json); }
-    if (token()) headers.Authorization = 'Bearer ' + token();
-    const r = await fetch(BASE + path, Object.assign({}, opts, { headers }));
-    if (r.status === 401 && token()) { signOut(false); throw new Error('Signed out — please sign in again'); }
-    if (opts.raw) return r;
-    const data = r.status === 204 ? null : await r.json().catch(() => null);
-    if (!r.ok) { const err = new Error((data && (data.message || data.error)) || ('HTTP ' + r.status)); err.status = r.status; err.data = data; throw err; }
-    return data;
-  }
-
-  /* ------------------------------------------------------------ auth */
-  async function requestCode(email) { return api('/v1/auth/request', { method: 'POST', json: { email } }); }
-  let healthCache = null;
-  async function health() { if (healthCache) return healthCache; try { healthCache = await api('/v1/health'); } catch (e) { healthCache = { ok: false, providers: {} }; } return healthCache; }
-  async function verify(email, code) { return finishSignIn(await api('/v1/auth/verify', { method: 'POST', json: { email, code } })); }
-  async function password(email, pw, create) { return finishSignIn(await api('/v1/auth/password', { method: 'POST', json: { email, password: pw, create: !!create } })); }
-  async function finishSignIn(d) {
-    auth = { token: d.token, user: d.user, plan: d.user.plan }; store.set('auth', auth);
-    track('sign_in');
-    await refreshEntitlement().catch(() => {});
-    await pull().catch(() => {});
-    if (window.SenLinNative && window.SenLinNative.billing) { try { window.SenLinNative.billing.configure(d.user.id); } catch (e) { /* ignore */ } }
-    return auth;
-  }
-  function signOut(remote) { auth = null; store.set('auth', null); sync = { version: 0, updatedAt: null, lastPush: null, lastPull: null }; store.set('sync', sync); if (remote !== false) toast('Signed out. Your progress stays on this device.'); }
-  async function refreshEntitlement() {
-    if (!signedIn()) return null;
-    const e = await api('/v1/entitlement');
-    auth.plan = e.plan; auth.expiresAt = e.expiresAt || null; auth.features = e.features; store.set('auth', auth);
-    return e;
-  }
-
-  /* ------------------------------------------------------------ sync (last-writer merge, automatic backups server-side) */
-  let dirtyTimer = null, pushing = false;
-  function dirty() { if (!signedIn()) return; clearTimeout(dirtyTimer); dirtyTimer = setTimeout(() => push().catch(() => {}), 4000); }
-  function mergeInto(local, remote) {
-    /* SRS: keep the entry with the more recent review (larger due/interval); progress.completed: union; counters: max; settings/cast/scenes: local wins, missing keys filled from remote */
-    const out = Object.assign({}, remote, local);
-    out.srs = Object.assign({}, remote.srs || {});
-    Object.entries(local.srs || {}).forEach(([k, v]) => { const r = out.srs[k]; out.srs[k] = (!r || (v.due || 0) >= (r.due || 0)) ? v : r; });
-    const rp = remote.progress || {}, lp = local.progress || {};
-    out.progress = Object.assign({}, rp, lp, { completed: Object.assign({}, rp.completed || {}, lp.completed || {}) });
-    ['reviews', 'quiz', 'said', 'tones', 'write'].forEach(k => { if (rp[k] && lp[k]) out.progress[k] = Object.fromEntries(Object.keys(Object.assign({}, rp[k], lp[k])).map(f => [f, Math.max(rp[k][f] || 0, lp[k][f] || 0)])); });
-    out.scenes = Object.assign({}, remote.scenes || {}, local.scenes || {});
-    out.cast = { actors: Object.assign({}, (remote.cast || {}).actors, (local.cast || {}).actors), sets: Object.assign({}, (remote.cast || {}).sets, (local.cast || {}).sets), rooms: Object.assign({}, (remote.cast || {}).rooms, (local.cast || {}).rooms), props: Object.assign({}, (remote.cast || {}).props, (local.cast || {}).props) };
-    const words = {}; [...((remote.extra || {}).words || []), ...((local.extra || {}).words || [])].forEach(w => { words[w.w] = w; }); out.extra = { words: Object.values(words) };
-    const talks = {}; [...(remote.talks || []), ...(local.talks || [])].forEach(t => { talks[t.at || JSON.stringify(t).slice(0, 80)] = t; }); out.talks = Object.values(talks).slice(-50);
-    return out;
-  }
-  async function push() {
-    if (!signedIn() || pushing) return; pushing = true;
-    try {
-      const body = { version: sync.version || 0, data: A.snapshot() };
-      try {
-        const r = await api('/v1/sync', { method: 'PUT', json: body });
-        sync.version = r.version; sync.updatedAt = r.updatedAt; sync.lastPush = new Date().toISOString(); store.set('sync', sync);
-      } catch (err) {
-        if (err.status !== 409 || !err.data) throw err;
-        const merged = mergeInto(A.snapshot(), err.data.data || {});
-        sync.version = err.data.version;
-        const r = await api('/v1/sync', { method: 'PUT', json: { version: sync.version, data: merged } });
-        sync.version = r.version; sync.updatedAt = r.updatedAt; sync.lastPush = new Date().toISOString(); store.set('sync', sync);
-        A.applyData(merged);
-      }
-    } finally { pushing = false; renderStatus(); }
-  }
-  async function pull() {
-    if (!signedIn()) return;
-    let r; try { r = await api('/v1/sync'); } catch (err) { if (err.status === 404) { await push(); return; } throw err; }
-    if (r.version === sync.version && sync.lastPull) return;             // nothing new
-    const merged = mergeInto(A.snapshot(), r.data || {});
-    sync.version = r.version; sync.updatedAt = r.updatedAt; sync.lastPull = new Date().toISOString(); store.set('sync', sync);
-    A.applyData(merged);
-    await push();
-  }
-  async function backups() { if (!signedIn()) return []; const r = await api('/v1/sync/backups'); return Array.isArray(r) ? r : ((r && r.backups) || []); }
-  async function restoreBackup(version) { const b = await api('/v1/sync/backups/' + version); A.applyData(b.data); sync.version = 0; await push(); }
-
-  /* ------------------------------------------------------------ AI, voice */
-  /** Stream a tutor reply through the server. Same signature as tutor.js complete(). */
-  async function chat(system, messages, onText, signal) {
-    const r = await api('/v1/ai/chat', { method: 'POST', json: { system, messages, stream: true }, raw: true, signal });
-    if (!r.ok) { const d = await r.json().catch(() => ({})); const e = new Error(d.error === 'limit' ? `Daily tutor limit reached (${d.limit}). ${CFG.paywall && !isPro() ? 'Pro removes it.' : 'Try again tomorrow.'}` : (d.message || d.error || 'AI error')); e.code = d.error; throw e; }
-    const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '', text = '';
-    for (;;) {
-      const { value, done } = await reader.read(); if (done) break;
-      buf += dec.decode(value, { stream: true });
-      let i; while ((i = buf.indexOf('\n\n')) >= 0) {
-        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 2);
-        if (!line.startsWith('data:')) continue;
-        const payload = line.slice(5).trim(); if (payload === '[DONE]') break;
-        try { const j = JSON.parse(payload); if (j.text) { text += j.text; onText(text); } } catch (e) { /* skip */ }
-      }
-    }
-    return text;
-  }
-  async function tts(text, rate) { const r = await api('/v1/tts', { method: 'POST', json: { text, rate }, raw: true }); if (!r.ok) throw new Error('tts ' + r.status); return r.blob(); }
-  async function stt(blob) { const r = await api('/v1/stt?lang=zh', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type || 'audio/webm' }, raw: true }); if (!r.ok) throw new Error('stt ' + r.status); const d = await r.json(); return (d.text || '').trim(); }
-
-  /* ------------------------------------------------------------ telemetry (opt-in, event names only) */
-  const analyticsOn = () => CFG.analytics === 'on' || (CFG.analytics === 'opt-in' && state.settings.analytics === true);
-  let queue = [];
-  function track(name, props) {
-    if (!BASE || !analyticsOn()) return;
-    queue.push({ name, props: props || {}, ts: new Date().toISOString() });
-    if (queue.length >= 20) flush();
-  }
-  function flush() {
-    if (!queue.length || !BASE) return;
-    const events = queue.splice(0, 50);
-    const body = JSON.stringify({ events });
-    const headers = { 'Content-Type': 'application/json', 'X-Senlin-Anon': anon }; if (token()) headers.Authorization = 'Bearer ' + token();
-    fetch(BASE + '/v1/events', { method: 'POST', headers, body, keepalive: true }).catch(() => {});
-  }
-  setInterval(flush, 15000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
-
-  /* errors: Sentry when a DSN is configured, otherwise our own sink */
-  let errorsSent = 0;
-  function reportError(message, stack, extra) {
-    if (errorsSent++ > 5) return;
-    if (window.Sentry && CFG.sentryDsn) { try { window.Sentry.captureMessage(message); } catch (e) { /* ignore */ } return; }
-    if (!BASE) return;
-    fetch(BASE + '/v1/errors', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, token() ? { Authorization: 'Bearer ' + token() } : {}), body: JSON.stringify(Object.assign({ message: String(message).slice(0, 500), stack: String(stack || '').slice(0, 2000), url: location.href, version: CFG.version }, extra || {})), keepalive: true }).catch(() => {});
-  }
-  window.addEventListener('error', e => reportError(e.message, e.error && e.error.stack, { line: e.lineno, file: e.filename }));
-  window.addEventListener('unhandledrejection', e => reportError('unhandled: ' + (e.reason && (e.reason.message || e.reason)), e.reason && e.reason.stack));
-  if (CFG.sentryDsn) {
-    const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/@sentry/browser@9/build/bundles/bundle.min.js'; s.crossOrigin = 'anonymous';
-    s.onload = () => { try { window.Sentry.init({ dsn: CFG.sentryDsn, release: 'senlin@' + CFG.version, sendDefaultPii: false, tracesSampleRate: 0 }); } catch (e) { /* ignore */ } };
-    document.head.appendChild(s);
-  }
-
-  /* ------------------------------------------------------------ billing: #/pro, Stripe Checkout (web), RevenueCat (apps) */
-  let plansCache = null;
-  async function plans() {
-    if (plansCache) return plansCache;
-    if (BASE) { try { const r = await api('/v1/billing/plans'); plansCache = r; return r; } catch (e) { /* fall back */ } }
-    plansCache = { plans: (CFG.plans || []).map(p => Object.assign({}, p, { web: !!CFG.checkoutUrl })), web: !!CFG.checkoutUrl, portal: false, paywall: !!CFG.paywall };
-    return plansCache;
-  }
-  const money = (n, cur) => (cur === 'USD' || !cur ? '$' : cur + ' ') + n.toFixed(2);
-  const isNative = () => !!(window.SenLinNative && window.SenLinNative.isNative && window.SenLinNative.billing && window.SenLinNative.billing.available);
-  /** Start a purchase of plan id ('monthly' | 'yearly' | 'lifetime'). */
-  async function buy(planId) {
-    const cat = await plans(); const plan = cat.plans.find(p => p.id === planId) || cat.plans.find(p => p.highlight) || cat.plans[0];
-    if (!plan) { toast('No plans are configured yet'); return; }
-    track('purchase', { step: 'start', plan: plan.id });
-    const N = window.SenLinNative;
-    if (isNative()) {
-      try {
-        if (!N.billing.configured) await N.billing.configure(auth && auth.user ? auth.user.id : null);
-        const r = await N.billing.purchase(plan.rcPackage || plan.id);
-        if (r && r.active) { await refreshEntitlement().catch(() => {}); track('purchase', { step: 'done', plan: plan.id }); location.hash = '#/pro/thanks'; }
-        else if (!(r && r.cancelled)) toast('Purchase did not complete');
-      } catch (e) { toast('Purchase did not complete'); }
-      return;
-    }
-    if (!signedIn()) { toast('Sign in first so Pro is attached to your account'); try { sessionStorage.setItem('senlin.buy', plan.id); } catch (e) { /* ignore */ } location.hash = '#/settings'; return; }
-    if (plan.web && BASE) {
-      const b = document.querySelector(`[data-buy="${plan.id}"]`); if (b) { b.disabled = true; b.textContent = 'Opening secure checkout…'; }
-      try { const r = await api('/v1/billing/checkout', { method: 'POST', json: { plan: plan.id } }); location.href = r.url; return; }
-      catch (e) { toast(e.message || 'Checkout is unavailable right now'); if (b) { b.disabled = false; b.textContent = ctaText(plan); } return; }
-    }
-    if (CFG.checkoutUrl) { window.open(CFG.checkoutUrl + (CFG.checkoutUrl.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(auth.user.id) + '&prefilled_email=' + encodeURIComponent(auth.user.email), '_blank'); return; }
-    toast('Purchases are not set up on this deployment yet');
-  }
-  async function portal() {
-    if (isNative()) { toast('Manage the subscription in the store you bought it from'); return; }
-    try { const r = await api('/v1/billing/portal', { method: 'POST' }); window.open(r.url, '_blank', 'noopener'); }
-    catch (e) { toast(e.status === 404 ? 'No web subscription on this account' : (e.message || 'Could not open the billing portal')); }
-  }
-  async function restore() {
-    if (isNative()) { const r = await window.SenLinNative.billing.restore(); if (r && r.active) { await refreshEntitlement().catch(() => {}); toast('Pro restored'); A.navigate(); } else toast('No purchase found for this store account'); return; }
-    await refreshEntitlement().catch(() => {}); toast(isPro() ? 'Pro is active' : 'No purchase found — sign in with the email you bought with'); A.navigate();
-  }
-  const ctaText = p => p.trialDays ? `Start ${p.trialDays}-day free trial` : p.interval ? 'Choose ' + p.name.replace('Pro ', '') : 'Buy lifetime access';
-  const FEATURES = ['The whole road: HSK 1 to HSK 6, 2,676 characters, 4,641 words, 1,444 sentences', 'Deal Desk: 12 units of cross-border private-equity and venture Mandarin', 'Built-in AI tutor, no API key, up to 400 turns a day', 'Cloud sync across phone and laptop with automatic backups', 'Cloud studio voice and pronunciation checking on every device, including iPhone', 'Everything offline once loaded, forever'];
-  routes.pro = function (arg) {
-    if (arg === 'thanks') return `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
+`))>=0;){const rt=a.slice(0,F).trim();if(a=a.slice(F+2),!rt.startsWith("data:"))continue;const ct=rt.slice(5).trim();if(ct==="[DONE]")break;try{const G=JSON.parse(ct);G.text&&(d+=G.text,s(d))}catch{}}}return d}async function ut(t,e){const s=await f("/v1/tts",{method:"POST",json:{text:t,rate:e},raw:!0});if(!s.ok)throw new Error("tts "+s.status);return s.blob()}async function pt(t){const e=await f("/v1/stt?lang=zh",{method:"POST",body:t,headers:{"Content-Type":t.type||"audio/webm"},raw:!0});if(!e.ok)throw new Error("stt "+e.status);return((await e.json()).text||"").trim()}const ht=()=>m.analytics==="on"||m.analytics==="opt-in"&&x.settings.analytics===!0;let D=[];function O(t,e){!b||!ht()||(D.push({name:t,props:e||{},ts:new Date().toISOString()}),D.length>=20&&I())}function I(){if(!D.length||!b)return;const t=D.splice(0,50),e=JSON.stringify({events:t}),s={"Content-Type":"application/json","X-Senlin-Anon":X};S()&&(s.Authorization="Bearer "+S()),fetch(b+"/v1/events",{method:"POST",headers:s,body:e,keepalive:!0}).catch(()=>{})}setInterval(I,15e3),document.addEventListener("visibilitychange",()=>{document.visibilityState==="hidden"&&I()});let ft=0;function M(t,e,s){if(!(ft++>5)){if(window.Sentry&&m.sentryDsn){try{window.Sentry.captureMessage(t)}catch{}return}b&&fetch(b+"/v1/errors",{method:"POST",headers:Object.assign({"Content-Type":"application/json"},S()?{Authorization:"Bearer "+S()}:{}),body:JSON.stringify(Object.assign({message:String(t).slice(0,500),stack:String(e||"").slice(0,2e3),url:location.href,version:m.version},s||{})),keepalive:!0}).catch(()=>{})}}if(window.addEventListener("error",t=>M(t.message,t.error&&t.error.stack,{line:t.lineno,file:t.filename})),window.addEventListener("unhandledrejection",t=>M("unhandled: "+(t.reason&&(t.reason.message||t.reason)),t.reason&&t.reason.stack)),m.sentryDsn){const t=document.createElement("script");t.src="https://cdn.jsdelivr.net/npm/@sentry/browser@9/build/bundles/bundle.min.js",t.crossOrigin="anonymous",t.onload=()=>{try{window.Sentry.init({dsn:m.sentryDsn,release:"senlin@"+m.version,sendDefaultPii:!1,tracesSampleRate:0})}catch{}},document.head.appendChild(t)}let T=null;async function R(){if(T)return T;if(b)try{const t=await f("/v1/billing/plans");return T=t,t}catch{}return T={plans:(m.plans||[]).map(t=>Object.assign({},t,{web:!!m.checkoutUrl})),web:!!m.checkoutUrl,portal:!1,paywall:!!m.paywall},T}const B=(t,e)=>(e==="USD"||!e?"$":e+" ")+t.toFixed(2),A=()=>!!(window.SenLinNative&&window.SenLinNative.isNative&&window.SenLinNative.billing&&window.SenLinNative.billing.available);async function W(t){const e=await R(),s=e.plans.find(o=>o.id===t)||e.plans.find(o=>o.highlight)||e.plans[0];if(!s){h("No plans are configured yet");return}O("purchase",{step:"start",plan:s.id});const r=window.SenLinNative;if(A()){try{r.billing.configured||await r.billing.configure(l&&l.user?l.user.id:null);const o=await r.billing.purchase(s.rcPackage||s.id);o&&o.active?(await P().catch(()=>{}),O("purchase",{step:"done",plan:s.id}),location.hash="#/pro/thanks"):o&&o.cancelled||h("Purchase did not complete")}catch{h("Purchase did not complete")}return}if(!g()){h("Sign in first so Pro is attached to your account");try{sessionStorage.setItem("senlin.buy",s.id)}catch{}location.hash="#/settings";return}if(s.web&&b){const o=document.querySelector(`[data-buy="${s.id}"]`);o&&(o.disabled=!0,o.textContent="Opening secure checkout…");try{const n=await f("/v1/billing/checkout",{method:"POST",json:{plan:s.id}});location.href=n.url;return}catch(n){h(n.message||"Checkout is unavailable right now"),o&&(o.disabled=!1,o.textContent=ot(s));return}}if(m.checkoutUrl){window.open(m.checkoutUrl+(m.checkoutUrl.includes("?")?"&":"?")+"client_reference_id="+encodeURIComponent(l.user.id)+"&prefilled_email="+encodeURIComponent(l.user.email),"_blank");return}h("Purchases are not set up on this deployment yet")}async function q(){if(A()){h("Manage the subscription in the store you bought it from");return}try{const t=await f("/v1/billing/portal",{method:"POST"});window.open(t.url,"_blank","noopener")}catch(t){h(t.status===404?"No web subscription on this account":t.message||"Could not open the billing portal")}}async function H(){if(A()){const t=await window.SenLinNative.billing.restore();t&&t.active?(await P().catch(()=>{}),h("Pro restored"),u.navigate()):h("No purchase found for this store account");return}await P().catch(()=>{}),h(k()?"Pro is active":"No purchase found — sign in with the email you bought with"),u.navigate()}const ot=t=>t.trialDays?`Start ${t.trialDays}-day free trial`:t.interval?"Choose "+t.name.replace("Pro ",""):"Buy lifetime access",mt=["The whole road: HSK 1 to HSK 6, 2,676 characters, 4,641 words, 1,444 sentences","Deal Desk: 12 units of cross-border private-equity and venture Mandarin","Built-in AI tutor, no API key, up to 400 turns a day","Cloud sync across phone and laptop with automatic backups","Cloud studio voice and pronunciation checking on every device, including iPhone","Everything offline once loaded, forever"];Y.pro=function(t){return t==="thanks"?`<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
       <span class="eyebrow">SenLin Pro</span><h1 class="h2">Welcome to the forest 🌱</h1>
-      <p class="lead">Your plan is active${auth && auth.user ? ' on ' + esc(auth.user.email) : ''}. Every level, the Deal Desk, the tutor and sync are yours.</p>
+      <p class="lead">Your plan is active${l&&l.user?" on "+$(l.user.email):""}. Every level, the Deal Desk, the tutor and sync are yours.</p>
       <div class="row"><a class="btn btn-primary" href="#/">Start today's lesson</a><a class="btn" href="#/settings">Account</a></div>
-      <p class="small muted" id="pro-status"></p></section></div>`;
-    return `<div class="stack-lg" style="max-width:900px">
+      <p class="small muted" id="pro-status"></p></section></div>`:`<div class="stack-lg" style="max-width:900px">
       <div><span class="eyebrow">SenLin Pro</span><h1 class="h2">HSK 1 is free forever. Pro is the rest of the road.</h1>
         <p class="lead">Ten minutes a day from your first 你好 to HSK 6, with a tutor who talks back. One price, every device.</p></div>
       <div class="grid" id="plans" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"><p class="muted">Loading plans…</p></div>
-      <section class="card stack"><h2 class="h3">What Pro unlocks</h2><ul class="stack" style="gap:.4rem;padding-left:1.2rem">${FEATURES.map(f => `<li>${esc(f)}</li>`).join('')}</ul></section>
+      <section class="card stack"><h2 class="h3">What Pro unlocks</h2><ul class="stack" style="gap:.4rem;padding-left:1.2rem">${mt.map(e=>`<li>${$(e)}</li>`).join("")}</ul></section>
       <section class="card card-soft stack small">
         <h2 class="h3">Questions</h2>
         <p><b>Is there a free trial?</b> Yes: the yearly plan starts with 7 days free. Cancel before the trial ends and you pay nothing.</p>
@@ -220,38 +16,20 @@
         <p><b>Which devices?</b> All of them. Sign in with the same email on the website and in the apps and Pro follows you.</p>
         <p><b>Refunds?</b> Web purchases: full refund within 14 days of a first purchase, just email. Store purchases follow Google's and Apple's refund rules.</p>
         <p class="faint">Prices in US dollars; stores show local prices and tax. <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a>. HSK-aligned; not affiliated with the HSK's owners.</p>
-        <div class="row"><button class="btn btn-sm btn-ghost" id="restore">Restore purchase</button>${signedIn() ? `<button class="btn btn-sm btn-ghost" id="manage">Manage subscription</button>` : ''}</div>
+        <div class="row"><button class="btn btn-sm btn-ghost" id="restore">Restore purchase</button>${g()?'<button class="btn btn-sm btn-ghost" id="manage">Manage subscription</button>':""}</div>
       </section>
-    </div>`;
-  };
-  routes.pro.after = async arg => {
-    track('visit', { route: 'pro' });
-    if (arg === 'thanks') { await refreshEntitlement().catch(() => {}); const el = $('#pro-status'); if (el) el.textContent = isPro() ? '' : 'Activating… if this does not update in a minute, tap Restore purchase on the plans page.'; return; }
-    const cat = await plans(); const el = $('#plans'); if (!el) return;
-    el.innerHTML = cat.plans.map(p => `<section class="card stack${p.highlight ? ' card-gold' : ''}" style="position:relative">
-        ${p.highlight ? '<span class="chip chip-gold" style="position:absolute;top:-.8rem;left:1rem">Best value · save ' + (p.savePct || 50) + '%</span>' : p.launchOffer ? '<span class="chip chip-accent" style="position:absolute;top:-.8rem;left:1rem">Launch offer</span>' : ''}
-        <h2 class="h3" style="margin-top:.4rem">${esc(p.name.replace('Pro ', ''))}</h2>
-        <div><span style="font-size:2.2rem;font-weight:900">${p.perMonth ? money(p.perMonth, p.currency) : money(p.price, p.currency)}</span><span class="muted"> ${p.perMonth ? '/ month' : p.interval ? '/ ' + p.interval : 'once'}</span></div>
-        <p class="small muted">${p.perMonth ? `${money(p.price, p.currency)} billed yearly` : p.interval ? 'Billed monthly, cancel any time' : 'One payment, yours for life'}${p.trialDays ? ` · <b>${p.trialDays}-day free trial</b>` : ''}</p>
-        ${isPro() ? '<span class="chip">Your current plan family</span>' : `<button class="btn ${p.highlight ? 'btn-primary' : ''}" data-buy="${p.id}"${(p.web || isNative() || CFG.checkoutUrl) ? '' : ' disabled title="Not available yet"'}>${ctaText(p)}</button>`}
-      </section>`).join('');
-    el.querySelectorAll('[data-buy]').forEach(b => { b.onclick = () => buy(b.dataset.buy); });
-    const r = $('#restore'); if (r) r.onclick = restore;
-    const m = $('#manage'); if (m) m.onclick = portal;
-    if (!cat.web && !isNative() && !CFG.checkoutUrl) { const n = document.createElement('p'); n.className = 'small muted'; n.textContent = 'Purchases open once the Stripe keys are set on the server (server/README.md → Billing).'; el.after(n); }
-  };
-
-  /* ------------------------------------------------------------ settings UI */
-  const fmt = iso => iso ? new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'never';
-  function renderStatus() { const el = $('#sync-status'); if (el) el.textContent = signedIn() ? `Synced ${fmt(sync.lastPush || sync.lastPull)} · v${sync.version || 0}` : ''; }
-  A.accountExtra = () => {
-    if (!available()) return `<section class="card stack" id="account">
+    </div>`},Y.pro.after=async t=>{if(O("visit",{route:"pro"}),t==="thanks"){await P().catch(()=>{});const n=i("#pro-status");n&&(n.textContent=k()?"":"Activating… if this does not update in a minute, tap Restore purchase on the plans page.");return}const e=await R(),s=i("#plans");if(!s)return;s.innerHTML=e.plans.map(n=>`<section class="card stack${n.highlight?" card-gold":""}" style="position:relative">
+        ${n.highlight?'<span class="chip chip-gold" style="position:absolute;top:-.8rem;left:1rem">Best value · save '+(n.savePct||50)+"%</span>":n.launchOffer?'<span class="chip chip-accent" style="position:absolute;top:-.8rem;left:1rem">Launch offer</span>':""}
+        <h2 class="h3" style="margin-top:.4rem">${$(n.name.replace("Pro ",""))}</h2>
+        <div><span style="font-size:2.2rem;font-weight:900">${n.perMonth?B(n.perMonth,n.currency):B(n.price,n.currency)}</span><span class="muted"> ${n.perMonth?"/ month":n.interval?"/ "+n.interval:"once"}</span></div>
+        <p class="small muted">${n.perMonth?`${B(n.price,n.currency)} billed yearly`:n.interval?"Billed monthly, cancel any time":"One payment, yours for life"}${n.trialDays?` · <b>${n.trialDays}-day free trial</b>`:""}</p>
+        ${k()?'<span class="chip">Your current plan family</span>':`<button class="btn ${n.highlight?"btn-primary":""}" data-buy="${n.id}"${n.web||A()||m.checkoutUrl?"":' disabled title="Not available yet"'}>${ot(n)}</button>`}
+      </section>`).join(""),s.querySelectorAll("[data-buy]").forEach(n=>{n.onclick=()=>W(n.dataset.buy)});const r=i("#restore");r&&(r.onclick=H);const o=i("#manage");if(o&&(o.onclick=q),!e.web&&!A()&&!m.checkoutUrl){const n=document.createElement("p");n.className="small muted",n.textContent="Purchases open once the Stripe keys are set on the server (server/README.md → Billing).",s.after(n)}};const K=t=>t?new Date(t).toLocaleString(void 0,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"never";function J(){const t=i("#sync-status");t&&(t.textContent=g()?`Synced ${K(p.lastPush||p.lastPull)} · v${p.version||0}`:"")}u.accountExtra=()=>{if(!E())return`<section class="card stack" id="account">
       <span class="eyebrow">Account</span><h2 class="h3">Connect your server</h2>
       <p class="muted small">Accounts, cross-device sync, the built-in tutor and the cloud voice need the SenLin API (the Cloudflare Worker in <code>server/</code>). Paste its URL once; it is remembered on this device.</p>
       <div class="row"><input class="input" id="api-url" type="url" placeholder="https://senlin-api.you.workers.dev" style="max-width:360px"><button class="btn btn-primary" id="api-save">Connect</button></div>
       <p class="small muted" id="api-note"></p>
-    </section>`;
-    if (!signedIn()) return `<section class="card card-accent stack" id="account">
+    </section>`;if(!g())return`<section class="card card-accent stack" id="account">
       <span class="eyebrow">Account</span><h2 class="h3">Sign in to sync your forest</h2>
       <p class="muted small">Progress, reviews, scenes and Pro follow you across phone and laptop, with automatic backups.</p>
       <div class="row"><input class="input" id="acct-email" type="email" placeholder="you@example.com" autocomplete="email" style="max-width:280px"></div>
@@ -265,126 +43,16 @@
       </div>
       <p class="small muted" id="acct-note"></p>
       <p class="small faint">By signing in you agree to the <a href="terms.html">terms</a> and <a href="privacy.html">privacy policy</a>.</p>
-    </section>`;
-    const u = auth.user || {};
-    return `<section class="card card-accent stack" id="account">
-      <div class="row between"><div><span class="eyebrow">Account</span><h2 class="h3">${esc(u.email || '')}</h2><p class="small muted"><b>${isPro() ? 'Pro' : 'Free'}</b>${auth.expiresAt ? ` · renews ${fmt(auth.expiresAt)}` : ''} · <span id="sync-status"></span></p></div>
+    </section>`;const t=l.user||{};return`<section class="card card-accent stack" id="account">
+      <div class="row between"><div><span class="eyebrow">Account</span><h2 class="h3">${$(t.email||"")}</h2><p class="small muted"><b>${k()?"Pro":"Free"}</b>${l.expiresAt?` · renews ${K(l.expiresAt)}`:""} · <span id="sync-status"></span></p></div>
         <div class="row"><button class="btn btn-sm" id="sync-now">Sync now</button><button class="btn btn-sm btn-ghost" id="acct-out">Sign out</button></div></div>
-      <p class="small faint">Server: ${esc(BASE)}${store.get('apiBase', null) ? ' <button class="btn btn-sm btn-ghost" id="api-forget">Disconnect</button>' : ''}</p>
-      <div class="row">${!isPro() ? `<a class="btn btn-gold" href="#/pro">Go Pro — from $5 a month</a>` : ''}${isPro() && !isNative() ? `<button class="btn btn-sm" id="acct-manage">Manage subscription</button>` : ''}<button class="btn btn-sm btn-ghost" id="acct-restore">Restore purchase</button></div>
+      <p class="small faint">Server: ${$(b)}${w.get("apiBase",null)?' <button class="btn btn-sm btn-ghost" id="api-forget">Disconnect</button>':""}</p>
+      <div class="row">${k()?"":'<a class="btn btn-gold" href="#/pro">Go Pro — from $5 a month</a>'}${k()&&!A()?'<button class="btn btn-sm" id="acct-manage">Manage subscription</button>':""}<button class="btn btn-sm btn-ghost" id="acct-restore">Restore purchase</button></div>
       <details><summary class="small">Backups</summary><div id="backups" class="small muted">loading…</div></details>
-      ${CFG.analytics === 'opt-in' ? `<label class="row small"><input type="checkbox" id="analytics" ${state.settings.analytics ? 'checked' : ''}> Share anonymous usage counts (which pages and features are used; never your text, voice or email)</label>` : ''}
-    </section>`;
-  };
-  A.accountExtraAfter = () => {
-    if (!available()) {
-      const b = $('#api-save'); if (!b) return;
-      b.onclick = async () => {
-        const url = $('#api-url').value.trim().replace(/\/$/, ''); const note = $('#api-note');
-        if (!/^https?:\/\//.test(url)) { note.textContent = 'Enter the full URL, starting with https://'; return; }
-        note.textContent = 'checking…';
-        try { const r = await fetch(url + '/v1/health'); const h = await r.json(); if (!h.ok) throw new Error('not a SenLin API'); store.set('apiBase', url); note.textContent = 'Connected. Reloading…'; setTimeout(() => location.reload(), 600); }
-        catch (e) { note.textContent = 'Could not reach a SenLin API at that address (' + (e.message || e) + ')'; }
-      };
-      return;
-    }
-    const send = $('#acct-send');
-    if (send) {
-      health().then(h => { const hasEmail = !!(h.providers && h.providers.email); const b = $('#acct-usecode'); if (b) b.hidden = !hasEmail; });
-      $('#acct-usecode').onclick = () => { $('#acct-codeflow').hidden = false; $('#acct-pw').hidden = true; $('#acct-note').textContent = 'We email you a 6-digit code.'; };
-      $('#acct-usepw').onclick = () => { $('#acct-codeflow').hidden = true; $('#acct-pw').hidden = false; $('#acct-note').textContent = ''; };
-      const pwGo = async create => {
-        const email = $('#acct-email').value.trim(); const pw = $('#acct-password').value; const note = $('#acct-note');
-        if (!/^\S+@\S+\.\S+$/.test(email)) { note.textContent = 'Enter a valid email address'; return; }
-        if (pw.length < 8) { note.textContent = 'Use a password of at least 8 characters'; return; }
-        note.textContent = create ? 'creating…' : 'signing in…';
-        try { const r = await password(email, pw, create); toast(r.created ? 'Account created' : 'Signed in'); A.navigate(); }
-        catch (e) { note.textContent = e.status === 404 ? 'No account with a password for that email yet. Tap "Create account".' : e.status === 401 ? 'Wrong password.' : (e.message || 'Could not sign in'); }
-      };
-      $('#acct-login').onclick = () => pwGo(false);
-      $('#acct-create').onclick = () => pwGo(true);
-      $('#acct-password').addEventListener('keydown', e => { if (e.key === 'Enter') pwGo(false); });
-      send.onclick = async () => {
-        const email = $('#acct-email').value.trim(); const note = $('#acct-note'); if (!/^\S+@\S+\.\S+$/.test(email)) { note.textContent = 'Enter a valid email address'; return; }
-        send.disabled = true; note.textContent = 'sending…';
-        try { const r = await requestCode(email); $('#acct-code-row').hidden = false; note.textContent = r && r.code ? `Dev mode — your code is ${r.code}` : 'Check your inbox for a 6-digit code (valid 10 minutes)'; $('#acct-code').focus(); }
-        catch (e) { note.textContent = e.message || 'Could not send the code'; }
-        send.disabled = false;
-      };
-      $('#acct-verify').onclick = async () => {
-        const note = $('#acct-note'); note.textContent = 'checking…';
-        try { await verify($('#acct-email').value.trim(), $('#acct-code').value.trim()); toast('Signed in'); A.navigate(); }
-        catch (e) { note.textContent = e.message || 'Wrong code'; }
-      };
-      return;
-    }
-    renderStatus();
-    $('#sync-now').onclick = async () => { const b = $('#sync-now'); b.disabled = true; try { await pull(); await push(); toast('Synced'); } catch (e) { toast('Sync failed: ' + (e.message || e)); } b.disabled = false; renderStatus(); };
-    $('#acct-out').onclick = () => { signOut(); A.navigate(); };
-    const forget = $('#api-forget'); if (forget) forget.onclick = () => { signOut(false); store.set('apiBase', null); location.reload(); };
-    const mg = $('#acct-manage'); if (mg) mg.onclick = portal;
-    const rs = $('#acct-restore'); if (rs) rs.onclick = restore;
-    (() => { let want = null; try { want = sessionStorage.getItem('senlin.buy'); if (want) sessionStorage.removeItem('senlin.buy'); } catch (e) { /* ignore */ } if (want) buy(want); })();
-    const an = $('#analytics'); if (an) an.onchange = () => { state.settings.analytics = an.checked; A.save(); };
-    backups().then(list => { const el = $('#backups'); if (!el) return; el.innerHTML = list.length ? list.map(b => `<div class="row between"><span>v${b.version} · ${fmt(b.createdAt)} · ${Math.round(b.bytes / 1024)} KB</span><button class="btn btn-sm" data-restore="${b.version}">Restore</button></div>`).join('') : 'No backups yet — one is kept for every sync.'; el.querySelectorAll('[data-restore]').forEach(b => { b.onclick = async () => { if (confirm('Replace this device’s progress with backup v' + b.dataset.restore + '?')) { await restoreBackup(+b.dataset.restore); toast('Backup restored'); } }; }); }).catch(() => { const el = $('#backups'); if (el) el.textContent = 'Could not load backups.'; });
-  };
-
-  /* ------------------------------------------------------------ daily reminder (Web Push on the web / TWA, local notifications in the native apps) */
-  const rem = () => Object.assign({ on: false, hour: 7, minute: 0, endpoint: '' }, state.settings.reminder || {});
-  const canPush = () => !!(available() && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol.startsWith('http'));
-  const b64ToU8 = s => { const b = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - s.length % 4) % 4)); return Uint8Array.from(b, c => c.charCodeAt(0)); };
-  async function reminderOn(hour, minute) {
-    const N = window.SenLinNative;
-    if (N && N.isNative && N.notify && N.notify.available) {
-      const ok = await N.notify.schedule(hour, minute); if (!ok) throw new Error('Notifications are blocked for the app. Allow them in the phone settings.');
-      state.settings.reminder = { on: true, hour, minute, endpoint: 'native' }; A.save(); return;
-    }
-    if (!canPush()) throw new Error('This browser cannot receive reminders. Install the app or use Chrome / Edge / Android.');
-    if ((await Notification.requestPermission()) !== 'granted') throw new Error('Notifications were not allowed.');
-    const reg = await navigator.serviceWorker.ready;
-    const { publicKey } = await api('/v1/push/vapid');
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(publicKey) });
-    const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC';
-    await api('/v1/push/subscribe', { method: 'POST', json: { subscription: sub.toJSON(), hour, minute, tz }, headers: { 'X-Senlin-Anon': anon } });
-    state.settings.reminder = { on: true, hour, minute, endpoint: sub.endpoint }; A.save();
-    track('install', { reminder: true });
-  }
-  async function reminderOff() {
-    const r = rem(); const N = window.SenLinNative;
-    if (r.endpoint === 'native' && N && N.notify) { await N.notify.cancel().catch(() => {}); }
-    else if (canPush()) { try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) { await api('/v1/push/subscribe', { method: 'DELETE', json: { endpoint: sub.endpoint } }).catch(() => {}); await sub.unsubscribe(); } } catch (e) { /* ignore */ } }
-    state.settings.reminder = Object.assign(r, { on: false, endpoint: '' }); A.save();
-  }
-  A.reminderExtra = () => {
-    const r = rem(); const supported = canPush() || (window.SenLinNative && window.SenLinNative.isNative);
-    if (!supported) return `<p class="small muted">A daily notification needs the installed app (Android, iPhone) or Chrome / Edge on Android and desktop${available() ? '' : ', with the server connected'}.</p>`;
-    return `<div class="row" style="align-items:center">
-        <label class="row small" style="gap:.4rem"><input type="checkbox" id="rem-on" ${r.on ? 'checked' : ''}> Remind me every day at</label>
-        <input class="input" id="rem-time" type="time" aria-label="Reminder time" value="${String(r.hour).padStart(2, '0')}:${String(r.minute).padStart(2, '0')}" style="max-width:130px">
-        ${r.on && r.endpoint && r.endpoint !== 'native' ? '<button class="btn btn-sm btn-ghost" id="rem-test">Send a test</button>' : ''}
+      ${m.analytics==="opt-in"?`<label class="row small"><input type="checkbox" id="analytics" ${x.settings.analytics?"checked":""}> Share anonymous usage counts (which pages and features are used; never your text, voice or email)</label>`:""}
+    </section>`},u.accountExtraAfter=()=>{if(!E()){const n=i("#api-save");if(!n)return;n.onclick=async()=>{const c=i("#api-url").value.trim().replace(/\/$/,""),a=i("#api-note");if(!/^https?:\/\//.test(c)){a.textContent="Enter the full URL, starting with https://";return}a.textContent="checking…";try{if(!(await(await fetch(c+"/v1/health")).json()).ok)throw new Error("not a SenLin API");w.set("apiBase",c),a.textContent="Connected. Reloading…",setTimeout(()=>location.reload(),600)}catch(d){a.textContent="Could not reach a SenLin API at that address ("+(d.message||d)+")"}};return}const t=i("#acct-send");if(t){V().then(c=>{const a=!!(c.providers&&c.providers.email),d=i("#acct-usecode");d&&(d.hidden=!a)}),i("#acct-usecode").onclick=()=>{i("#acct-codeflow").hidden=!1,i("#acct-pw").hidden=!0,i("#acct-note").textContent="We email you a 6-digit code."},i("#acct-usepw").onclick=()=>{i("#acct-codeflow").hidden=!0,i("#acct-pw").hidden=!1,i("#acct-note").textContent=""};const n=async c=>{const a=i("#acct-email").value.trim(),d=i("#acct-password").value,y=i("#acct-note");if(!/^\S+@\S+\.\S+$/.test(a)){y.textContent="Enter a valid email address";return}if(d.length<8){y.textContent="Use a password of at least 8 characters";return}y.textContent=c?"creating…":"signing in…";try{const v=await tt(a,d,c);h(v.created?"Account created":"Signed in"),u.navigate()}catch(v){y.textContent=v.status===404?'No account with a password for that email yet. Tap "Create account".':v.status===401?"Wrong password.":v.message||"Could not sign in"}};i("#acct-login").onclick=()=>n(!1),i("#acct-create").onclick=()=>n(!0),i("#acct-password").addEventListener("keydown",c=>{c.key==="Enter"&&n(!1)}),t.onclick=async()=>{const c=i("#acct-email").value.trim(),a=i("#acct-note");if(!/^\S+@\S+\.\S+$/.test(c)){a.textContent="Enter a valid email address";return}t.disabled=!0,a.textContent="sending…";try{const d=await Q(c);i("#acct-code-row").hidden=!1,a.textContent=d&&d.code?`Dev mode — your code is ${d.code}`:"Check your inbox for a 6-digit code (valid 10 minutes)",i("#acct-code").focus()}catch(d){a.textContent=d.message||"Could not send the code"}t.disabled=!1},i("#acct-verify").onclick=async()=>{const c=i("#acct-note");c.textContent="checking…";try{await Z(i("#acct-email").value.trim(),i("#acct-code").value.trim()),h("Signed in"),u.navigate()}catch(a){c.textContent=a.message||"Wrong code"}};return}J(),i("#sync-now").onclick=async()=>{const n=i("#sync-now");n.disabled=!0;try{await N(),await C(),h("Synced")}catch(c){h("Sync failed: "+(c.message||c))}n.disabled=!1,J()},i("#acct-out").onclick=()=>{L(),u.navigate()};const e=i("#api-forget");e&&(e.onclick=()=>{L(!1),w.set("apiBase",null),location.reload()});const s=i("#acct-manage");s&&(s.onclick=q);const r=i("#acct-restore");r&&(r.onclick=H),(()=>{let n=null;try{n=sessionStorage.getItem("senlin.buy"),n&&sessionStorage.removeItem("senlin.buy")}catch{}n&&W(n)})();const o=i("#analytics");o&&(o.onchange=()=>{x.settings.analytics=o.checked,u.save()}),at().then(n=>{const c=i("#backups");c&&(c.innerHTML=n.length?n.map(a=>`<div class="row between"><span>v${a.version} · ${K(a.createdAt)} · ${Math.round(a.bytes/1024)} KB</span><button class="btn btn-sm" data-restore="${a.version}">Restore</button></div>`).join(""):"No backups yet — one is kept for every sync.",c.querySelectorAll("[data-restore]").forEach(a=>{a.onclick=async()=>{confirm("Replace this device’s progress with backup v"+a.dataset.restore+"?")&&(await it(+a.dataset.restore),h("Backup restored"))}}))}).catch(()=>{const n=i("#backups");n&&(n.textContent="Could not load backups.")})};const _=()=>Object.assign({on:!1,hour:7,minute:0,endpoint:""},x.settings.reminder||{}),z=()=>!!(E()&&"serviceWorker"in navigator&&"PushManager"in window&&"Notification"in window&&location.protocol.startsWith("http")),yt=t=>{const e=atob(t.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-t.length%4)%4));return Uint8Array.from(e,s=>s.charCodeAt(0))};async function wt(t,e){const s=window.SenLinNative;if(s&&s.isNative&&s.notify&&s.notify.available){if(!await s.notify.schedule(t,e))throw new Error("Notifications are blocked for the app. Allow them in the phone settings.");x.settings.reminder={on:!0,hour:t,minute:e,endpoint:"native"},u.save();return}if(!z())throw new Error("This browser cannot receive reminders. Install the app or use Chrome / Edge / Android.");if(await Notification.requestPermission()!=="granted")throw new Error("Notifications were not allowed.");const r=await navigator.serviceWorker.ready,{publicKey:o}=await f("/v1/push/vapid");let n=await r.pushManager.getSubscription();n||(n=await r.pushManager.subscribe({userVisibleOnly:!0,applicationServerKey:yt(o)}));const c=Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC";await f("/v1/push/subscribe",{method:"POST",json:{subscription:n.toJSON(),hour:t,minute:e,tz:c},headers:{"X-Senlin-Anon":X}}),x.settings.reminder={on:!0,hour:t,minute:e,endpoint:n.endpoint},u.save(),O("install",{reminder:!0})}async function bt(){const t=_(),e=window.SenLinNative;if(t.endpoint==="native"&&e&&e.notify)await e.notify.cancel().catch(()=>{});else if(z())try{const r=await(await navigator.serviceWorker.ready).pushManager.getSubscription();r&&(await f("/v1/push/subscribe",{method:"DELETE",json:{endpoint:r.endpoint}}).catch(()=>{}),await r.unsubscribe())}catch{}x.settings.reminder=Object.assign(t,{on:!1,endpoint:""}),u.save()}if(u.reminderExtra=()=>{const t=_();return z()||window.SenLinNative&&window.SenLinNative.isNative?`<div class="row" style="align-items:center">
+        <label class="row small" style="gap:.4rem"><input type="checkbox" id="rem-on" ${t.on?"checked":""}> Remind me every day at</label>
+        <input class="input" id="rem-time" type="time" aria-label="Reminder time" value="${String(t.hour).padStart(2,"0")}:${String(t.minute).padStart(2,"0")}" style="max-width:130px">
+        ${t.on&&t.endpoint&&t.endpoint!=="native"?'<button class="btn btn-sm btn-ghost" id="rem-test">Send a test</button>':""}
       </div>
-      <p class="small muted" id="rem-note">${r.on ? 'On. Delivered even when the site is closed.' : 'Off. Uses your phone’s notifications; nothing to install.'}</p>`;
-  };
-  A.reminderExtraAfter = () => {
-    const on = $('#rem-on'); if (!on) return;
-    const apply = async () => {
-      const [h, m] = ($('#rem-time').value || '07:00').split(':').map(Number); const note = $('#rem-note');
-      try { if (on.checked) { note.textContent = 'setting up…'; await reminderOn(h, m); toast('Reminder set for ' + $('#rem-time').value); } else { await reminderOff(); toast('Reminder off'); } A.navigate(); }
-      catch (e) { on.checked = false; note.textContent = e.message || 'Could not set the reminder'; }
-    };
-    on.onchange = apply; $('#rem-time').onchange = () => { if (on.checked) apply(); };
-    const t = $('#rem-test'); if (t) t.onclick = async () => { try { const r = await api('/v1/push/test', { method: 'POST', json: { endpoint: rem().endpoint } }); toast(r.ok ? 'Sent — check your notifications' : 'The push service refused (' + r.status + ')'); } catch (e) { toast(e.message || 'Could not send'); } };
-  };
-
-  /* ------------------------------------------------------------ boot */
-  window.SenLinCloud = { available, signedIn, token, isPro, api, requestCode, verify, password, health, signOut, push, pull, dirty, chat, tts, stt, track, flush, reportError, buy, portal, restorePurchase: restore, plans, refreshEntitlement, backups, restore: restoreBackup, user: () => auth && auth.user };
-  if (/^#\/pro/.test(location.hash)) A.navigate();
-  if (signedIn()) {
-    refreshEntitlement().catch(() => {});
-    pull().catch(() => {});
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull().catch(() => {}); });
-    if (window.SenLinNative && window.SenLinNative.billing && auth.user) { try { window.SenLinNative.billing.configure(auth.user.id); } catch (e) { /* ignore */ } }
-  }
-  track('visit', { route: (location.hash.split('/')[1] || 'today') });
-})();
+      <p class="small muted" id="rem-note">${t.on?"On. Delivered even when the site is closed.":"Off. Uses your phone’s notifications; nothing to install."}</p>`:`<p class="small muted">A daily notification needs the installed app (Android, iPhone) or Chrome / Edge on Android and desktop${E()?"":", with the server connected"}.</p>`},u.reminderExtraAfter=()=>{const t=i("#rem-on");if(!t)return;const e=async()=>{const[r,o]=(i("#rem-time").value||"07:00").split(":").map(Number),n=i("#rem-note");try{t.checked?(n.textContent="setting up…",await wt(r,o),h("Reminder set for "+i("#rem-time").value)):(await bt(),h("Reminder off")),u.navigate()}catch(c){t.checked=!1,n.textContent=c.message||"Could not set the reminder"}};t.onchange=e,i("#rem-time").onchange=()=>{t.checked&&e()};const s=i("#rem-test");s&&(s.onclick=async()=>{try{const r=await f("/v1/push/test",{method:"POST",json:{endpoint:_().endpoint}});h(r.ok?"Sent — check your notifications":"The push service refused ("+r.status+")")}catch(r){h(r.message||"Could not send")}})},window.SenLinCloud={available:E,signedIn:g,token:S,isPro:k,api:f,requestCode:Q,verify:Z,password:tt,health:V,signOut:L,push:C,pull:N,dirty:lt,chat:dt,tts:ut,stt:pt,track:O,flush:I,reportError:M,buy:W,portal:q,restorePurchase:H,plans:R,refreshEntitlement:P,backups:at,restore:it,user:()=>l&&l.user},/^#\/pro/.test(location.hash)&&u.navigate(),g()&&(P().catch(()=>{}),N().catch(()=>{}),document.addEventListener("visibilitychange",()=>{document.visibilityState==="visible"&&N().catch(()=>{})}),window.SenLinNative&&window.SenLinNative.billing&&l.user))try{window.SenLinNative.billing.configure(l.user.id)}catch{}O("visit",{route:location.hash.split("/")[1]||"today"})})();

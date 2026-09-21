@@ -1,333 +1,33 @@
-/* Mandarin The SenLin Way — the app (no dependencies) */
-(function () {
-  'use strict';
-  const S = window.SenLin;
-  const $ = (sel, ctx = document) => ctx.querySelector(sel);
-  const app = $('#app');
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  /* ------------------------------------------------------------ storage */
-  const store = {
-    get(k, d) { try { const v = localStorage.getItem('senlin.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem('senlin.' + k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
-  };
-  const state = {
-    settings: Object.assign({ startDate: S.CONFIG.startDate, charsPerDay: 3, rate: 0.85, voice: '', showPinyin: true, theme: 'auto', business: true }, store.get('settings', {})),
-    cast: store.get('cast', { actors: {}, sets: {}, rooms: {}, props: {} }),
-    srs: store.get('srs', {}),
-    scenes: store.get('scenes', {}),
-    progress: Object.assign({ completed: {}, reviews: { total: 0, good: 0 }, quiz: { total: 0, right: 0 } }, store.get('progress', {})),
-    extra: store.get('extra', { words: [] }),
-    talks: store.get('talks', [])
-  };
-  const save = () => { store.set('settings', state.settings); store.set('cast', state.cast); store.set('srs', state.srs); store.set('scenes', state.scenes); store.set('progress', state.progress); store.set('extra', state.extra); store.set('talks', state.talks); if (window.SenLinCloud) window.SenLinCloud.dirty(); };
-  const applyTheme = () => { if (state.settings.theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', state.settings.theme); };
-  applyTheme();
-
-  let DAYS = S.buildSchedule({ charsPerDay: state.settings.charsPerDay });
-  const rebuild = () => { DAYS = S.buildSchedule({ charsPerDay: state.settings.charsPerDay }); };
-  const todayDay = () => S.dayNumber(new Date(), state.settings.startDate);
-  const dayInfo = d => DAYS[Math.min(d, DAYS.length) - 1];
-
-  /* ------------------------------------------------------------ speech
-     Voice order: recorded audio (audio/index.json, a licensed studio voice) → the native app's voice →
-     the device's Web Speech voice → the cloud voice (our server, when signed in). No unofficial endpoints. */
-  const CFG = window.SENLIN_CONFIG || {};
-  const tts = {
-    voices: [],
-    load() { this.voices = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(v => /^zh([-_]|$)/i.test(v.lang) || /chinese|mandarin|putonghua/i.test(v.name)); },
-    best() {
-      if (state.settings.voice) { const v = this.voices.find(v => v.name === state.settings.voice); if (v) return v; }
-      const pref = ['Tingting', 'Xiaoxiao', 'Yunxi', 'Google 普通话', 'Huihui', 'Yaoyao', 'Kangkang', 'Lili', 'zh-CN'];
-      for (const p of pref) { const v = this.voices.find(v => (v.name + ' ' + v.lang).includes(p)); if (v) return v; }
-      return this.voices.find(v => /zh[-_]CN/i.test(v.lang)) || this.voices[0];
-    },
-    audio: null, playing: false, index: null, hashes: new Map(),
-    /* recorded audio: audio/<sha256(text).slice(0,16)>.mp3, listed in audio/index.json (see tools/audio.js) */
-    async loadIndex() {
-      if (this.index !== null) return this.index;
-      this.index = false;
-      try { const r = await fetch((CFG.audioBase || 'audio/') + 'index.json'); if (r.ok) { const j = await r.json(); if (j && j.items) this.index = j; } } catch (e) { /* no recorded audio */ }
-      return this.index;
-    },
-    async hash(text) {
-      if (this.hashes.has(text)) return this.hashes.get(text);
-      if (!(window.crypto && crypto.subtle)) return null;
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-      const id = Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
-      this.hashes.set(text, id); return id;
-    },
-    async recordedUrl(text, rate) {
-      const idx = await this.loadIndex(); if (!idx) return null;
-      const id = await this.hash(text); const it = id && idx.items[id]; if (!it) return null;
-      return (CFG.audioBase || 'audio/') + id + (rate < 0.75 && it.slow ? '-slow' : '') + '.mp3';
-    },
-    playUrl(url, rate) {
-      return new Promise((resolve, reject) => {
-        const a = new Audio(url); this.audio = a; this.playing = true;
-        if (rate && rate < 0.75 && !/-slow\.mp3$/.test(url)) a.playbackRate = Math.max(0.6, rate);
-        a.onended = () => { this.playing = false; resolve(true); };
-        a.onerror = () => { this.playing = false; reject(new Error('audio failed')); };
-        a.play().catch(err => { this.playing = false; reject(err); });
-      });
-    },
-    hasDeviceVoice() { if (!window.speechSynthesis) return false; if (!this.voices.length) this.load(); return !!this.best(); },
-    speakDevice(text, rate) {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'zh-CN'; u.rate = rate;
-      const v = this.best(); if (v) u.voice = v;
-      speechSynthesis.speak(u);
-    },
-    async speakCloud(text, rate) {
-      const C = window.SenLinCloud; if (!C || !C.signedIn()) return false;
-      try { const blob = await C.tts(text, rate); await this.playUrl(URL.createObjectURL(blob)); return true; } catch (e) { return false; }
-    },
-    stop() { try { if (this.audio) this.audio.pause(); } catch (e) { /* ignore */ } this.playing = false; if (window.speechSynthesis) speechSynthesis.cancel(); const N = window.SenLinNative; if (N && N.isNative) { try { N.tts.stop(); } catch (e) { /* ignore */ } } },
-    async speak(text, rate) {
-      rate = rate || state.settings.rate; const src = state.settings.voiceSource || 'auto';
-      this.stop();
-      if (src === 'auto' || src === 'recorded') { const url = await this.recordedUrl(text, rate); if (url) { try { await this.playUrl(url, rate); return; } catch (e) { /* fall through */ } } }
-      const N = window.SenLinNative;
-      if (src !== 'cloud' && N && N.isNative && N.tts.available) { try { await N.tts.speak(text, rate); return; } catch (e) { /* fall through */ } }
-      if ((src === 'auto' || src === 'device' || src === 'recorded') && this.hasDeviceVoice()) return this.speakDevice(text, rate);
-      if (await this.speakCloud(text, rate)) return;
-      if (this.hasDeviceVoice()) return this.speakDevice(text, rate);
-      const C = window.SenLinCloud;
-      toast(C && C.available() && !C.signedIn() ? 'No Chinese voice on this device. Sign in (Settings) for the cloud voice, or open the site in Chrome.' : 'No Chinese voice on this device. Open the site in Chrome, or add a Chinese voice in your system settings.');
-    },
-    get speaking() { return this.playing || (!!window.speechSynthesis && speechSynthesis.speaking); }
-  };
-  if (window.speechSynthesis) { tts.load(); speechSynthesis.onvoiceschanged = () => tts.load(); }
-  const playBtn = (text, opts = {}) => `<button class="btn btn-icon${opts.cls ? ' ' + opts.cls : ''}" data-say="${esc(text)}"${opts.rate ? ` data-rate="${opts.rate}"` : ''} title="Listen" aria-label="Listen">${opts.slow ? '🐢' : '🔊'}</button>`;
-  document.addEventListener('click', e => {
-    const b = e.target.closest('[data-say]'); if (b) tts.speak(b.dataset.say, b.dataset.rate ? parseFloat(b.dataset.rate) : undefined);
-  });
-
-  /* ---- "Say it": speech recognition scores what you said against the target.
-     Engines, in order: the native app (iOS/Android), the browser (Chrome, Edge, Android), the cloud (our server, signed in). */
-  const ASR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const hanOnly = t => Array.from(t).filter(c => /\p{Script=Han}/u.test(c));
-  function matchScore(target, said) {
-    const t = hanOnly(target), sd = hanOnly(said);
-    if (!t.length) return 0;
-    /* longest common subsequence, character level */
-    const m = t.length, n = sd.length, dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) dp[i][j] = t[i - 1] === sd[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
-    return dp[m][n] / m;
-  }
-  const canRecord = () => !!(navigator.mediaDevices && window.MediaRecorder);
-  /** Which recogniser would run now: 'native' | 'browser' | 'cloud' | null */
-  function listenEngine() {
-    const N = window.SenLinNative, C = window.SenLinCloud;
-    if (N && N.isNative && N.stt.available) return 'native';
-    if (ASR) return 'browser';
-    if (C && C.signedIn() && canRecord()) return 'cloud';
-    return null;
-  }
-  /** Listen once for Mandarin. Calls onResult(alternatives[]) or onError(message); always onEnd(). Returns a stop() function. */
-  function listenOnce({ onResult, onError, onEnd, seconds = 6 }) {
-    const eng = listenEngine();
-    const done = () => { if (onEnd) onEnd(); };
-    if (eng === 'native') {
-      const N = window.SenLinNative;
-      N.stt.listen({ lang: 'zh-CN', onResult: alts => { onResult(alts); }, onError: m => onError(m), onEnd: done });
-      return () => N.stt.stop();
-    }
-    if (eng === 'browser') {
-      let r; try { r = new ASR(); } catch (err) { onError('speech recognition unavailable'); done(); return () => {}; }
-      r.lang = 'zh-CN'; r.interimResults = false; r.maxAlternatives = 5; let got = false;
-      r.onresult = ev => { got = true; onResult(Array.from(ev.results[0]).map(a => a.transcript)); };
-      r.onerror = ev => { onError(ev.error === 'not-allowed' ? 'microphone blocked — allow it in the browser' : ev.error === 'no-speech' ? 'no speech heard' : 'error: ' + ev.error); };
-      r.onend = () => { if (!got) onError('nothing heard'); done(); };
-      r.start();
-      return () => { try { r.stop(); } catch (e) { /* ignore */ } };
-    }
-    if (eng === 'cloud') {
-      let rec, timer;
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        const chunks = []; rec = new MediaRecorder(stream);
-        rec.ondataavailable = ev => chunks.push(ev.data);
-        rec.onstop = async () => {
-          stream.getTracks().forEach(t => t.stop());
-          try { const text = await window.SenLinCloud.stt(new Blob(chunks, { type: rec.mimeType })); if (text) onResult([text]); else onError('nothing heard'); }
-          catch (e) { onError(e && e.message ? e.message : 'cloud recognition failed'); }
-          done();
-        };
-        rec.start(); timer = setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, seconds * 1000);
-      }).catch(err => { onError('microphone unavailable: ' + (err.message || err.name)); done(); });
-      return () => { clearTimeout(timer); if (rec && rec.state === 'recording') rec.stop(); };
-    }
-    onError('no speech recognition here — use Chrome, the app, or sign in for the cloud recogniser'); done();
-    return () => {};
-  }
-  const sayBtn = target => `<button class="btn btn-icon" data-listen="${esc(target)}" title="Say it — I’ll check" aria-label="Say it">🎤</button>`;
-  document.addEventListener('click', e => {
-    const b = e.target.closest('[data-listen]'); if (!b) return;
-    const target = b.dataset.listen; const out = b.parentElement.querySelector('.asr') || b.parentElement.appendChild(Object.assign(document.createElement('span'), { className: 'asr small' }));
-    if (b.dataset.stop) { b.dataset.stop = ''; if (b._stop) b._stop(); return; }
-    out.textContent = listenEngine() === 'cloud' ? 'recording… (tap again to stop)' : 'listening…'; b.dataset.stop = '1';
-    b._stop = listenOnce({
-      onResult: alts => {
-        const best = alts.map(a => ({ a, s: matchScore(target, a) })).sort((x, y) => y.s - x.s)[0];
-        const pct = Math.round(best.s * 100);
-        state.progress.said = state.progress.said || { total: 0, good: 0 }; state.progress.said.total++; if (pct >= 80) state.progress.said.good++; save();
-        out.innerHTML = `${pct >= 80 ? '✅' : pct >= 50 ? '🟡' : '❌'} heard “<span class="hz">${esc(best.a)}</span>” · ${pct}% match`;
-        if (window.SenLinCloud) window.SenLinCloud.track('say', { pct });
-      },
-      onError: msg => { out.textContent = msg; },
-      onEnd: () => { b.dataset.stop = ''; }
-    });
-  });
-
-  /* ---- Record & compare: record yourself, then play it back next to the native voice */
-  const recBtn = () => (navigator.mediaDevices && window.MediaRecorder) ? `<button class="btn btn-icon" data-rec title="Record yourself" aria-label="Record yourself">⏺</button>` : '';
-  let recorder = null;
-  document.addEventListener('click', async e => {
-    const b = e.target.closest('[data-rec]'); if (!b) return;
-    if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const chunks = []; recorder = new MediaRecorder(stream);
-      recorder.ondataavailable = ev => chunks.push(ev.data);
-      recorder.onstop = () => {
-        stream.getTracks().forEach(t => t.stop());
-        const url = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType }));
-        let a = b.parentElement.querySelector('audio.mine'); if (!a) { a = document.createElement('audio'); a.className = 'mine'; a.controls = true; a.style.height = '32px'; b.parentElement.appendChild(a); }
-        a.src = url; a.play(); b.textContent = '⏺'; b.classList.remove('btn-primary');
-      };
-      recorder.start(); b.textContent = '⏹'; b.classList.add('btn-primary');
-      setTimeout(() => { if (recorder && recorder.state === 'recording') recorder.stop(); }, 12000);
-    } catch (err) { toast('Microphone unavailable: ' + (err.message || err.name)); }
-  });
-
-  /* ------------------------------------------------------------ helpers */
-  let toastTimer;
-  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
-  function openDialog(html) { const d = $('#dialog'); $('#dialog-inner').innerHTML = html; d.showModal(); }
-  $('#dialog').addEventListener('click', e => { if (e.target.id === 'dialog' || e.target.closest('[data-close]')) $('#dialog').close(); });
-  const toneClass = p => 't' + S.parsePinyin(p).tone;
-  /** colour every syllable of a pinyin string by tone */
-  function pinyinHTML(p) {
-    return p.split(/(\s+|['’])/).map(part => (/^\s+$/.test(part) || /^['’]$/.test(part) || !part) ? esc(part) : `<span class="${toneClass(part)}">${esc(part)}</span>`).join('');
-  }
-  const fmtDate = d => d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  const fmtDateY = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-  const seconds = s => `${Math.floor(Math.abs(s) / 60)}:${String(Math.abs(s) % 60).padStart(2, '0')}`;
-  function toneSVG(tone) {
-    const paths = { 1: 'M10 20 H90', 2: 'M10 50 L90 12', 3: 'M10 30 L45 58 L90 20', 4: 'M10 12 L90 58', 5: 'M45 40 h10' };
-    return `<svg viewBox="0 0 100 70" width="60" height="42" aria-hidden="true"><line x1="10" y1="10" x2="10" y2="60" stroke="currentColor" opacity=".2"/><path d="${paths[tone]}" fill="none" stroke="var(--tone${tone})" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  }
-  const streak = () => {
-    const done = state.progress.completed; let n = 0; let d = todayDay();
-    if (!done[d]) d--;
-    while (d >= 1 && done[d]) { n++; d--; }
-    return n;
-  };
-  const TREE_COLORS = ['#1ec27c', '#14a066', '#3ee39a', '#b8f23c', '#0f7a4f', '#ffb300'];
-  function forestSVG(n) {
-    let out = ''; for (let i = 0; i < Math.min(n, 60); i++) { const c = TREE_COLORS[i % TREE_COLORS.length]; out += `<svg viewBox="0 0 22 44" style="animation-delay:${Math.min(i, 30) * 25}ms"><rect x="9.5" y="30" width="3" height="14" rx="1" fill="#8a5a2b"/><path d="M11 2 L21 20 H1 Z" fill="${c}"/><path d="M11 10 L21 30 H1 Z" fill="${c}" opacity=".85"/></svg>`; }
-    if (n > 60) out += `<span class="small muted" style="align-self:center;margin-left:.4rem">+${n - 60}</span>`;
-    return out;
-  }
-  function confetti() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const c = document.createElement('canvas'); c.className = 'confetti'; document.body.appendChild(c);
-    const ctx = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
-    const cols = ['#1ec27c', '#ffcf4d', '#ff7bd4', '#2f8bff', '#b8f23c', '#ff4d5a'];
-    const ps = Array.from({ length: 140 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5, r: 4 + Math.random() * 6, vx: -1.5 + Math.random() * 3, vy: 2 + Math.random() * 3, rot: Math.random() * 6, vr: -.2 + Math.random() * .4, col: cols[Math.floor(Math.random() * cols.length)] }));
-    let t = 0; (function frame() { ctx.clearRect(0, 0, c.width, c.height); ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.rot += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.col; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); ctx.restore(); }); if (++t < 220) requestAnimationFrame(frame); else c.remove(); })();
-  }
-  /** Where the learner stands on the HSK ladder, with dates at the current pace. */
-  function levelStatus() {
-    const st = S.curriculumStats(DAYS); const today = todayDay(); const done = state.progress.completed;
-    let prevEnd = 12;
-    return st.levels.map(l => {
-      const start = prevEnd + 1, end = l.lastDay; prevEnd = end;
-      const total = end - start + 1; let completed = 0; for (let d = start; d <= end; d++) if (done[d]) completed++;
-      const status = completed >= total ? 'done' : today >= start ? 'current' : 'locked';
-      return Object.assign({}, l, { start, end, total, completed, status, startDate: S.dateForDay(start, state.settings.startDate), endDate: S.dateForDay(end, state.settings.startDate) });
-    });
-  }
-  const currentLevelInfo = () => { const ls = levelStatus(); return ls.find(l => l.status === 'current') || ls.filter(l => l.status === 'done').pop() || ls[0]; };
-  const monthsBetween = (a, b) => Math.max(1, Math.round((b - a) / (30.44 * 86400000)));
-  const learnedChars = () => S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => i.type === 'c' && state.progress.completed[i.day]).length;
-  const dueCount = () => { const now = Date.now(); return Object.values(state.srs).filter(s => s.due <= now).length; };
-
-  /* ------------------------------------------------------------ router */
-  const routes = {};
-  const LAZY = window.SENLIN_LAZY || { pending: false, load: () => Promise.resolve() };
-  /** Routes that show the whole curriculum wait for the remaining levels to arrive (a few hundred KB, once). */
-  function needsAllLevels(name, arg) {
-    if (!LAZY.pending) return false;
-    if (/^(library|levels|progress|plan)$/.test(name)) return true;
-    if (name === 'lesson' || name === 'review') { const d = parseInt(arg, 10) || todayDay(); return d > (LAZY.end3 || 0) - 3; }
-    return false;
-  }
-  /** Paywall (js/config.js → paywall:true): HSK 1 stays free, the rest needs a Pro plan. */
-  const locked = day => !!CFG.paywall && day > (CFG.freeDays || 45) && !(window.SenLinCloud && window.SenLinCloud.isPro());
-  const upsell = what => `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
-      <span class="eyebrow">SenLin Pro</span><h1 class="h2">${esc(what)} is part of Pro</h1>
+(function(){"use strict";const c=window.SenLin,u=(s,e=document)=>e.querySelector(s),H=u("#app"),i=s=>String(s).replace(/[&<>"']/g,e=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[e]),b={get(s,e){try{const t=localStorage.getItem("senlin."+s);return t?JSON.parse(t):e}catch{return e}},set(s,e){try{localStorage.setItem("senlin."+s,JSON.stringify(e))}catch{}}},l={settings:Object.assign({startDate:c.CONFIG.startDate,charsPerDay:3,rate:.85,voice:"",showPinyin:!0,theme:"auto",business:!0},b.get("settings",{})),cast:b.get("cast",{actors:{},sets:{},rooms:{},props:{}}),srs:b.get("srs",{}),scenes:b.get("scenes",{}),progress:Object.assign({completed:{},reviews:{total:0,good:0},quiz:{total:0,right:0}},b.get("progress",{})),extra:b.get("extra",{words:[]}),talks:b.get("talks",[])},f=()=>{b.set("settings",l.settings),b.set("cast",l.cast),b.set("srs",l.srs),b.set("scenes",l.scenes),b.set("progress",l.progress),b.set("extra",l.extra),b.set("talks",l.talks),window.SenLinCloud&&window.SenLinCloud.dirty()},I=()=>{l.settings.theme==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",l.settings.theme)};I();let y=c.buildSchedule({charsPerDay:l.settings.charsPerDay});const E=()=>{y=c.buildSchedule({charsPerDay:l.settings.charsPerDay})},k=()=>c.dayNumber(new Date,l.settings.startDate),j=s=>y[Math.min(s,y.length)-1],T=window.SENLIN_CONFIG||{},A={voices:[],load(){this.voices=(window.speechSynthesis?speechSynthesis.getVoices():[]).filter(s=>/^zh([-_]|$)/i.test(s.lang)||/chinese|mandarin|putonghua/i.test(s.name))},best(){if(l.settings.voice){const e=this.voices.find(t=>t.name===l.settings.voice);if(e)return e}const s=["Tingting","Xiaoxiao","Yunxi","Google 普通话","Huihui","Yaoyao","Kangkang","Lili","zh-CN"];for(const e of s){const t=this.voices.find(n=>(n.name+" "+n.lang).includes(e));if(t)return t}return this.voices.find(e=>/zh[-_]CN/i.test(e.lang))||this.voices[0]},audio:null,playing:!1,index:null,hashes:new Map,async loadIndex(){if(this.index!==null)return this.index;this.index=!1;try{const s=await fetch((T.audioBase||"audio/")+"index.json");if(s.ok){const e=await s.json();e&&e.items&&(this.index=e)}}catch{}return this.index},async hash(s){if(this.hashes.has(s))return this.hashes.get(s);if(!(window.crypto&&crypto.subtle))return null;const e=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)),t=Array.from(new Uint8Array(e)).slice(0,8).map(n=>n.toString(16).padStart(2,"0")).join("");return this.hashes.set(s,t),t},async recordedUrl(s,e){const t=await this.loadIndex();if(!t)return null;const n=await this.hash(s),o=n&&t.items[n];return o?(T.audioBase||"audio/")+n+(e<.75&&o.slow?"-slow":"")+".mp3":null},playUrl(s,e){return new Promise((t,n)=>{const o=new Audio(s);this.audio=o,this.playing=!0,e&&e<.75&&!/-slow\.mp3$/.test(s)&&(o.playbackRate=Math.max(.6,e)),o.onended=()=>{this.playing=!1,t(!0)},o.onerror=()=>{this.playing=!1,n(new Error("audio failed"))},o.play().catch(r=>{this.playing=!1,n(r)})})},hasDeviceVoice(){return window.speechSynthesis?(this.voices.length||this.load(),!!this.best()):!1},speakDevice(s,e){speechSynthesis.cancel();const t=new SpeechSynthesisUtterance(s);t.lang="zh-CN",t.rate=e;const n=this.best();n&&(t.voice=n),speechSynthesis.speak(t)},async speakCloud(s,e){const t=window.SenLinCloud;if(!t||!t.signedIn())return!1;try{const n=await t.tts(s,e);return await this.playUrl(URL.createObjectURL(n)),!0}catch{return!1}},stop(){try{this.audio&&this.audio.pause()}catch{}this.playing=!1,window.speechSynthesis&&speechSynthesis.cancel();const s=window.SenLinNative;if(s&&s.isNative)try{s.tts.stop()}catch{}},async speak(s,e){e=e||l.settings.rate;const t=l.settings.voiceSource||"auto";if(this.stop(),t==="auto"||t==="recorded"){const r=await this.recordedUrl(s,e);if(r)try{await this.playUrl(r,e);return}catch{}}const n=window.SenLinNative;if(t!=="cloud"&&n&&n.isNative&&n.tts.available)try{await n.tts.speak(s,e);return}catch{}if((t==="auto"||t==="device"||t==="recorded")&&this.hasDeviceVoice())return this.speakDevice(s,e);if(await this.speakCloud(s,e))return;if(this.hasDeviceVoice())return this.speakDevice(s,e);const o=window.SenLinCloud;z(o&&o.available()&&!o.signedIn()?"No Chinese voice on this device. Sign in (Settings) for the cloud voice, or open the site in Chrome.":"No Chinese voice on this device. Open the site in Chrome, or add a Chinese voice in your system settings.")},get speaking(){return this.playing||!!window.speechSynthesis&&speechSynthesis.speaking}};window.speechSynthesis&&(A.load(),speechSynthesis.onvoiceschanged=()=>A.load());const m=(s,e={})=>`<button class="btn btn-icon${e.cls?" "+e.cls:""}" data-say="${i(s)}"${e.rate?` data-rate="${e.rate}"`:""} title="Listen" aria-label="Listen">${e.slow?"🐢":"🔊"}</button>`;document.addEventListener("click",s=>{const e=s.target.closest("[data-say]");e&&A.speak(e.dataset.say,e.dataset.rate?parseFloat(e.dataset.rate):void 0)});const F=window.SpeechRecognition||window.webkitSpeechRecognition,U=s=>Array.from(s).filter(e=>/\p{Script=Han}/u.test(e));function _(s,e){const t=U(s),n=U(e);if(!t.length)return 0;const o=t.length,r=n.length,a=Array.from({length:o+1},()=>new Array(r+1).fill(0));for(let d=1;d<=o;d++)for(let p=1;p<=r;p++)a[d][p]=t[d-1]===n[p-1]?a[d-1][p-1]+1:Math.max(a[d-1][p],a[d][p-1]);return a[o][r]/o}const re=()=>!!(navigator.mediaDevices&&window.MediaRecorder);function Y(){const s=window.SenLinNative,e=window.SenLinCloud;return s&&s.isNative&&s.stt.available?"native":F?"browser":e&&e.signedIn()&&re()?"cloud":null}function G({onResult:s,onError:e,onEnd:t,seconds:n=6}){const o=Y(),r=()=>{t&&t()};if(o==="native"){const a=window.SenLinNative;return a.stt.listen({lang:"zh-CN",onResult:d=>{s(d)},onError:d=>e(d),onEnd:r}),()=>a.stt.stop()}if(o==="browser"){let a;try{a=new F}catch{return e("speech recognition unavailable"),r(),()=>{}}a.lang="zh-CN",a.interimResults=!1,a.maxAlternatives=5;let d=!1;return a.onresult=p=>{d=!0,s(Array.from(p.results[0]).map(S=>S.transcript))},a.onerror=p=>{e(p.error==="not-allowed"?"microphone blocked — allow it in the browser":p.error==="no-speech"?"no speech heard":"error: "+p.error)},a.onend=()=>{d||e("nothing heard"),r()},a.start(),()=>{try{a.stop()}catch{}}}if(o==="cloud"){let a,d;return navigator.mediaDevices.getUserMedia({audio:!0}).then(p=>{const S=[];a=new MediaRecorder(p),a.ondataavailable=$=>S.push($.data),a.onstop=async()=>{p.getTracks().forEach($=>$.stop());try{const $=await window.SenLinCloud.stt(new Blob(S,{type:a.mimeType}));$?s([$]):e("nothing heard")}catch($){e($&&$.message?$.message:"cloud recognition failed")}r()},a.start(),d=setTimeout(()=>{a.state==="recording"&&a.stop()},n*1e3)}).catch(p=>{e("microphone unavailable: "+(p.message||p.name)),r()}),()=>{clearTimeout(d),a&&a.state==="recording"&&a.stop()}}return e("no speech recognition here — use Chrome, the app, or sign in for the cloud recogniser"),r(),()=>{}}const D=s=>`<button class="btn btn-icon" data-listen="${i(s)}" title="Say it — I’ll check" aria-label="Say it">🎤</button>`;document.addEventListener("click",s=>{const e=s.target.closest("[data-listen]");if(!e)return;const t=e.dataset.listen,n=e.parentElement.querySelector(".asr")||e.parentElement.appendChild(Object.assign(document.createElement("span"),{className:"asr small"}));if(e.dataset.stop){e.dataset.stop="",e._stop&&e._stop();return}n.textContent=Y()==="cloud"?"recording… (tap again to stop)":"listening…",e.dataset.stop="1",e._stop=G({onResult:o=>{const r=o.map(d=>({a:d,s:_(t,d)})).sort((d,p)=>p.s-d.s)[0],a=Math.round(r.s*100);l.progress.said=l.progress.said||{total:0,good:0},l.progress.said.total++,a>=80&&l.progress.said.good++,f(),n.innerHTML=`${a>=80?"✅":a>=50?"🟡":"❌"} heard “<span class="hz">${i(r.a)}</span>” · ${a}% match`,window.SenLinCloud&&window.SenLinCloud.track("say",{pct:a})},onError:o=>{n.textContent=o},onEnd:()=>{e.dataset.stop=""}})});const oe=()=>navigator.mediaDevices&&window.MediaRecorder?'<button class="btn btn-icon" data-rec title="Record yourself" aria-label="Record yourself">⏺</button>':"";let x=null;document.addEventListener("click",async s=>{const e=s.target.closest("[data-rec]");if(e){if(x&&x.state==="recording"){x.stop();return}try{const t=await navigator.mediaDevices.getUserMedia({audio:!0}),n=[];x=new MediaRecorder(t),x.ondataavailable=o=>n.push(o.data),x.onstop=()=>{t.getTracks().forEach(a=>a.stop());const o=URL.createObjectURL(new Blob(n,{type:x.mimeType}));let r=e.parentElement.querySelector("audio.mine");r||(r=document.createElement("audio"),r.className="mine",r.controls=!0,r.style.height="32px",e.parentElement.appendChild(r)),r.src=o,r.play(),e.textContent="⏺",e.classList.remove("btn-primary")},x.start(),e.textContent="⏹",e.classList.add("btn-primary"),setTimeout(()=>{x&&x.state==="recording"&&x.stop()},12e3)}catch(t){z("Microphone unavailable: "+(t.message||t.name))}}});let K;function z(s){const e=u("#toast");e.textContent=s,e.classList.add("show"),clearTimeout(K),K=setTimeout(()=>e.classList.remove("show"),2400)}function le(s){const e=u("#dialog");u("#dialog-inner").innerHTML=s,e.showModal()}u("#dialog").addEventListener("click",s=>{(s.target.id==="dialog"||s.target.closest("[data-close]"))&&u("#dialog").close()});const N=s=>"t"+c.parsePinyin(s).tone;function g(s){return s.split(/(\s+|['’])/).map(e=>/^\s+$/.test(e)||/^['’]$/.test(e)||!e?i(e):`<span class="${N(e)}">${i(e)}</span>`).join("")}const q=s=>s.toLocaleDateString(void 0,{weekday:"short",month:"short",day:"numeric"}),O=s=>s.toLocaleDateString(void 0,{month:"short",day:"numeric",year:"numeric"}),V=s=>`${Math.floor(Math.abs(s)/60)}:${String(Math.abs(s)%60).padStart(2,"0")}`;function C(s){return`<svg viewBox="0 0 100 70" width="60" height="42" aria-hidden="true"><line x1="10" y1="10" x2="10" y2="60" stroke="currentColor" opacity=".2"/><path d="${{1:"M10 20 H90",2:"M10 50 L90 12",3:"M10 30 L45 58 L90 20",4:"M10 12 L90 58",5:"M45 40 h10"}[s]}" fill="none" stroke="var(--tone${s})" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`}const P=()=>{const s=l.progress.completed;let e=0,t=k();for(s[t]||t--;t>=1&&s[t];)e++,t--;return e},J=["#1ec27c","#14a066","#3ee39a","#b8f23c","#0f7a4f","#ffb300"];function Z(s){let e="";for(let t=0;t<Math.min(s,60);t++){const n=J[t%J.length];e+=`<svg viewBox="0 0 22 44" style="animation-delay:${Math.min(t,30)*25}ms"><rect x="9.5" y="30" width="3" height="14" rx="1" fill="#8a5a2b"/><path d="M11 2 L21 20 H1 Z" fill="${n}"/><path d="M11 10 L21 30 H1 Z" fill="${n}" opacity=".85"/></svg>`}return s>60&&(e+=`<span class="small muted" style="align-self:center;margin-left:.4rem">+${s-60}</span>`),e}function ce(){if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;const s=document.createElement("canvas");s.className="confetti",document.body.appendChild(s);const e=s.getContext("2d");s.width=innerWidth,s.height=innerHeight;const t=["#1ec27c","#ffcf4d","#ff7bd4","#2f8bff","#b8f23c","#ff4d5a"],n=Array.from({length:140},()=>({x:Math.random()*s.width,y:-20-Math.random()*s.height*.5,r:4+Math.random()*6,vx:-1.5+Math.random()*3,vy:2+Math.random()*3,rot:Math.random()*6,vr:-.2+Math.random()*.4,col:t[Math.floor(Math.random()*t.length)]}));let o=0;(function r(){e.clearRect(0,0,s.width,s.height),n.forEach(a=>{a.x+=a.vx,a.y+=a.vy,a.rot+=a.vr,e.save(),e.translate(a.x,a.y),e.rotate(a.rot),e.fillStyle=a.col,e.fillRect(-a.r/2,-a.r/2,a.r,a.r*.6),e.restore()}),++o<220?requestAnimationFrame(r):s.remove()})()}function W(){const s=c.curriculumStats(y),e=k(),t=l.progress.completed;let n=12;return s.levels.map(o=>{const r=n+1,a=o.lastDay;n=a;const d=a-r+1;let p=0;for(let $=r;$<=a;$++)t[$]&&p++;const S=p>=d?"done":e>=r?"current":"locked";return Object.assign({},o,{start:r,end:a,total:d,completed:p,status:S,startDate:c.dateForDay(r,l.settings.startDate),endDate:c.dateForDay(a,l.settings.startDate)})})}const de=()=>{const s=W();return s.find(e=>e.status==="current")||s.filter(e=>e.status==="done").pop()||s[0]},pe=(s,e)=>Math.max(1,Math.round((e-s)/(30.44*864e5))),Q=()=>c.learnedItems(y,Math.min(k(),y.length)).filter(s=>s.type==="c"&&l.progress.completed[s.day]).length,X=()=>{const s=Date.now();return Object.values(l.srs).filter(e=>e.due<=s).length},w={},R=window.SENLIN_LAZY||{pending:!1,load:()=>Promise.resolve()};function he(s,e){return R.pending?/^(library|levels|progress|plan)$/.test(s)?!0:s==="lesson"||s==="review"?(parseInt(e,10)||k())>(R.end3||0)-3:!1:!1}const ee=s=>!!T.paywall&&s>(T.freeDays||45)&&!(window.SenLinCloud&&window.SenLinCloud.isPro()),ue=s=>`<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
+      <span class="eyebrow">SenLin Pro</span><h1 class="h2">${i(s)} is part of Pro</h1>
       <p class="lead">HSK 1 is free forever. Pro unlocks the whole road to HSK 6, the Deal Desk, cloud sync and the cloud voice.</p>
       <div class="row"><a class="btn btn-primary" href="#/pro">See plans — from $5 a month</a><a class="btn" href="#/settings">Sign in</a><a class="btn btn-ghost" href="#/">Back</a></div>
-    </section></div>`;
-  function navigate() {
-    const hash = location.hash.replace(/^#\/?/, '');
-    const [name, arg] = hash.split('/');
-    let view = routes[name || 'today'] || routes.today;
-    if (needsAllLevels(name, arg)) {
-      app.innerHTML = '<div class="card stack" style="max-width:520px"><p class="lead">Loading HSK 4–6…</p><p class="muted small">A few hundred kilobytes, once. The site keeps them for offline use.</p></div>';
-      LAZY.load().then(() => { rebuild(); navigate(); }).catch(() => { app.innerHTML = '<div class="card"><p>Could not load the remaining levels. Check your connection and reload.</p></div>'; });
-      return;
-    }
-    if ((name === 'lesson' && locked(parseInt(arg, 10) || todayDay())) || (name === 'business' && CFG.paywall && !(window.SenLinCloud && window.SenLinCloud.isPro()))) {
-      const what = name === 'business' ? 'The Deal Desk' : 'This lesson';
-      view = Object.assign(() => upsell(what), { after: () => { const b = $('#go-pro'); if (b) b.onclick = () => window.SenLinCloud && window.SenLinCloud.buy(); } });
-    }
-    document.querySelectorAll('.nav a').forEach(a => { if (a.dataset.route === (name || 'today')) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    if (lesson.timer) lesson.stop();
-    window.scrollTo(0, 0);
-    app.innerHTML = view(arg);
-    if (view.after) view.after(arg);
-  }
-  window.addEventListener('hashchange', navigate);
-
-  /* ------------------------------------------------------------ TODAY */
-  routes.today = function () {
-    const day = todayDay();
-    const info = dayInfo(day);
-    const done = !!state.progress.completed[day];
-    const missed = []; for (let d = 1; d < day; d++) if (!state.progress.completed[d] && d <= DAYS.length) missed.push(d);
-    const beyond = day > DAYS.length;
-    const preview = info.type === 'pron'
-      ? `<p class="lead">${esc(info.pron.title)}</p><p class="muted">${esc(info.pron.brief)}</p>`
-      : `<div class="row">${info.chars.map(c => `<span class="chip chip-gold"><span class="hz">${c.h}</span> ${esc(c.p)} · ${esc(c.m)}</span>`).join('')}${info.words.map(w => `<span class="chip"><span class="hz">${w.w}</span> ${esc(w.m)}</span>`).join('')}</div>
-         ${info.sentences.length || (info.grammar || []).length ? `<p class="muted small" style="margin-top:.6rem">${info.sentences.length ? `${info.sentences.length} new sentence${info.sentences.length > 1 ? 's' : ''} to shadow.` : ''}${(info.grammar || []).length ? ` Pattern: ${esc(info.grammar[0].name)}.` : ''}</p>` : ''}`;
-    return `
+    </section></div>`;function L(){const s=location.hash.replace(/^#\/?/,""),[e,t]=s.split("/");let n=w[e||"today"]||w.today;if(he(e,t)){H.innerHTML='<div class="card stack" style="max-width:520px"><p class="lead">Loading HSK 4–6…</p><p class="muted small">A few hundred kilobytes, once. The site keeps them for offline use.</p></div>',R.load().then(()=>{E(),L()}).catch(()=>{H.innerHTML='<div class="card"><p>Could not load the remaining levels. Check your connection and reload.</p></div>'});return}if(e==="lesson"&&ee(parseInt(t,10)||k())||e==="business"&&T.paywall&&!(window.SenLinCloud&&window.SenLinCloud.isPro())){const o=e==="business"?"The Deal Desk":"This lesson";n=Object.assign(()=>ue(o),{after:()=>{const r=u("#go-pro");r&&(r.onclick=()=>window.SenLinCloud&&window.SenLinCloud.buy())}})}document.querySelectorAll(".nav a").forEach(o=>{o.dataset.route===(e||"today")?o.setAttribute("aria-current","page"):o.removeAttribute("aria-current")}),h.timer&&h.stop(),window.scrollTo(0,0),H.innerHTML=n(t),n.after&&n.after(t)}window.addEventListener("hashchange",L),w.today=function(){const s=k(),e=j(s),t=!!l.progress.completed[s],n=[];for(let a=1;a<s;a++)!l.progress.completed[a]&&a<=y.length&&n.push(a);const o=s>y.length,r=e.type==="pron"?`<p class="lead">${i(e.pron.title)}</p><p class="muted">${i(e.pron.brief)}</p>`:`<div class="row">${e.chars.map(a=>`<span class="chip chip-gold"><span class="hz">${a.h}</span> ${i(a.p)} · ${i(a.m)}</span>`).join("")}${e.words.map(a=>`<span class="chip"><span class="hz">${a.w}</span> ${i(a.m)}</span>`).join("")}</div>
+         ${e.sentences.length||(e.grammar||[]).length?`<p class="muted small" style="margin-top:.6rem">${e.sentences.length?`${e.sentences.length} new sentence${e.sentences.length>1?"s":""} to shadow.`:""}${(e.grammar||[]).length?` Pattern: ${i(e.grammar[0].name)}.`:""}</p>`:""}`;return`
       <div class="stack-lg">
         <section class="card card-accent stack">
-          <span class="eyebrow">${fmtDate(new Date())} · Day ${day}${beyond ? ' · beyond the scheduled curriculum' : ''}</span>
-          ${(() => { const L = currentLevelInfo(); if (!L) return ''; const info = (S.LEVELINFO && S.LEVELINFO.levels.find(x => x.level === L.level)) || {}; return `<div class="row"><a class="chip chip-gold" href="#/levels"><b>${esc(L.name)}</b> · ${esc(info.cefr || '')} · ${L.completed}/${L.total} days</a><span class="muted small">${L.status === 'done' ? 'level complete' : `on track to finish ${esc(L.name)} by ${esc(fmtDateY(L.endDate))}`}</span></div>`; })()}
-          <h1 class="h1">${done ? 'Today’s tree is planted. 🌳' : beyond ? 'Consolidation day' : esc(info.phase)}</h1>
+          <span class="eyebrow">${q(new Date)} · Day ${s}${o?" · beyond the scheduled curriculum":""}</span>
+          ${(()=>{const a=de();if(!a)return"";const d=c.LEVELINFO&&c.LEVELINFO.levels.find(p=>p.level===a.level)||{};return`<div class="row"><a class="chip chip-gold" href="#/levels"><b>${i(a.name)}</b> · ${i(d.cefr||"")} · ${a.completed}/${a.total} days</a><span class="muted small">${a.status==="done"?"level complete":`on track to finish ${i(a.name)} by ${i(O(a.endDate))}`}</span></div>`})()}
+          <h1 class="h1">${t?"Today’s tree is planted. 🌳":o?"Consolidation day":i(e.phase)}</h1>
           <p class="muted" style="font-weight:700">Building your Mandarin Word Forest, one tree at a time.</p>
-          <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
+          <div>${o?'<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>':r}</div>
           <div class="row">
-            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(day, DAYS.length)}">${done ? 'Do it again' : 'Start the 10-minute lesson'}</a>
-            ${dueCount() ? `<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${dueCount()} due cards</a>` : ''}
-            <span class="streak"><span class="fire">🔥</span> ${streak()}-day streak</span>
+            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(s,y.length)}">${t?"Do it again":"Start the 10-minute lesson"}</a>
+            ${X()?`<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${X()} due cards</a>`:""}
+            <span class="streak"><span class="fire">🔥</span> ${P()}-day streak</span>
           </div>
         </section>
-        ${Object.keys(state.progress.completed).length ? `<section class="card stack" style="padding-bottom:.6rem"><div class="row between"><span class="eyebrow">Your forest · ${Object.keys(state.progress.completed).length} trees</span><a class="small muted" href="#/progress">see progress →</a></div><div class="forest">${forestSVG(Object.keys(state.progress.completed).length)}</div></section>` : ''}
+        ${Object.keys(l.progress.completed).length?`<section class="card stack" style="padding-bottom:.6rem"><div class="row between"><span class="eyebrow">Your forest · ${Object.keys(l.progress.completed).length} trees</span><a class="small muted" href="#/progress">see progress →</a></div><div class="forest">${Z(Object.keys(l.progress.completed).length)}</div></section>`:""}
         <section class="grid grid-3">
-          <div class="card stat"><b>${streak()}</b><span>day streak</span></div>
-          <div class="card stat"><b>${learnedChars()}</b><span>characters planted</span></div>
-          <div class="card stat"><b>${Object.keys(state.progress.completed).length}</b><span>lessons completed</span></div>
+          <div class="card stat"><b>${P()}</b><span>day streak</span></div>
+          <div class="card stat"><b>${Q()}</b><span>characters planted</span></div>
+          <div class="card stat"><b>${Object.keys(l.progress.completed).length}</b><span>lessons completed</span></div>
         </section>
-        ${missed.length ? `<section class="card stack">
-          <h2 class="h3">Catch-up (${missed.length} missed)</h2>
+        ${n.length?`<section class="card stack">
+          <h2 class="h3">Catch-up (${n.length} missed)</h2>
           <p class="muted small">Missed days never expire. Do the oldest first — each lesson builds on the last.</p>
-          <div class="row">${missed.slice(0, 14).map(d => `<a class="chip" href="#/lesson/${d}">Day ${d}</a>`).join('')}${missed.length > 14 ? `<span class="chip">+${missed.length - 14} more</span>` : ''}</div>
-        </section>` : ''}
+          <div class="row">${n.slice(0,14).map(a=>`<a class="chip" href="#/lesson/${a}">Day ${a}</a>`).join("")}${n.length>14?`<span class="chip">+${n.length-14} more</span>`:""}</div>
+        </section>`:""}
         <section class="card stack" style="border-left:4px solid var(--gold)">
           <div class="row between"><div><h2 class="h3">Talk with 森林老师 — live 1-on-1</h2><p class="muted small">Role-play a café order, a taxi ride, a job interview. Speak or type; get corrected in real time.</p></div><a class="btn btn-primary" href="#/talk">Start a conversation</a></div>
         </section>
@@ -344,417 +44,167 @@
           </div>
           <div class="card stack">
             <h2 class="h3">Your curriculum</h2>
-            ${(() => { const st = S.curriculumStats(DAYS); return `<p class="muted small">${st.pronDays} days of Pronunciation Mastery, then ${st.characters} characters, ${st.words} words and ${st.sentences} sentences over ${st.days} days. Every word appears only after all its characters; every sentence only after all its words.</p>`; })()}
+            ${(()=>{const a=c.curriculumStats(y);return`<p class="muted small">${a.pronDays} days of Pronunciation Mastery, then ${a.characters} characters, ${a.words} words and ${a.sentences} sentences over ${a.days} days. Every word appears only after all its characters; every sentence only after all its words.</p>`})()}
             <div class="row"><a class="btn btn-sm" href="#/library">Browse the library</a><a class="btn btn-sm" href="#/plan">See all days</a><a class="btn btn-sm" href="#/tones">Tone gym</a></div>
           </div>
         </section>
-      </div>`;
-  };
-
-  /* ------------------------------------------------------------ PLAN (all days) */
-  routes.plan = function () {
-    const today = todayDay();
-    return `<div class="stack"><span class="eyebrow">Curriculum</span><h1 class="h2">Every day, at a glance</h1>
+      </div>`},w.plan=function(){const s=k();return`<div class="stack"><span class="eyebrow">Curriculum</span><h1 class="h2">Every day, at a glance</h1>
       <table class="table"><thead><tr><th>Day</th><th>Date</th><th>Phase</th><th>New</th><th></th></tr></thead><tbody>
-      ${DAYS.map(d => `<tr${d.day === today ? ' style="background:var(--accent-soft)"' : ''}><td>${d.day}</td><td class="small muted" style="white-space:nowrap">${fmtDate(S.dateForDay(d.day, state.settings.startDate)).replace(/^(\w+), /, '<span class="hide-sm">$1, </span>')}</td><td class="small">${d.type === 'pron' ? esc(d.pron.title) : esc(d.phase)}</td>
-        <td class="hz">${d.chars.map(c => c.h).join(' ')} <span class="small muted">${d.words.map(w => w.w).join(' · ')}</span></td>
-        <td><a class="btn btn-sm${state.progress.completed[d.day] ? '' : ' btn-ghost'}" href="#/lesson/${d.day}">${state.progress.completed[d.day] ? '✓ done' : 'open'}</a></td></tr>`).join('')}
-      </tbody></table></div>`;
-  };
-
-  /* ------------------------------------------------------------ LESSON */
-  const lesson = { day: 0, data: null, seg: 0, elapsed: 0, timer: null, review: { i: 0, shown: false }, quiz: { i: 0, right: 0, answered: false }, shadow: {} };
-  lesson.stop = function () { clearInterval(lesson.timer); lesson.timer = null; };
-  lesson.start = function (day) {
-    lesson.stop();
-    lesson.day = day; lesson.seg = 0; lesson.elapsed = 0;
-    lesson.review = { i: 0, shown: false }; lesson.quiz = { i: 0, right: 0, answered: false }; lesson.shadow = {};
-    lesson.data = S.buildLesson(day, DAYS, state.srs, state.cast, Date.now());
-    if (window.SenLinCloud) window.SenLinCloud.track('lesson_start', { day });
-    const extraDue = window.SenLinApp.extraReviewItems().filter(i => state.srs[i.id] && state.srs[i.id].due <= Date.now());
-    if (extraDue.length) lesson.data.review = extraDue.concat(lesson.data.review).slice(0, S.CONFIG.reviewCap + 4);
-    lesson.timer = setInterval(() => { lesson.elapsed++; const c = $('#clock'); if (c) { const left = S.CONFIG.lessonMinutes * 60 - lesson.elapsed; c.textContent = (left < 0 ? '+' : '') + seconds(left); c.classList.toggle('over', left < 0); } }, 1000);
-  };
-  routes.lesson = function (arg) {
-    const day = Math.max(1, Math.min(parseInt(arg, 10) || todayDay(), DAYS.length));
-    if (lesson.day !== day || !lesson.data) lesson.start(day);
-    return `<div class="lesson-top"><div class="container timer">
-        <span class="clock" id="clock">${seconds(S.CONFIG.lessonMinutes * 60 - lesson.elapsed)}</span>
+      ${y.map(e=>`<tr${e.day===s?' style="background:var(--accent-soft)"':""}><td>${e.day}</td><td class="small muted" style="white-space:nowrap">${q(c.dateForDay(e.day,l.settings.startDate)).replace(/^(\w+), /,'<span class="hide-sm">$1, </span>')}</td><td class="small">${e.type==="pron"?i(e.pron.title):i(e.phase)}</td>
+        <td class="hz">${e.chars.map(t=>t.h).join(" ")} <span class="small muted">${e.words.map(t=>t.w).join(" · ")}</span></td>
+        <td><a class="btn btn-sm${l.progress.completed[e.day]?"":" btn-ghost"}" href="#/lesson/${e.day}">${l.progress.completed[e.day]?"✓ done":"open"}</a></td></tr>`).join("")}
+      </tbody></table></div>`};const h={day:0,data:null,seg:0,elapsed:0,timer:null,review:{i:0,shown:!1},quiz:{i:0,right:0,answered:!1},shadow:{}};h.stop=function(){clearInterval(h.timer),h.timer=null},h.start=function(s){h.stop(),h.day=s,h.seg=0,h.elapsed=0,h.review={i:0,shown:!1},h.quiz={i:0,right:0,answered:!1},h.shadow={},h.data=c.buildLesson(s,y,l.srs,l.cast,Date.now()),window.SenLinCloud&&window.SenLinCloud.track("lesson_start",{day:s});const e=window.SenLinApp.extraReviewItems().filter(t=>l.srs[t.id]&&l.srs[t.id].due<=Date.now());e.length&&(h.data.review=e.concat(h.data.review).slice(0,c.CONFIG.reviewCap+4)),h.timer=setInterval(()=>{h.elapsed++;const t=u("#clock");if(t){const n=c.CONFIG.lessonMinutes*60-h.elapsed;t.textContent=(n<0?"+":"")+V(n),t.classList.toggle("over",n<0)}},1e3)},w.lesson=function(s){const e=Math.max(1,Math.min(parseInt(s,10)||k(),y.length));return(h.day!==e||!h.data)&&h.start(e),`<div class="lesson-top"><div class="container timer">
+        <span class="clock" id="clock">${V(c.CONFIG.lessonMinutes*60-h.elapsed)}</span>
         <div class="segments" id="segments"></div>
         <a class="btn btn-sm btn-ghost" href="#/">Exit</a>
       </div></div>
-      <div id="segment"></div>`;
-  };
-  routes.lesson.after = () => renderSegment();
-
-  function renderSegment() {
-    const L = lesson.data; const segs = S.CONFIG.segments;
-    $('#segments').innerHTML = segs.map((s, i) => `<button class="${i < lesson.seg ? 'done' : i === lesson.seg ? 'active' : ''}" data-seg="${i}" title="${esc(s.title)}"><span>${esc(s.title.split(':')[0])}</span></button>`).join('')
-      + `<button class="${lesson.seg >= segs.length ? 'active' : ''}" data-seg="${segs.length}" title="Done"><span>Done</span></button>`;
-    $('#segments').querySelectorAll('button').forEach(b => b.onclick = () => { lesson.seg = +b.dataset.seg; renderSegment(); });
-    const seg = segs[lesson.seg];
-    const el = $('#segment');
-    const head = (title, secs, note) => `<div class="seg-head"><div><span class="eyebrow">Day ${L.day} · ${lesson.seg + 1} of ${segs.length}</span><h2 class="h2">${esc(title)}</h2></div><span class="muted small">${Math.round(secs / 60 * 10) / 10} min${note ? ' · ' + esc(note) : ''}</span></div>`;
-    const next = (label = 'Next →') => `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${label}</button></div>`;
-    if (!seg) { el.innerHTML = renderDone(); wireDone(); return; }
-    let html = head(seg.title, seg.seconds, seg.id === 'review' ? `${L.review.length} cards` : seg.id === 'sentences' ? `${L.sentences.length} sentences` : '');
-    if (seg.id === 'warmup') html += renderWarmup(L) + next();
-    if (seg.id === 'review') html += renderReview(L);
-    if (seg.id === 'new') html += renderNew(L) + next();
-    if (seg.id === 'sentences') html += renderSentences(L) + next();
-    if (seg.id === 'quiz') html += renderQuiz(L);
-    el.innerHTML = html;
-    wireSegment(seg.id);
-    const n = $('#next'); if (n) n.onclick = () => { lesson.seg++; window.scrollTo(0, 0); renderSegment(); };
-  }
-
-  function renderWarmup(L) {
-    const tp = L.warmup.tonePair; const [a, b] = tp.pair.split('-').map(Number);
-    const ex = tp.ex.split(' — ')[0];
-    const hz = ex.split(' ')[0];
-    return `<div class="stack" style="margin-top:1rem">
+      <div id="segment"></div>`},w.lesson.after=()=>M();function M(){const s=h.data,e=c.CONFIG.segments;u("#segments").innerHTML=e.map((p,S)=>`<button class="${S<h.seg?"done":S===h.seg?"active":""}" data-seg="${S}" title="${i(p.title)}"><span>${i(p.title.split(":")[0])}</span></button>`).join("")+`<button class="${h.seg>=e.length?"active":""}" data-seg="${e.length}" title="Done"><span>Done</span></button>`,u("#segments").querySelectorAll("button").forEach(p=>p.onclick=()=>{h.seg=+p.dataset.seg,M()});const t=e[h.seg],n=u("#segment"),o=(p,S,$)=>`<div class="seg-head"><div><span class="eyebrow">Day ${s.day} · ${h.seg+1} of ${e.length}</span><h2 class="h2">${i(p)}</h2></div><span class="muted small">${Math.round(S/60*10)/10} min${$?" · "+i($):""}</span></div>`,r=(p="Next →")=>`<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${p}</button></div>`;if(!t){n.innerHTML=fe(),Se();return}let a=o(t.title,t.seconds,t.id==="review"?`${s.review.length} cards`:t.id==="sentences"?`${s.sentences.length} sentences`:"");t.id==="warmup"&&(a+=me(s)+r()),t.id==="review"&&(a+=se(s)),t.id==="new"&&(a+=ve(s)+r()),t.id==="sentences"&&(a+=we(s)+r()),t.id==="quiz"&&(a+=ge(s)),n.innerHTML=a,De(t.id);const d=u("#next");d&&(d.onclick=()=>{h.seg++,window.scrollTo(0,0),M()})}function me(s){const e=s.warmup.tonePair,[t,n]=e.pair.split("-").map(Number),o=e.ex.split(" — ")[0],r=o.split(" ")[0];return`<div class="stack" style="margin-top:1rem">
       <div class="card stack">
-        <span class="eyebrow">Tone pair of the day · ${tp.pair}</span>
+        <span class="eyebrow">Tone pair of the day · ${e.pair}</span>
         <div class="row" style="gap:1.2rem;align-items:center">
-          <div class="row" style="gap:.2rem">${toneSVG(a)}${toneSVG(b)}</div>
-          <div><div class="mid-hz">${esc(hz)}</div><div class="py">${pinyinHTML(ex.replace(hz, '').trim())}</div><div class="muted small">${esc(tp.en)}</div></div>
-          <div class="row">${playBtn(hz)}${playBtn(hz, { slow: true, rate: 0.6 })}</div>
+          <div class="row" style="gap:.2rem">${C(t)}${C(n)}</div>
+          <div><div class="mid-hz">${i(r)}</div><div class="py">${g(o.replace(r,"").trim())}</div><div class="muted small">${i(e.en)}</div></div>
+          <div class="row">${m(r)}${m(r,{slow:!0,rate:.6})}</div>
         </div>
         <p class="muted small">Listen, then say it five times. Exaggerate the contours: high-flat, rising, low-dip, falling.</p>
       </div>
-      ${L.warmup.kind === 'pron' ? `<div class="card stack"><span class="eyebrow">Sound drills</span>${L.warmup.drills.map(d => `<div class="row between"><span class="py" style="font-size:1.2rem">${pinyinHTML(d.replace(/\(.*\)/, ''))} <span class="muted small">${esc((d.match(/\(.*\)/) || [''])[0])}</span></span>${playBtn(d.replace(/\(.*\)|[→]/g, ''))}</div>`).join('')}</div>`
-        : !L.warmup.drills.length ? `<div class="card stack"><span class="eyebrow">Your first tree day</span><p class="muted small">Nothing to recall yet: today you plant the first three characters. From tomorrow this card holds yesterday's characters to say aloud from memory.</p></div>`
-        : `<div class="card stack"><span class="eyebrow">Say these aloud from memory</span><div class="grid grid-tiles">${L.warmup.drills.map(c => `<div class="tile"><span class="hz">${c.h}</span><span class="py">${pinyinHTML(c.p)}</span><span class="muted small">${esc(c.m)}</span><span>${playBtn(c.h)}</span></div>`).join('')}</div></div>`}
-    </div>`;
-  }
-
-  function renderReview(L, r) {
-    r = r || lesson.review; const card = L.review[r.i];
-    if (!card) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${L.review.length ? 'Review complete.' : 'Nothing to review yet — new items start appearing tomorrow.'}</p>${L.review.length ? `<p class="muted small">${L.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>` : ''}</div>` + `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${r.standalone ? 'Done' : 'Next →'}</button></div>`;
-    const x = card.ref;
-    const front = card.type === 'c' ? `<div class="big-hz">${x.h}</div>` : card.type === 'w' ? `<div class="mid-hz" style="font-size:3rem">${x.w}</div>` : `<div class="mid-hz">${esc(x.zh)}</div>`;
-    const back = card.type === 's' ? `<div class="py" style="font-size:1.2rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.en)}</div>` : `<div class="py" style="font-size:1.4rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.m)}</div>`;
-    const say = card.type === 'c' ? x.h : card.type === 'w' ? x.w : x.zh;
-    return `<div class="stack" style="margin-top:1rem">
-      <p class="muted small">Card ${r.i + 1} of ${L.review.length} · say the pronunciation and meaning out loud, then reveal.</p>
-      <div class="card flash" id="flash">${front}${r.shown ? `<div class="answer">${back}<div>${playBtn(say)}</div></div>` : '<span class="faint small">tap to reveal</span>'}</div>
-      ${r.shown ? `<div class="grades">
-        <button class="btn g-again" data-grade="0">Again</button><button class="btn g-hard" data-grade="1">Hard</button><button class="btn g-good" data-grade="2">Good</button><button class="btn g-easy" data-grade="3">Easy</button></div>`
-        : `<button class="btn btn-block" id="reveal">Reveal</button>`}
-      ${card.type === 'c' ? `<details class="small muted"><summary>Scene reminder</summary>${esc(state.scenes[x.h] || S.scene(x, state.cast).text)}</details>` : ''}
-    </div>`;
-  }
-
-  function renderNew(L) {
-    if (L.type === 'pron') return renderPron(L.pron);
-    if (!L.chars.length) return `<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>` + (L.words.length ? renderWords(L.words) : '') + renderGrammar(L.grammar) + renderDealDesk(L.business);
-    return `<div class="stack" style="margin-top:1rem">
+      ${s.warmup.kind==="pron"?`<div class="card stack"><span class="eyebrow">Sound drills</span>${s.warmup.drills.map(a=>`<div class="row between"><span class="py" style="font-size:1.2rem">${g(a.replace(/\(.*\)/,""))} <span class="muted small">${i((a.match(/\(.*\)/)||[""])[0])}</span></span>${m(a.replace(/\(.*\)|[→]/g,""))}</div>`).join("")}</div>`:s.warmup.drills.length?`<div class="card stack"><span class="eyebrow">Say these aloud from memory</span><div class="grid grid-tiles">${s.warmup.drills.map(a=>`<div class="tile"><span class="hz">${a.h}</span><span class="py">${g(a.p)}</span><span class="muted small">${i(a.m)}</span><span>${m(a.h)}</span></div>`).join("")}</div></div>`:`<div class="card stack"><span class="eyebrow">Your first tree day</span><p class="muted small">Nothing to recall yet: today you plant the first three characters. From tomorrow this card holds yesterday's characters to say aloud from memory.</p></div>`}
+    </div>`}function se(s,e){e=e||h.review;const t=s.review[e.i];if(!t)return`<div class="card stack" style="margin-top:1rem"><p class="lead">${s.review.length?"Review complete.":"Nothing to review yet — new items start appearing tomorrow."}</p>${s.review.length?`<p class="muted small">${s.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>`:""}</div><div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${e.standalone?"Done":"Next →"}</button></div>`;const n=t.ref,o=t.type==="c"?`<div class="big-hz">${n.h}</div>`:t.type==="w"?`<div class="mid-hz" style="font-size:3rem">${n.w}</div>`:`<div class="mid-hz">${i(n.zh)}</div>`,r=t.type==="s"?`<div class="py" style="font-size:1.2rem">${g(n.p)}</div><div class="muted">${i(n.en)}</div>`:`<div class="py" style="font-size:1.4rem">${g(n.p)}</div><div class="muted">${i(n.m)}</div>`,a=t.type==="c"?n.h:t.type==="w"?n.w:n.zh;return`<div class="stack" style="margin-top:1rem">
+      <p class="muted small">Card ${e.i+1} of ${s.review.length} · say the pronunciation and meaning out loud, then reveal.</p>
+      <div class="card flash" id="flash">${o}${e.shown?`<div class="answer">${r}<div>${m(a)}</div></div>`:'<span class="faint small">tap to reveal</span>'}</div>
+      ${e.shown?`<div class="grades">
+        <button class="btn g-again" data-grade="0">Again</button><button class="btn g-hard" data-grade="1">Hard</button><button class="btn g-good" data-grade="2">Good</button><button class="btn g-easy" data-grade="3">Easy</button></div>`:'<button class="btn btn-block" id="reveal">Reveal</button>'}
+      ${t.type==="c"?`<details class="small muted"><summary>Scene reminder</summary>${i(l.scenes[n.h]||c.scene(n,l.cast).text)}</details>`:""}
+    </div>`}function ve(s){return s.type==="pron"?ye(s.pron):s.chars.length?`<div class="stack" style="margin-top:1rem">
       <p class="muted small">For each character: look, listen, then close your eyes and <b>see the scene</b> for ten seconds. The actor gives you the initial, the set gives the final, the room gives the tone, the props give the shape.</p>
-      ${L.chars.map(({ ch, scene: sc }) => `<div class="card stack" data-char="${ch.h}">
-        <div class="row between"><span class="eyebrow">${esc(sc.initial || 'no initial')}- + -${esc(sc.final)} + tone ${sc.tone}</span><span class="chip">${esc(sc.actor)} · ${esc(sc.set)} · ${esc(sc.room)}</span></div>
+      ${s.chars.map(({ch:e,scene:t})=>`<div class="card stack" data-char="${e.h}">
+        <div class="row between"><span class="eyebrow">${i(t.initial||"no initial")}- + -${i(t.final)} + tone ${t.tone}</span><span class="chip">${i(t.actor)} · ${i(t.set)} · ${i(t.room)}</span></div>
         <div class="grid" style="grid-template-columns:auto 1fr;gap:1.2rem;align-items:center">
-          <div class="big-hz">${ch.h}</div>
+          <div class="big-hz">${e.h}</div>
           <div class="stack" style="gap:.4rem">
-            <div class="py ${toneClass(ch.p)}" style="font-size:1.8rem">${esc(ch.p)} ${toneSVG(sc.tone)}</div>
-            <div style="font-size:1.15rem;font-weight:700">${esc(ch.m)}</div>
-            <div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}<button class="btn btn-sm" data-write="${ch.h}" title="Stroke order">✍️ Write</button></div>
+            <div class="py ${N(e.p)}" style="font-size:1.8rem">${i(e.p)} ${C(t.tone)}</div>
+            <div style="font-size:1.15rem;font-weight:700">${i(e.m)}</div>
+            <div class="row">${m(e.h)}${m(e.h,{slow:!0,rate:.6})}${D(e.h)}<button class="btn btn-sm" data-write="${e.h}" title="Stroke order">✍️ Write</button></div>
           </div>
         </div>
-        <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
-        <div class="scene">${esc(state.scenes[ch.h] || sc.text)}</div>
+        <div class="props">${t.props.map(n=>`<span class="chip"><span class="hz">${n.c}</span> ${i(n.keyword)} → ${i(n.prop)}</span>`).join("")}</div>
+        <div class="scene">${i(l.scenes[e.h]||t.text)}</div>
         <details class="small"><summary class="muted">Make it mine (edit the scene)</summary>
-          <textarea class="input" data-scene="${ch.h}" placeholder="Rewrite the scene in your own words — the weirder and more vivid, the stickier.">${esc(state.scenes[ch.h] || sc.text)}</textarea></details>
-      </div>`).join('')}
-      ${L.words.length ? renderWords(L.words) : ''}
-      ${renderGrammar(L.grammar)}
-      ${renderDealDesk(L.business)}
-    </div>`;
-  }
-  const renderDealDesk = b => !b || !state.settings.business ? '' : `<div class="card stack" style="border-left:4px solid var(--sky-500)"><div class="row between"><span class="eyebrow">Deal desk · business Mandarin · ${esc(b.terms[0].unitTitle)}</span><a class="small muted" href="#/business">all units →</a></div>
-    ${b.terms.map(t => `<div class="row between"><div><span class="mid-hz">${esc(t.w)}</span> <span class="py">${pinyinHTML(t.p)}</span> <span class="muted">${esc(t.m)}</span>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ''}</div><span class="row">${playBtn(t.w)}${sayBtn(t.w)}<button class="btn btn-sm" data-addword="${esc(JSON.stringify({ w: t.w, p: t.p, m: t.m }))}">＋ deck</button></span></div>`).join('')}
-    <div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.25rem">${esc(b.phrase.zh)}</span><span class="row">${playBtn(b.phrase.zh)}${sayBtn(b.phrase.zh)}</span></div><div class="py small">${pinyinHTML(b.phrase.p)}</div><div class="muted small">${esc(b.phrase.en)}${b.phrase.note ? ' · ' + esc(b.phrase.note) : ''}</div></div></div>`;
-  const renderGrammar = list => list.map(g => `<div class="card stack" style="border-left:4px solid var(--accent)"><span class="eyebrow">Pattern of the day · ${esc(g.name)}</span>
-    <div class="mid-hz" style="font-size:1.3rem;font-family:var(--font-body)">${esc(g.pattern)}</div>
-    <div class="row between"><div><span class="mid-hz">${esc(g.zh)}</span> <span class="py">${pinyinHTML(g.p)}</span><div class="muted">${esc(g.en)}</div></div><span class="row">${playBtn(g.zh)}${sayBtn(g.zh)}</span></div>
-    <p class="small muted">${esc(g.note)}</p></div>`).join('');
-  const renderWords = words => `<div class="card stack"><span class="eyebrow">New words — built from characters you already own</span>
-    ${words.map(w => `<div class="row between"><div><span class="mid-hz">${w.w}</span> <span class="py">${pinyinHTML(w.p)}</span> <span class="muted">${esc(w.m)}</span></div>${playBtn(w.w)}</div>`).join('')}</div>`;
-
-  function renderPron(p) {
-    const c = S.resolveCast(state.cast);
-    const castRow = (kind, key, label, ex, hint) => `<tr><td><b class="py">${esc(label)}</b><br><span class="small muted">${esc(ex)}</span></td><td class="small muted">${esc(hint)}</td><td><div class="row" style="flex-wrap:nowrap"><input class="input" data-cast="${kind}" data-key="${esc(key)}" value="${esc(kind === 'actors' ? c.actor(key) : c.set(key))}">${playBtn(ex.split(' ')[1] || ex.split(' ')[0])}</div></td></tr>`;
-    return `<div class="stack" style="margin-top:1rem">
-      <div class="card stack"><h3 class="h3">${esc(p.title)}</h3><p>${esc(p.brief)}</p></div>
-      ${p.tones ? `<div class="card stack"><span class="eyebrow">The tones = rooms in every set</span>${p.tones.map(n => { const t = S.TONE_MAP[n]; return `<div class="row" style="gap:1rem">${toneSVG(n)}<div><b>${esc(t.name)}</b> <span class="muted">${esc(t.contour)}</span><br><span class="small muted">${esc(t.hint)} · room: <b>${esc(c.room(n))}</b></span></div></div>`; }).join('')}
-        <div class="row">${['mā 妈', 'má 麻', 'mǎ 马', 'mà 骂', 'ma 吗'].map(x => `<span class="chip chip-gold"><span class="py ${toneClass(x)}">${esc(x)}</span>${playBtn(x.split(' ')[1])}</span>`).join('')}</div></div>` : ''}
-      ${p.initials ? `<div class="card stack"><span class="eyebrow">Cast these actors (people you can picture instantly)</span><table class="table"><thead><tr><th>Sound</th><th>How</th><th>Your actor</th></tr></thead><tbody>
-        ${p.initials.map(k => { const i = S.INITIAL_MAP[k]; return castRow('actors', k, k + '-', i.ex, i.hint); }).join('')}</tbody></table></div>` : ''}
-      ${p.finalsIntro ? `<div class="card stack"><span class="eyebrow">Assign these sets (real places you know by heart)</span><table class="table"><thead><tr><th>Final</th><th>How</th><th>Your place</th></tr></thead><tbody>
-        ${p.finalsIntro.map(k => { const f = S.FINAL_MAP[k]; return castRow('sets', k, '-' + k, f.ex, f.hint); }).join('')}</tbody></table></div>` : ''}
-      ${p.pairs ? `<div class="card stack"><span class="eyebrow">Tone pairs</span>${p.pairs.map(pr => { const tp = S.PINYIN.tonePairs.find(t => t.pair === pr); const [a, b] = pr.split('-').map(Number); const hz = tp.ex.split(' ')[0]; return `<div class="row between"><div class="row" style="gap:.8rem"><span class="row" style="gap:0">${toneSVG(a)}${toneSVG(b)}</span><span><b>${pr}</b> <span class="hz">${esc(hz)}</span> <span class="py">${pinyinHTML(tp.ex.replace(hz, '').split('—')[0].trim())}</span> <span class="muted small">${esc(tp.en)}</span></span></div>${playBtn(hz)}</div>`; }).join('')}</div>` : ''}
-      ${p.props ? `<div class="card stack"><span class="eyebrow">Your first ten props</span><div class="grid grid-tiles">${p.props.map(k => { const cp = S.COMP_MAP[k]; return `<div class="tile"><span class="hz">${k}</span><b>${esc(cp.k)}</b><input class="input" data-cast="props" data-key="${k}" value="${esc(c.prop(k))}"></div>`; }).join('')}</div></div>` : ''}
-      ${p.drills.length ? `<div class="card stack"><span class="eyebrow">Drills</span>${p.drills.map(d => `<div class="row between"><span class="py" style="font-size:1.2rem">${pinyinHTML(d.replace(/\(.*\)/, ''))} <span class="muted small">${esc((d.match(/\(.*\)/) || [''])[0])}</span></span>${playBtn(d.replace(/\(.*\)|[→]/g, ''))}</div>`).join('')}</div>` : ''}
-      <div class="card card-soft"><b>Task:</b> ${esc(p.task)}</div>
-    </div>`;
-  }
-
-  function renderSentences(L) {
-    if (!L.sentences.length) return `<div class="card" style="margin-top:1rem"><p class="lead">Sentences begin once you own a few characters. Use the time to replay today’s scenes with your eyes closed.</p></div>`;
-    return `<div class="stack" style="margin-top:1rem">
-      <p class="muted small">Shadowing: play, then speak <b>with</b> the voice, matching rhythm and tones. Three passes each — first with pinyin, then with the English hidden, then eyes closed.${ASR ? ' Tap 🎤 to say it and get checked.' : ''}${(navigator.mediaDevices && window.MediaRecorder) ? ' Tap ⏺ to record yourself and compare.' : ''}</p>
-      ${L.sentences.map((s, i) => `<div class="sentence">
-        <div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row">${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}${sayBtn(s.zh)}${recBtn()}</span></div>
-        <div class="py">${pinyinHTML(s.p)}</div>
-        <div class="en hidden" data-reveal>${esc(s.en)}</div>
-        <div class="row"><span class="small muted">Passes:</span>${[1, 2, 3].map(n => `<button class="btn btn-sm${(lesson.shadow[i] || 0) >= n ? ' btn-primary' : ''}" data-shadow="${i}" data-n="${n}">${n}</button>`).join('')}</div>
-      </div>`).join('')}
-    </div>`;
-  }
-
-  function renderQuiz(L) {
-    const q = lesson.quiz; const item = L.quiz[q.i];
-    if (!item) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${q.right} / ${L.quiz.length} correct.</p><p class="muted small">${q.right === L.quiz.length ? 'Perfect. ' : ''}Anything you missed will come back in tomorrow’s review.</p></div><div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">Finish →</button></div>`;
-    return `<div class="stack" style="margin-top:1rem">
-      <p class="muted small">Question ${q.i + 1} of ${L.quiz.length}</p>
-      <div class="card stack">${item.kind === 'listen'
-        ? `<div class="row" style="justify-content:center"><button class="btn btn-lg btn-primary" data-say="${esc(item.prompt)}">🔊 Play</button><button class="btn" data-say="${esc(item.prompt)}" data-rate="0.6">🐢</button></div><p style="text-align:center" class="muted">${esc(item.question)}${window.speechSynthesis ? '' : ` (${esc(item.pinyin)})`}</p>`
-        : `<div class="big-hz" style="font-size:4rem">${esc(item.prompt)}</div><p style="text-align:center" class="muted">${esc(item.question)}</p>`}
-        <div class="stack" style="gap:.5rem">${item.options.map(o => `<button class="quiz-opt${item.kind === 'listen' ? ' hz' : ''}" data-opt="${esc(o)}" style="${item.kind === 'listen' ? 'font-size:1.4rem' : ''}">${item.kind !== 'listen' && item.question.includes('pronounced') ? pinyinHTML(o) : esc(o)}</button>`).join('')}</div>
-        <div id="quiz-next"></div></div></div>`;
-  }
-
-  function renderDone() {
-    const L = lesson.data; const wasDone = !!state.progress.completed[L.day];
-    if (!wasDone) {
-      state.progress.completed[L.day] = S.isoDate(new Date());
-      if (window.SenLinCloud) window.SenLinCloud.track('lesson_done', { day: L.day, quiz: lesson.quiz.right });
-      /* enter today's new items into spaced repetition */
-      const now = Date.now();
-      S.learnedItems(DAYS, L.day).filter(i => i.day === L.day).forEach(i => { if (!state.srs[i.id]) { const s = S.srsInit(); s.due = now + 86400000; state.srs[i.id] = s; } });
-      save();
-    }
-    const stats = S.curriculumStats(DAYS); const pct = Math.round(Object.keys(state.progress.completed).length / stats.days * 100);
-    const nextDay = L.day + 1;
-    return `<div class="card done-banner" style="margin-top:1rem">
-      <div class="big-hz">${L.chars.length ? L.chars.map(c => c.ch.h).join('') : '森'}</div>
-      <h2 class="h2">Day ${L.day} complete</h2>
+          <textarea class="input" data-scene="${e.h}" placeholder="Rewrite the scene in your own words — the weirder and more vivid, the stickier.">${i(l.scenes[e.h]||t.text)}</textarea></details>
+      </div>`).join("")}
+      ${s.words.length?ne(s.words):""}
+      ${ae(s.grammar)}
+      ${te(s.business)}
+    </div>`:'<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>'+(s.words.length?ne(s.words):"")+ae(s.grammar)+te(s.business)}const te=s=>!s||!l.settings.business?"":`<div class="card stack" style="border-left:4px solid var(--sky-500)"><div class="row between"><span class="eyebrow">Deal desk · business Mandarin · ${i(s.terms[0].unitTitle)}</span><a class="small muted" href="#/business">all units →</a></div>
+    ${s.terms.map(e=>`<div class="row between"><div><span class="mid-hz">${i(e.w)}</span> <span class="py">${g(e.p)}</span> <span class="muted">${i(e.m)}</span>${e.note?`<div class="small muted">${i(e.note)}</div>`:""}</div><span class="row">${m(e.w)}${D(e.w)}<button class="btn btn-sm" data-addword="${i(JSON.stringify({w:e.w,p:e.p,m:e.m}))}">＋ deck</button></span></div>`).join("")}
+    <div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.25rem">${i(s.phrase.zh)}</span><span class="row">${m(s.phrase.zh)}${D(s.phrase.zh)}</span></div><div class="py small">${g(s.phrase.p)}</div><div class="muted small">${i(s.phrase.en)}${s.phrase.note?" · "+i(s.phrase.note):""}</div></div></div>`,ae=s=>s.map(e=>`<div class="card stack" style="border-left:4px solid var(--accent)"><span class="eyebrow">Pattern of the day · ${i(e.name)}</span>
+    <div class="mid-hz" style="font-size:1.3rem;font-family:var(--font-body)">${i(e.pattern)}</div>
+    <div class="row between"><div><span class="mid-hz">${i(e.zh)}</span> <span class="py">${g(e.p)}</span><div class="muted">${i(e.en)}</div></div><span class="row">${m(e.zh)}${D(e.zh)}</span></div>
+    <p class="small muted">${i(e.note)}</p></div>`).join(""),ne=s=>`<div class="card stack"><span class="eyebrow">New words — built from characters you already own</span>
+    ${s.map(e=>`<div class="row between"><div><span class="mid-hz">${e.w}</span> <span class="py">${g(e.p)}</span> <span class="muted">${i(e.m)}</span></div>${m(e.w)}</div>`).join("")}</div>`;function ye(s){const e=c.resolveCast(l.cast),t=(n,o,r,a,d)=>`<tr><td><b class="py">${i(r)}</b><br><span class="small muted">${i(a)}</span></td><td class="small muted">${i(d)}</td><td><div class="row" style="flex-wrap:nowrap"><input class="input" data-cast="${n}" data-key="${i(o)}" value="${i(n==="actors"?e.actor(o):e.set(o))}">${m(a.split(" ")[1]||a.split(" ")[0])}</div></td></tr>`;return`<div class="stack" style="margin-top:1rem">
+      <div class="card stack"><h3 class="h3">${i(s.title)}</h3><p>${i(s.brief)}</p></div>
+      ${s.tones?`<div class="card stack"><span class="eyebrow">The tones = rooms in every set</span>${s.tones.map(n=>{const o=c.TONE_MAP[n];return`<div class="row" style="gap:1rem">${C(n)}<div><b>${i(o.name)}</b> <span class="muted">${i(o.contour)}</span><br><span class="small muted">${i(o.hint)} · room: <b>${i(e.room(n))}</b></span></div></div>`}).join("")}
+        <div class="row">${["mā 妈","má 麻","mǎ 马","mà 骂","ma 吗"].map(n=>`<span class="chip chip-gold"><span class="py ${N(n)}">${i(n)}</span>${m(n.split(" ")[1])}</span>`).join("")}</div></div>`:""}
+      ${s.initials?`<div class="card stack"><span class="eyebrow">Cast these actors (people you can picture instantly)</span><table class="table"><thead><tr><th>Sound</th><th>How</th><th>Your actor</th></tr></thead><tbody>
+        ${s.initials.map(n=>{const o=c.INITIAL_MAP[n];return t("actors",n,n+"-",o.ex,o.hint)}).join("")}</tbody></table></div>`:""}
+      ${s.finalsIntro?`<div class="card stack"><span class="eyebrow">Assign these sets (real places you know by heart)</span><table class="table"><thead><tr><th>Final</th><th>How</th><th>Your place</th></tr></thead><tbody>
+        ${s.finalsIntro.map(n=>{const o=c.FINAL_MAP[n];return t("sets",n,"-"+n,o.ex,o.hint)}).join("")}</tbody></table></div>`:""}
+      ${s.pairs?`<div class="card stack"><span class="eyebrow">Tone pairs</span>${s.pairs.map(n=>{const o=c.PINYIN.tonePairs.find(p=>p.pair===n),[r,a]=n.split("-").map(Number),d=o.ex.split(" ")[0];return`<div class="row between"><div class="row" style="gap:.8rem"><span class="row" style="gap:0">${C(r)}${C(a)}</span><span><b>${n}</b> <span class="hz">${i(d)}</span> <span class="py">${g(o.ex.replace(d,"").split("—")[0].trim())}</span> <span class="muted small">${i(o.en)}</span></span></div>${m(d)}</div>`}).join("")}</div>`:""}
+      ${s.props?`<div class="card stack"><span class="eyebrow">Your first ten props</span><div class="grid grid-tiles">${s.props.map(n=>{const o=c.COMP_MAP[n];return`<div class="tile"><span class="hz">${n}</span><b>${i(o.k)}</b><input class="input" data-cast="props" data-key="${n}" value="${i(e.prop(n))}"></div>`}).join("")}</div></div>`:""}
+      ${s.drills.length?`<div class="card stack"><span class="eyebrow">Drills</span>${s.drills.map(n=>`<div class="row between"><span class="py" style="font-size:1.2rem">${g(n.replace(/\(.*\)/,""))} <span class="muted small">${i((n.match(/\(.*\)/)||[""])[0])}</span></span>${m(n.replace(/\(.*\)|[→]/g,""))}</div>`).join("")}</div>`:""}
+      <div class="card card-soft"><b>Task:</b> ${i(s.task)}</div>
+    </div>`}function we(s){return s.sentences.length?`<div class="stack" style="margin-top:1rem">
+      <p class="muted small">Shadowing: play, then speak <b>with</b> the voice, matching rhythm and tones. Three passes each — first with pinyin, then with the English hidden, then eyes closed.${F?" Tap 🎤 to say it and get checked.":""}${navigator.mediaDevices&&window.MediaRecorder?" Tap ⏺ to record yourself and compare.":""}</p>
+      ${s.sentences.map((e,t)=>`<div class="sentence">
+        <div class="row between"><span class="mid-hz">${i(e.zh)}</span><span class="row">${m(e.zh)}${m(e.zh,{slow:!0,rate:.6})}${D(e.zh)}${oe()}</span></div>
+        <div class="py">${g(e.p)}</div>
+        <div class="en hidden" data-reveal>${i(e.en)}</div>
+        <div class="row"><span class="small muted">Passes:</span>${[1,2,3].map(n=>`<button class="btn btn-sm${(h.shadow[t]||0)>=n?" btn-primary":""}" data-shadow="${t}" data-n="${n}">${n}</button>`).join("")}</div>
+      </div>`).join("")}
+    </div>`:'<div class="card" style="margin-top:1rem"><p class="lead">Sentences begin once you own a few characters. Use the time to replay today’s scenes with your eyes closed.</p></div>'}function ge(s){const e=h.quiz,t=s.quiz[e.i];return t?`<div class="stack" style="margin-top:1rem">
+      <p class="muted small">Question ${e.i+1} of ${s.quiz.length}</p>
+      <div class="card stack">${t.kind==="listen"?`<div class="row" style="justify-content:center"><button class="btn btn-lg btn-primary" data-say="${i(t.prompt)}">🔊 Play</button><button class="btn" data-say="${i(t.prompt)}" data-rate="0.6">🐢</button></div><p style="text-align:center" class="muted">${i(t.question)}${window.speechSynthesis?"":` (${i(t.pinyin)})`}</p>`:`<div class="big-hz" style="font-size:4rem">${i(t.prompt)}</div><p style="text-align:center" class="muted">${i(t.question)}</p>`}
+        <div class="stack" style="gap:.5rem">${t.options.map(n=>`<button class="quiz-opt${t.kind==="listen"?" hz":""}" data-opt="${i(n)}" style="${t.kind==="listen"?"font-size:1.4rem":""}">${t.kind!=="listen"&&t.question.includes("pronounced")?g(n):i(n)}</button>`).join("")}</div>
+        <div id="quiz-next"></div></div></div>`:`<div class="card stack" style="margin-top:1rem"><p class="lead">${e.right} / ${s.quiz.length} correct.</p><p class="muted small">${e.right===s.quiz.length?"Perfect. ":""}Anything you missed will come back in tomorrow’s review.</p></div><div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">Finish →</button></div>`}function fe(){const s=h.data;if(!!!l.progress.completed[s.day]){l.progress.completed[s.day]=c.isoDate(new Date),window.SenLinCloud&&window.SenLinCloud.track("lesson_done",{day:s.day,quiz:h.quiz.right});const r=Date.now();c.learnedItems(y,s.day).filter(a=>a.day===s.day).forEach(a=>{if(!l.srs[a.id]){const d=c.srsInit();d.due=r+864e5,l.srs[a.id]=d}}),f()}const t=c.curriculumStats(y),n=Math.round(Object.keys(l.progress.completed).length/t.days*100),o=s.day+1;return`<div class="card done-banner" style="margin-top:1rem">
+      <div class="big-hz">${s.chars.length?s.chars.map(r=>r.ch.h).join(""):"森"}</div>
+      <h2 class="h2">Day ${s.day} complete</h2>
       <p style="font-weight:800;color:var(--lime-400)">Building your Mandarin Word Forest, one tree at a time. 🌲</p>
-      <p class="muted">${Math.round(lesson.elapsed / 60)} min ${lesson.elapsed % 60} s · ${streak()}-day streak · ${learnedChars()} characters planted</p>
-      <div class="progress-ring" style="--p:${pct}"><div>${pct}%</div></div>
-      <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
+      <p class="muted">${Math.round(h.elapsed/60)} min ${h.elapsed%60} s · ${P()}-day streak · ${Q()} characters planted</p>
+      <div class="progress-ring" style="--p:${n}"><div>${n}%</div></div>
+      <p class="muted small">${o<=y.length?`Tomorrow (Day ${o}): ${j(o).type==="pron"?i(j(o).pron.title):j(o).chars.map(r=>r.h).join(" ")+" + "+j(o).words.length+" words"}`:"The scheduled curriculum is complete — keep reviewing daily."}</p>
       <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a></div>
-    </div>${reminderNudge()}${reviewPrompt()}`;
-  }
-  /** After the first lessons, one card that points at the daily reminder (the single biggest day-7 retention lever). */
-  function reminderNudge() {
-    const n = Object.keys(state.progress.completed).length;
-    if (n < 1 || n > 3 || (state.settings.reminder && state.settings.reminder.on) || store.get('nudge-reminder', null)) return '';
-    return `<div class="card stack" id="nudge-reminder" style="margin-top:1rem"><span class="eyebrow">Keep the streak</span><p><b>Same time tomorrow?</b> A daily reminder is the difference between a streak and a good intention.</p>
-      <div class="row"><a class="btn btn-primary" href="#/settings" id="nudge-reminder-go">Set a daily reminder</a><button class="btn btn-ghost" id="nudge-reminder-later">Not now</button></div></div>`;
-  }
-  /** Rating prompt at a good moment only: a finished lesson on a 3-day streak, at most once per 90 days, only where a store listing exists. */
-  function storeLink() { const st = CFG.store || {}; const N = window.SenLinNative; const ua = navigator.userAgent || ''; if (N && N.isNative && N.platform === 'ios') return st.ios; if (/android/i.test(ua) || (N && N.isNative)) return st.android; return ''; }
-  function reviewPrompt() {
-    const link = storeLink(); if (!link) return '';
-    const r = store.get('review', {}); if (r.done || (r.askedAt && Date.now() - r.askedAt < 90 * 86400000)) return '';
-    if (streak() < 3 || Object.keys(state.progress.completed).length < 3) return '';
-    return `<div class="card stack" id="review-card" style="margin-top:1rem"><span class="eyebrow">A small favour</span><p><b>Enjoying SenLin?</b> A rating helps other learners find it, and takes a few seconds.</p>
-      <div class="row"><a class="btn btn-primary" id="review-yes" href="${esc(link)}" target="_blank" rel="noopener">Rate SenLin</a><button class="btn btn-ghost" id="review-later">Not now</button></div></div>`;
-  }
-  function wireDone() {
-    lesson.stop(); confetti();
-    const nudge = $('#nudge-reminder');
-    if (nudge) { const off = () => { store.set('nudge-reminder', Date.now()); nudge.remove(); }; $('#nudge-reminder-later').onclick = off; $('#nudge-reminder-go').onclick = () => store.set('nudge-reminder', Date.now()); }
-    const card = $('#review-card'); if (!card) return;
-    const seen = (done) => { store.set('review', { askedAt: Date.now(), done: !!done }); card.remove(); if (window.SenLinCloud) window.SenLinCloud.track('review_prompt', { done: !!done }); };
-    $('#review-yes').onclick = () => { const N = window.SenLinNative; if (N && N.isNative && N.review) { try { N.review(); } catch (e) { /* fall back to the link */ } } seen(true); };
-    $('#review-later').onclick = () => seen(false);
-  }
-
-  function wireSegment(id) {
-    const L = lesson.data;
-    if (id === 'review') { wireReview(L, lesson.review, renderSegment); document.addEventListener('keydown', reviewKeys); }
-    else document.removeEventListener('keydown', reviewKeys);
-    document.querySelectorAll('[data-scene]').forEach(t => t.oninput = () => { state.scenes[t.dataset.scene] = t.value.trim(); save(); });
-    document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
-    document.querySelectorAll('[data-reveal]').forEach(e => e.onclick = () => e.classList.remove('hidden'));
-    document.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { if (window.SenLinApp.addWord) { window.SenLinApp.addWord(JSON.parse(b.dataset.addword)); b.textContent = '✓ in deck'; } });
-    document.querySelectorAll('[data-shadow]').forEach(b => b.onclick = () => { lesson.shadow[b.dataset.shadow] = +b.dataset.n; renderSegment(); });
-    if (id === 'quiz') { const q = L.quiz[lesson.quiz.i]; if (q && q.kind === 'listen' && !lesson.quiz.answered) setTimeout(() => tts.speak(q.prompt), 300); }
-    if (id === 'quiz') document.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => {
-      const q = lesson.quiz; if (q.answered) return; q.answered = true;
-      const item = L.quiz[q.i]; const ok = b.dataset.opt === item.correct;
-      state.progress.quiz.total++; if (ok) { q.right++; state.progress.quiz.right++; } save();
-      document.querySelectorAll('[data-opt]').forEach(o => { if (o.dataset.opt === item.correct) o.classList.add('right'); else if (o === b) o.classList.add('wrong'); });
-      $('#quiz-next').innerHTML = `<div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="qn">${ok ? 'Correct →' : 'Next →'}</button></div>`;
-      $('#qn').onclick = () => { q.i++; q.answered = false; renderSegment(); };
-    });
-  }
-  function wireReview(L, r, rerender) {
-    const reveal = () => { r.shown = true; rerender(); };
-    const f = $('#flash'); if (f && !r.shown) f.onclick = reveal;
-    const rb = $('#reveal'); if (rb) rb.onclick = reveal;
-    document.querySelectorAll('[data-grade]').forEach(b => b.onclick = () => {
-      const card = L.review[r.i]; const g = +b.dataset.grade;
-      state.srs[card.id] = S.srsReview(state.srs[card.id], g, Date.now());
-      state.progress.reviews.total++; if (g >= 2) state.progress.reviews.good++;
-      save(); r.i++; r.shown = false; rerender();
-    });
-  }
-  /* ---- Review anytime: every due card, outside the daily lesson */
-  routes.review = function () {
-    const now = Date.now();
-    const learned = S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => state.progress.completed[i.day]).concat(window.SenLinApp.extraReviewItems());
-    const due = learned.filter(i => state.srs[i.id] && state.srs[i.id].due <= now).sort((a, b) => state.srs[a.id].due - state.srs[b.id].due).slice(0, 40);
-    routes.review.L = { review: due }; routes.review.r = { i: 0, shown: false, standalone: true };
-    return `<div class="stack"><div class="row between"><div><span class="eyebrow">Review anytime</span><h1 class="h2">${due.length} card${due.length === 1 ? '' : 's'} due</h1></div><a class="btn btn-sm btn-ghost" href="#/">Exit</a></div><div id="review-body"></div></div>`;
-  };
-  routes.review.after = () => {
-    const L = routes.review.L, r = routes.review.r;
-    const draw = () => { $('#review-body').innerHTML = renderReview(L, r); wireReview(L, r, draw); const n = $('#next'); if (n) n.onclick = () => { location.hash = '#/'; }; };
-    draw(); document.addEventListener('keydown', reviewKeys);
-  };
-  function reviewKeys(e) {
-    if (e.target.matches('input,textarea')) return;
-    if (e.key === ' ' || e.key === 'Enter') { const b = $('#reveal'); if (b) { e.preventDefault(); b.click(); } }
-    const g = { '1': 0, '2': 1, '3': 2, '4': 3 }[e.key]; if (g !== undefined) { const b = $(`[data-grade="${g}"]`); if (b) b.click(); }
-  }
-
-  /* ------------------------------------------------------------ LIBRARY */
-  routes.library = function (arg) {
-    const tab = arg || 'characters';
-    const today = todayDay();
-    const charDay = {}; DAYS.forEach(d => d.chars.forEach(c => { charDay[c.h] = d.day; }));
-    const wordDay = {}; DAYS.forEach(d => d.words.forEach(w => { wordDay[w.w] = d.day; }));
-    const sentDay = {}; DAYS.forEach(d => d.sentences.forEach(s => { sentDay[s.zh] = d.day; }));
-    return `<div class="stack">
+    </div>${be()}${ke()}`}function be(){const s=Object.keys(l.progress.completed).length;return s<1||s>3||l.settings.reminder&&l.settings.reminder.on||b.get("nudge-reminder",null)?"":`<div class="card stack" id="nudge-reminder" style="margin-top:1rem"><span class="eyebrow">Keep the streak</span><p><b>Same time tomorrow?</b> A daily reminder is the difference between a streak and a good intention.</p>
+      <div class="row"><a class="btn btn-primary" href="#/settings" id="nudge-reminder-go">Set a daily reminder</a><button class="btn btn-ghost" id="nudge-reminder-later">Not now</button></div></div>`}function $e(){const s=T.store||{},e=window.SenLinNative,t=navigator.userAgent||"";return e&&e.isNative&&e.platform==="ios"?s.ios:/android/i.test(t)||e&&e.isNative?s.android:""}function ke(){const s=$e();if(!s)return"";const e=b.get("review",{});return e.done||e.askedAt&&Date.now()-e.askedAt<90*864e5||P()<3||Object.keys(l.progress.completed).length<3?"":`<div class="card stack" id="review-card" style="margin-top:1rem"><span class="eyebrow">A small favour</span><p><b>Enjoying SenLin?</b> A rating helps other learners find it, and takes a few seconds.</p>
+      <div class="row"><a class="btn btn-primary" id="review-yes" href="${i(s)}" target="_blank" rel="noopener">Rate SenLin</a><button class="btn btn-ghost" id="review-later">Not now</button></div></div>`}function Se(){h.stop(),ce();const s=u("#nudge-reminder");if(s){const n=()=>{b.set("nudge-reminder",Date.now()),s.remove()};u("#nudge-reminder-later").onclick=n,u("#nudge-reminder-go").onclick=()=>b.set("nudge-reminder",Date.now())}const e=u("#review-card");if(!e)return;const t=n=>{b.set("review",{askedAt:Date.now(),done:!!n}),e.remove(),window.SenLinCloud&&window.SenLinCloud.track("review_prompt",{done:!!n})};u("#review-yes").onclick=()=>{const n=window.SenLinNative;if(n&&n.isNative&&n.review)try{n.review()}catch{}t(!0)},u("#review-later").onclick=()=>t(!1)}function De(s){const e=h.data;if(s==="review"?(ie(e,h.review,M),document.addEventListener("keydown",B)):document.removeEventListener("keydown",B),document.querySelectorAll("[data-scene]").forEach(t=>t.oninput=()=>{l.scenes[t.dataset.scene]=t.value.trim(),f()}),document.querySelectorAll("[data-cast]").forEach(t=>t.oninput=()=>{l.cast[t.dataset.cast][t.dataset.key]=t.value.trim(),f()}),document.querySelectorAll("[data-reveal]").forEach(t=>t.onclick=()=>t.classList.remove("hidden")),document.querySelectorAll("[data-addword]").forEach(t=>t.onclick=()=>{window.SenLinApp.addWord&&(window.SenLinApp.addWord(JSON.parse(t.dataset.addword)),t.textContent="✓ in deck")}),document.querySelectorAll("[data-shadow]").forEach(t=>t.onclick=()=>{h.shadow[t.dataset.shadow]=+t.dataset.n,M()}),s==="quiz"){const t=e.quiz[h.quiz.i];t&&t.kind==="listen"&&!h.quiz.answered&&setTimeout(()=>A.speak(t.prompt),300)}s==="quiz"&&document.querySelectorAll("[data-opt]").forEach(t=>t.onclick=()=>{const n=h.quiz;if(n.answered)return;n.answered=!0;const o=e.quiz[n.i],r=t.dataset.opt===o.correct;l.progress.quiz.total++,r&&(n.right++,l.progress.quiz.right++),f(),document.querySelectorAll("[data-opt]").forEach(a=>{a.dataset.opt===o.correct?a.classList.add("right"):a===t&&a.classList.add("wrong")}),u("#quiz-next").innerHTML=`<div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="qn">${r?"Correct →":"Next →"}</button></div>`,u("#qn").onclick=()=>{n.i++,n.answered=!1,M()}})}function ie(s,e,t){const n=()=>{e.shown=!0,t()},o=u("#flash");o&&!e.shown&&(o.onclick=n);const r=u("#reveal");r&&(r.onclick=n),document.querySelectorAll("[data-grade]").forEach(a=>a.onclick=()=>{const d=s.review[e.i],p=+a.dataset.grade;l.srs[d.id]=c.srsReview(l.srs[d.id],p,Date.now()),l.progress.reviews.total++,p>=2&&l.progress.reviews.good++,f(),e.i++,e.shown=!1,t()})}w.review=function(){const s=Date.now(),t=c.learnedItems(y,Math.min(k(),y.length)).filter(n=>l.progress.completed[n.day]).concat(window.SenLinApp.extraReviewItems()).filter(n=>l.srs[n.id]&&l.srs[n.id].due<=s).sort((n,o)=>l.srs[n.id].due-l.srs[o.id].due).slice(0,40);return w.review.L={review:t},w.review.r={i:0,shown:!1,standalone:!0},`<div class="stack"><div class="row between"><div><span class="eyebrow">Review anytime</span><h1 class="h2">${t.length} card${t.length===1?"":"s"} due</h1></div><a class="btn btn-sm btn-ghost" href="#/">Exit</a></div><div id="review-body"></div></div>`},w.review.after=()=>{const s=w.review.L,e=w.review.r,t=()=>{u("#review-body").innerHTML=se(s,e),ie(s,e,t);const n=u("#next");n&&(n.onclick=()=>{location.hash="#/"})};t(),document.addEventListener("keydown",B)};function B(s){if(s.target.matches("input,textarea"))return;if(s.key===" "||s.key==="Enter"){const t=u("#reveal");t&&(s.preventDefault(),t.click())}const e={1:0,2:1,3:2,4:3}[s.key];if(e!==void 0){const t=u(`[data-grade="${e}"]`);t&&t.click()}}w.library=function(s){const e=s||"characters",t=k(),n={};y.forEach(a=>a.chars.forEach(d=>{n[d.h]=a.day}));const o={};y.forEach(a=>a.words.forEach(d=>{o[d.w]=a.day}));const r={};return y.forEach(a=>a.sentences.forEach(d=>{r[d.zh]=a.day})),`<div class="stack">
       <div class="row between"><div><span class="eyebrow">Library</span><h1 class="h2">Everything in the forest</h1></div>
-        <div class="row">${['characters', 'words', 'sentences', 'grammar', 'props'].map(t => `<a class="btn btn-sm${t === tab ? ' btn-primary' : ''}" href="#/library/${t}">${t}</a>`).join('')}</div></div>
+        <div class="row">${["characters","words","sentences","grammar","props"].map(a=>`<a class="btn btn-sm${a===e?" btn-primary":""}" href="#/library/${a}">${a}</a>`).join("")}</div></div>
       <input class="input" id="search" placeholder="Search hanzi, pinyin or English…" autocomplete="off">
       <div id="lib">
-      ${tab === 'characters' ? `<div class="grid grid-tiles">${S.CHARACTERS.map(c => `<button class="tile" data-open="${c.h}" data-q="${esc((c.h + ' ' + c.p + ' ' + c.m + ' ' + S.parsePinyin(c.p).base).toLowerCase())}" style="${charDay[c.h] > today ? 'opacity:.55' : ''}"><span class="hz">${c.h}</span><span class="py ${toneClass(c.p)}">${esc(c.p)}</span><span class="small muted">${esc(c.m)}</span><span class="faint small">HSK ${c.level} · day ${charDay[c.h]}</span></button>`).join('')}</div>` : ''}
-      ${tab === 'words' ? `<table class="table"><tbody>${S.WORDS.map(w => `<tr data-q="${esc((w.w + ' ' + w.p + ' ' + w.m).toLowerCase())}"><td class="mid-hz">${w.w}</td><td class="py">${pinyinHTML(w.p)}</td><td>${esc(w.m)}</td><td class="faint small">day ${wordDay[w.w] || '—'}</td><td>${playBtn(w.w)}</td></tr>`).join('')}</tbody></table>` : ''}
-      ${tab === 'sentences' ? `<div class="stack">${S.SENTENCES.map(s => `<div class="sentence" data-q="${esc((s.zh + ' ' + s.p + ' ' + s.en).toLowerCase())}"><div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row"><span class="faint small">day ${sentDay[s.zh] || '—'}</span>${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}${sayBtn(s.zh)}</span></div><div class="py">${pinyinHTML(s.p)}</div><div class="en">${esc(s.en)}</div></div>`).join('')}</div>` : ''}
-      ${tab === 'grammar' ? `<div class="stack">${S.GRAMMAR.map(g => `<div class="sentence" data-q="${esc((g.name + ' ' + g.pattern + ' ' + g.zh + ' ' + g.en).toLowerCase())}"><div class="row between"><b>${esc(g.name)} <span class="muted">· HSK ${g.level}</span></b><span class="row">${playBtn(g.zh)}</span></div><div>${esc(g.pattern)}</div><div><span class="hz" style="font-size:1.2rem">${esc(g.zh)}</span> <span class="py">${pinyinHTML(g.p)}</span> <span class="muted small">${esc(g.en)}</span></div><div class="small muted">${esc(g.note)}</div></div>`).join('')}</div>` : ''}
-      ${tab === 'props' ? `<div class="grid grid-tiles">${S.COMPONENTS.map(c => `<div class="tile" data-q="${esc((c.c + ' ' + c.k + ' ' + c.prop).toLowerCase())}"><span class="hz">${c.c}</span><b>${esc(c.k)}</b><span class="small muted">${esc(S.resolveCast(state.cast).prop(c.c))}</span></div>`).join('')}</div>` : ''}
-      </div></div>`;
-  };
-  routes.library.after = () => {
-    $('#search').oninput = e => { const q = e.target.value.trim().toLowerCase(); document.querySelectorAll('#lib [data-q]').forEach(el => { el.style.display = !q || el.dataset.q.includes(q) ? '' : 'none'; }); };
-    document.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openChar(b.dataset.open));
-  };
-  function openChar(h) {
-    const ch = S.CHARACTERS.find(c => c.h === h); if (!ch) return;
-    const sc = S.scene(ch, state.cast);
-    const words = S.WORDS.filter(w => w.w.includes(h)).slice(0, 8);
-    const sents = S.SENTENCES.filter(s => s.zh.includes(h)).slice(0, 4);
-    const srs = state.srs['c:' + h];
-    openDialog(`<div class="row between"><span class="eyebrow">${esc(sc.actor)} · ${esc(sc.set)} · ${esc(sc.room)}</span><button class="btn btn-sm btn-ghost" data-close>✕</button></div>
-      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${ch.h}</div><div><div class="py ${toneClass(ch.p)}" style="font-size:1.6rem">${esc(ch.p)}</div><div style="font-weight:700">${esc(ch.m)}</div><div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}<button class="btn btn-sm" data-write="${ch.h}" title="Stroke order">✍️ Write</button></div></div></div>
-      <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
-      <div class="scene">${esc(state.scenes[h] || sc.text)}</div>
-      <textarea class="input" data-scene="${h}" placeholder="Rewrite this scene in your own words">${esc(state.scenes[h] || '')}</textarea>
-      ${words.length ? `<div><span class="eyebrow">Words</span>${words.map(w => `<div class="row between"><span><span class="hz" style="font-size:1.3rem">${w.w}</span> <span class="py">${pinyinHTML(w.p)}</span> <span class="muted small">${esc(w.m)}</span></span>${playBtn(w.w)}</div>`).join('')}</div>` : ''}
-      ${sents.length ? `<div><span class="eyebrow">Sentences</span>${sents.map(s => `<div class="row between"><span><span class="hz">${esc(s.zh)}</span> <span class="muted small">${esc(s.en)}</span></span>${playBtn(s.zh)}</div>`).join('')}</div>` : ''}
-      <p class="faint small">${srs ? `Reviewed ${srs.reps} time${srs.reps === 1 ? '' : 's'} · next due ${new Date(srs.due).toLocaleDateString()} · interval ${srs.ivl} d` : 'Not yet in your review deck.'}</p>`);
-    $('#dialog [data-scene]').oninput = e => { state.scenes[h] = e.target.value.trim(); save(); };
-  }
-
-  /* ------------------------------------------------------------ CAST */
-  routes.cast = function () {
-    const c = S.resolveCast(state.cast);
-    return `<div class="stack-lg">
+      ${e==="characters"?`<div class="grid grid-tiles">${c.CHARACTERS.map(a=>`<button class="tile" data-open="${a.h}" data-q="${i((a.h+" "+a.p+" "+a.m+" "+c.parsePinyin(a.p).base).toLowerCase())}" style="${n[a.h]>t?"opacity:.55":""}"><span class="hz">${a.h}</span><span class="py ${N(a.p)}">${i(a.p)}</span><span class="small muted">${i(a.m)}</span><span class="faint small">HSK ${a.level} · day ${n[a.h]}</span></button>`).join("")}</div>`:""}
+      ${e==="words"?`<table class="table"><tbody>${c.WORDS.map(a=>`<tr data-q="${i((a.w+" "+a.p+" "+a.m).toLowerCase())}"><td class="mid-hz">${a.w}</td><td class="py">${g(a.p)}</td><td>${i(a.m)}</td><td class="faint small">day ${o[a.w]||"—"}</td><td>${m(a.w)}</td></tr>`).join("")}</tbody></table>`:""}
+      ${e==="sentences"?`<div class="stack">${c.SENTENCES.map(a=>`<div class="sentence" data-q="${i((a.zh+" "+a.p+" "+a.en).toLowerCase())}"><div class="row between"><span class="mid-hz">${i(a.zh)}</span><span class="row"><span class="faint small">day ${r[a.zh]||"—"}</span>${m(a.zh)}${m(a.zh,{slow:!0,rate:.6})}${D(a.zh)}</span></div><div class="py">${g(a.p)}</div><div class="en">${i(a.en)}</div></div>`).join("")}</div>`:""}
+      ${e==="grammar"?`<div class="stack">${c.GRAMMAR.map(a=>`<div class="sentence" data-q="${i((a.name+" "+a.pattern+" "+a.zh+" "+a.en).toLowerCase())}"><div class="row between"><b>${i(a.name)} <span class="muted">· HSK ${a.level}</span></b><span class="row">${m(a.zh)}</span></div><div>${i(a.pattern)}</div><div><span class="hz" style="font-size:1.2rem">${i(a.zh)}</span> <span class="py">${g(a.p)}</span> <span class="muted small">${i(a.en)}</span></div><div class="small muted">${i(a.note)}</div></div>`).join("")}</div>`:""}
+      ${e==="props"?`<div class="grid grid-tiles">${c.COMPONENTS.map(a=>`<div class="tile" data-q="${i((a.c+" "+a.k+" "+a.prop).toLowerCase())}"><span class="hz">${a.c}</span><b>${i(a.k)}</b><span class="small muted">${i(c.resolveCast(l.cast).prop(a.c))}</span></div>`).join("")}</div>`:""}
+      </div></div>`},w.library.after=()=>{u("#search").oninput=s=>{const e=s.target.value.trim().toLowerCase();document.querySelectorAll("#lib [data-q]").forEach(t=>{t.style.display=!e||t.dataset.q.includes(e)?"":"none"})},document.querySelectorAll("[data-open]").forEach(s=>s.onclick=()=>xe(s.dataset.open))};function xe(s){const e=c.CHARACTERS.find(a=>a.h===s);if(!e)return;const t=c.scene(e,l.cast),n=c.WORDS.filter(a=>a.w.includes(s)).slice(0,8),o=c.SENTENCES.filter(a=>a.zh.includes(s)).slice(0,4),r=l.srs["c:"+s];le(`<div class="row between"><span class="eyebrow">${i(t.actor)} · ${i(t.set)} · ${i(t.room)}</span><button class="btn btn-sm btn-ghost" data-close>✕</button></div>
+      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${e.h}</div><div><div class="py ${N(e.p)}" style="font-size:1.6rem">${i(e.p)}</div><div style="font-weight:700">${i(e.m)}</div><div class="row">${m(e.h)}${m(e.h,{slow:!0,rate:.6})}${D(e.h)}<button class="btn btn-sm" data-write="${e.h}" title="Stroke order">✍️ Write</button></div></div></div>
+      <div class="props">${t.props.map(a=>`<span class="chip"><span class="hz">${a.c}</span> ${i(a.keyword)} → ${i(a.prop)}</span>`).join("")}</div>
+      <div class="scene">${i(l.scenes[s]||t.text)}</div>
+      <textarea class="input" data-scene="${s}" placeholder="Rewrite this scene in your own words">${i(l.scenes[s]||"")}</textarea>
+      ${n.length?`<div><span class="eyebrow">Words</span>${n.map(a=>`<div class="row between"><span><span class="hz" style="font-size:1.3rem">${a.w}</span> <span class="py">${g(a.p)}</span> <span class="muted small">${i(a.m)}</span></span>${m(a.w)}</div>`).join("")}</div>`:""}
+      ${o.length?`<div><span class="eyebrow">Sentences</span>${o.map(a=>`<div class="row between"><span><span class="hz">${i(a.zh)}</span> <span class="muted small">${i(a.en)}</span></span>${m(a.zh)}</div>`).join("")}</div>`:""}
+      <p class="faint small">${r?`Reviewed ${r.reps} time${r.reps===1?"":"s"} · next due ${new Date(r.due).toLocaleDateString()} · interval ${r.ivl} d`:"Not yet in your review deck."}</p>`),u("#dialog [data-scene]").oninput=a=>{l.scenes[s]=a.target.value.trim(),f()}}w.cast=function(){const s=c.resolveCast(l.cast);return`<div class="stack-lg">
       <div><span class="eyebrow">Cast</span><h1 class="h2">Your actors, sets, rooms and props</h1><p class="lead">Every Mandarin syllable is an actor (initial) in a set (final), standing in a room (tone). Use people and places you can picture instantly — the memory does the rest. Changes save automatically.</p></div>
       <section class="card stack"><h2 class="h3">Actors — initials</h2><table class="table"><thead><tr><th>Initial</th><th>Example</th><th>Your actor</th></tr></thead><tbody>
-        ${S.PINYIN.initials.map(i => `<tr><td><b class="py">${esc(i.key)}-</b><br><span class="small muted">${esc(i.hint)}</span></td><td class="small">${esc(i.ex)} ${playBtn(i.ex.split(' ')[1] || '')}</td><td><input class="input" data-cast="actors" data-key="${esc(i.key)}" value="${esc(c.actor(i.key))}"></td></tr>`).join('')}</tbody></table></section>
+        ${c.PINYIN.initials.map(e=>`<tr><td><b class="py">${i(e.key)}-</b><br><span class="small muted">${i(e.hint)}</span></td><td class="small">${i(e.ex)} ${m(e.ex.split(" ")[1]||"")}</td><td><input class="input" data-cast="actors" data-key="${i(e.key)}" value="${i(s.actor(e.key))}"></td></tr>`).join("")}</tbody></table></section>
       <section class="card stack"><h2 class="h3">Sets — finals</h2><table class="table"><thead><tr><th>Final</th><th>Example</th><th>Your place</th></tr></thead><tbody>
-        ${S.PINYIN.finals.map(f => `<tr><td><b class="py">-${esc(f.key)}</b><br><span class="small muted">${esc(f.hint)}</span></td><td class="small">${esc(f.ex)} ${playBtn(f.ex.split(' ')[1] || '')}</td><td><input class="input" data-cast="sets" data-key="${esc(f.key)}" value="${esc(c.set(f.key))}"></td></tr>`).join('')}</tbody></table></section>
+        ${c.PINYIN.finals.map(e=>`<tr><td><b class="py">-${i(e.key)}</b><br><span class="small muted">${i(e.hint)}</span></td><td class="small">${i(e.ex)} ${m(e.ex.split(" ")[1]||"")}</td><td><input class="input" data-cast="sets" data-key="${i(e.key)}" value="${i(s.set(e.key))}"></td></tr>`).join("")}</tbody></table></section>
       <section class="card stack"><h2 class="h3">Rooms — tones</h2><p class="muted small">The same five rooms exist in every set. Pick rooms every one of your places has.</p><table class="table"><tbody>
-        ${S.PINYIN.tones.map(t => `<tr><td>${toneSVG(t.n)}</td><td><b>${esc(t.name)}</b><br><span class="small muted">${esc(t.hint)}</span></td><td><input class="input" data-cast="rooms" data-key="${t.n}" value="${esc(c.room(t.n))}"></td></tr>`).join('')}</tbody></table></section>
+        ${c.PINYIN.tones.map(e=>`<tr><td>${C(e.n)}</td><td><b>${i(e.name)}</b><br><span class="small muted">${i(e.hint)}</span></td><td><input class="input" data-cast="rooms" data-key="${e.n}" value="${i(s.room(e.n))}"></td></tr>`).join("")}</tbody></table></section>
       <section class="card stack"><h2 class="h3">Props — components</h2><input class="input" id="propsearch" placeholder="Filter props…"><div class="grid grid-tiles" id="props">
-        ${S.COMPONENTS.map(p => `<div class="tile" data-q="${esc((p.c + ' ' + p.k + ' ' + c.prop(p.c)).toLowerCase())}"><span class="hz">${p.c}</span><b class="small">${esc(p.k)}</b><input class="input" data-cast="props" data-key="${p.c}" value="${esc(c.prop(p.c))}"></div>`).join('')}</div></section>
+        ${c.COMPONENTS.map(e=>`<div class="tile" data-q="${i((e.c+" "+e.k+" "+s.prop(e.c)).toLowerCase())}"><span class="hz">${e.c}</span><b class="small">${i(e.k)}</b><input class="input" data-cast="props" data-key="${e.c}" value="${i(s.prop(e.c))}"></div>`).join("")}</div></section>
       <div class="row"><button class="btn btn-ghost" id="resetcast">Reset to defaults</button></div>
-    </div>`;
-  };
-  routes.cast.after = () => {
-    document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
-    $('#propsearch').oninput = e => { const q = e.target.value.trim().toLowerCase(); document.querySelectorAll('#props [data-q]').forEach(el => el.style.display = !q || el.dataset.q.includes(q) ? '' : 'none'); };
-    $('#resetcast').onclick = () => { if (confirm('Reset all actors, sets, rooms and props to the defaults?')) { state.cast = { actors: {}, sets: {}, rooms: {}, props: {} }; save(); navigate(); } };
-  };
-
-  /* ------------------------------------------------------------ PROGRESS */
-  routes.progress = function () {
-    const today = todayDay(); const done = state.progress.completed;
-    const total = Object.keys(done).length; const st = S.curriculumStats(DAYS);
-    const rv = state.progress.reviews, qz = state.progress.quiz;
-    const cells = []; const start = Math.max(1, today - 90);
-    for (let d = start; d <= today + 6; d++) cells.push(`<i class="${done[d] ? 'on' : d < today ? 'missed' : d > today ? 'future' : ''}${d === today ? ' today' : ''}" title="Day ${d} · ${fmtDate(S.dateForDay(d, state.settings.startDate))}${done[d] ? ' · done' : ''}"></i>`);
-    const learned = S.learnedItems(DAYS, Math.min(today, DAYS.length)).filter(i => done[i.day]);
-    const due = Object.entries(state.srs).filter(([, s]) => s.due <= Date.now()).length;
-    const mature = Object.values(state.srs).filter(s => s.ivl >= 21).length;
-    return `<div class="stack-lg">
+    </div>`},w.cast.after=()=>{document.querySelectorAll("[data-cast]").forEach(s=>s.oninput=()=>{l.cast[s.dataset.cast][s.dataset.key]=s.value.trim(),f()}),u("#propsearch").oninput=s=>{const e=s.target.value.trim().toLowerCase();document.querySelectorAll("#props [data-q]").forEach(t=>t.style.display=!e||t.dataset.q.includes(e)?"":"none")},u("#resetcast").onclick=()=>{confirm("Reset all actors, sets, rooms and props to the defaults?")&&(l.cast={actors:{},sets:{},rooms:{},props:{}},f(),L())}},w.progress=function(){const s=k(),e=l.progress.completed,t=Object.keys(e).length,n=c.curriculumStats(y),o=l.progress.reviews,r=l.progress.quiz,a=[],d=Math.max(1,s-90);for(let v=d;v<=s+6;v++)a.push(`<i class="${e[v]?"on":v<s?"missed":v>s?"future":""}${v===s?" today":""}" title="Day ${v} · ${q(c.dateForDay(v,l.settings.startDate))}${e[v]?" · done":""}"></i>`);const p=c.learnedItems(y,Math.min(s,y.length)).filter(v=>e[v.day]),S=Object.entries(l.srs).filter(([,v])=>v.due<=Date.now()).length,$=Object.values(l.srs).filter(v=>v.ivl>=21).length;return`<div class="stack-lg">
       <div><span class="eyebrow">Progress</span><h1 class="h2">Your forest</h1></div>
       <section class="grid grid-3">
-        <div class="card stat"><b>${streak()}</b><span>day streak</span></div>
-        <div class="card stat"><b>${total} / ${st.days}</b><span>lessons completed</span></div>
-        <div class="card stat"><b>${learned.filter(i => i.type === 'c').length}</b><span>characters · ${learned.filter(i => i.type === 'w').length} words · ${learned.filter(i => i.type === 's').length} sentences</span></div>
-        <div class="card stat"><b>${due}</b><span>reviews due now · ${mature} mature (21 d+)</span></div>
-        <div class="card stat"><b>${rv.total ? Math.round(rv.good / rv.total * 100) : 0}%</b><span>recall rate (${rv.total} reviews)</span></div>
-        <div class="card stat"><b>${qz.total ? Math.round(qz.right / qz.total * 100) : 0}%</b><span>quiz accuracy (${qz.total} questions)</span></div>
-        <div class="card stat"><b>${(state.progress.tones || { total: 0 }).total ? Math.round(state.progress.tones.right / state.progress.tones.total * 100) : 0}%</b><span>tone gym (${(state.progress.tones || { total: 0 }).total} reps) · <a href="#/tones" style="text-decoration:underline">train</a></span></div>
-        <div class="card stat"><b>${(state.progress.writes || { total: 0 }).total}</b><span>characters written by hand · ${(state.talks || []).length} tutor sessions</span></div>
+        <div class="card stat"><b>${P()}</b><span>day streak</span></div>
+        <div class="card stat"><b>${t} / ${n.days}</b><span>lessons completed</span></div>
+        <div class="card stat"><b>${p.filter(v=>v.type==="c").length}</b><span>characters · ${p.filter(v=>v.type==="w").length} words · ${p.filter(v=>v.type==="s").length} sentences</span></div>
+        <div class="card stat"><b>${S}</b><span>reviews due now · ${$} mature (21 d+)</span></div>
+        <div class="card stat"><b>${o.total?Math.round(o.good/o.total*100):0}%</b><span>recall rate (${o.total} reviews)</span></div>
+        <div class="card stat"><b>${r.total?Math.round(r.right/r.total*100):0}%</b><span>quiz accuracy (${r.total} questions)</span></div>
+        <div class="card stat"><b>${(l.progress.tones||{total:0}).total?Math.round(l.progress.tones.right/l.progress.tones.total*100):0}%</b><span>tone gym (${(l.progress.tones||{total:0}).total} reps) · <a href="#/tones" style="text-decoration:underline">train</a></span></div>
+        <div class="card stat"><b>${(l.progress.writes||{total:0}).total}</b><span>characters written by hand · ${(l.talks||[]).length} tutor sessions</span></div>
       </section>
-      <section class="card stack"><h2 class="h3">Your forest</h2><div class="forest">${forestSVG(total) || '<span class="small muted">Plant your first tree today.</span>'}</div></section>
-      <section class="card stack"><h2 class="h3">Last 90 days</h2><div class="heatmap">${cells.join('')}</div><p class="faint small">Green = done · red = missed · gold ring = today. Missed days stay open under Today → Catch-up.</p></section>
+      <section class="card stack"><h2 class="h3">Your forest</h2><div class="forest">${Z(t)||'<span class="small muted">Plant your first tree today.</span>'}</div></section>
+      <section class="card stack"><h2 class="h3">Last 90 days</h2><div class="heatmap">${a.join("")}</div><p class="faint small">Green = done · red = missed · gold ring = today. Missed days stay open under Today → Catch-up.</p></section>
       <section class="card stack"><h2 class="h3">Milestones</h2><ul class="stack small" style="gap:.4rem">
-        ${[[12, 'Pronunciation Mastery complete — every sound has an actor and a set'], [13, 'First tree planted: 木 林 森']].concat(st.levels.map(l => [l.lastDay, `${l.name} complete: ${l.characters} characters, ${l.words} words, ${l.sentences} sentences`])).map(([d, t]) => `<li>${done[d] ? '✅' : d <= today ? '⬜' : '🔒'} <b>Day ${d}</b> — ${esc(t)}</li>`).join('')}</ul></section>
-    </div>`;
-  };
-
-  /* ------------------------------------------------------------ LEVELS */
-  routes.levels = function () {
-    const info = S.LEVELINFO; const ls = levelStatus(); const start = S.parseISO(state.settings.startDate);
-    const perDay = state.settings.charsPerDay;
-    return `<div class="stack-lg">
-      <div><span class="eyebrow">The ladder</span><h1 class="h2">What each HSK level means, and when you reach it</h1><p class="lead">${esc(info.about)}</p></div>
-      <div class="card stack"><div class="row between"><b>Your road at ${perDay} characters a day, starting ${esc(fmtDate(start))}</b><a class="btn btn-sm" href="#/settings">change pace</a></div>
+        ${[[12,"Pronunciation Mastery complete — every sound has an actor and a set"],[13,"First tree planted: 木 林 森"]].concat(n.levels.map(v=>[v.lastDay,`${v.name} complete: ${v.characters} characters, ${v.words} words, ${v.sentences} sentences`])).map(([v,Ae])=>`<li>${e[v]?"✅":v<=s?"⬜":"🔒"} <b>Day ${v}</b> — ${i(Ae)}</li>`).join("")}</ul></section>
+    </div>`},w.levels=function(){const s=c.LEVELINFO,e=W(),t=c.parseISO(l.settings.startDate),n=l.settings.charsPerDay;return`<div class="stack-lg">
+      <div><span class="eyebrow">The ladder</span><h1 class="h2">What each HSK level means, and when you reach it</h1><p class="lead">${i(s.about)}</p></div>
+      <div class="card stack"><div class="row between"><b>Your road at ${n} characters a day, starting ${i(q(t))}</b><a class="btn btn-sm" href="#/settings">change pace</a></div>
         <div class="table-scroll"><table class="table"><thead><tr><th>Level</th><th class="hide-sm">CEFR</th><th>Words</th><th class="hide-sm">Typical study hours</th><th>SenLin days</th><th>Target date</th><th>Status</th></tr></thead><tbody>
-        ${ls.map(l => { const i = info.levels.find(x => x.level === l.level); return `<tr${l.status === 'current' ? ' style="background:var(--accent-soft)"' : ''}><td><b>${esc(l.name)}</b><span class="muted small show-sm"> · ${esc(i.cefr)}</span></td><td class="hide-sm">${esc(i.cefr)}</td><td>${i.cumWords.toLocaleString()}<span class="hide-sm"> total</span></td><td class="hide-sm">${i.hours[0]}–${i.hours[1]} h</td><td>Day ${l.start}–${l.end} <span class="muted small">(${monthsBetween(S.dateForDay(1, state.settings.startDate), l.endDate)} mo)</span></td><td>${esc(fmtDateY(l.endDate))}</td><td>${l.status === 'done' ? '✅ done' : l.status === 'current' ? `🟢 ${l.completed}/${l.total}` : '🔒'}</td></tr>`; }).join('')}
+        ${e.map(o=>{const r=s.levels.find(a=>a.level===o.level);return`<tr${o.status==="current"?' style="background:var(--accent-soft)"':""}><td><b>${i(o.name)}</b><span class="muted small show-sm"> · ${i(r.cefr)}</span></td><td class="hide-sm">${i(r.cefr)}</td><td>${r.cumWords.toLocaleString()}<span class="hide-sm"> total</span></td><td class="hide-sm">${r.hours[0]}–${r.hours[1]} h</td><td>Day ${o.start}–${o.end} <span class="muted small">(${pe(c.dateForDay(1,l.settings.startDate),o.endDate)} mo)</span></td><td>${i(O(o.endDate))}</td><td>${o.status==="done"?"✅ done":o.status==="current"?`🟢 ${o.completed}/${o.total}`:"🔒"}</td></tr>`}).join("")}
         </tbody></table></div>
         <p class="small muted">“Typical study hours” are the ranges Hanban and university programmes cite for classroom learners. SenLin’s ten-minute lessons cover the vocabulary and grammar on the dates above; the Talk, Tone gym, Write and Deal Desk sessions on top of them are what turn that into the hours of real practice each level needs.</p></div>
-      ${info.levels.map(i => { const l = ls.find(x => x.level === i.level); return `<section class="card stack">
-        <div class="row between"><div><span class="eyebrow">${esc(i.name)} · ${esc(i.cefr)} · ${i.words} new words (${i.cumWords.toLocaleString()} cumulative)</span><h2 class="h3">${esc(i.canDo.split('.')[0])}.</h2></div><span class="chip${l.status === 'done' ? ' chip-accent' : l.status === 'current' ? ' chip-gold' : ''}">${l.status === 'done' ? 'complete' : l.status === 'current' ? 'in progress' : 'from ' + esc(fmtDate(l.startDate))}</span></div>
-        <p class="muted">${esc(i.canDo)}</p>
-        <div class="grid grid-2"><div><b>The exam</b><p class="small muted">${esc(i.exam)}</p></div><div><b>Official textbook</b><p class="small muted">${esc(i.book)}. Study hours: ${i.hours[0]}–${i.hours[1]}. In SenLin: days ${l.start}–${l.end} (${l.total} lessons, ${esc(fmtDateY(l.startDate))} → ${esc(fmtDateY(l.endDate))}).</p></div></div>
-        <details class="small"><summary class="muted">Units and topics this level covers</summary><ul class="stack" style="gap:.25rem;margin-top:.5rem">${i.topics.map(t => `<li>· ${esc(t)}</li>`).join('')}</ul></details>
-      </section>`; }).join('')}
-      <p class="small muted">${esc(info.note30)}</p>
-    </div>`;
-  };
-
-  /* ------------------------------------------------------------ DEAL DESK */
-  routes.business = function (arg) {
-    const B = S.BUSINESS; const unit = B.units.find(u => u.id === arg);
-    if (unit) return `<div class="stack-lg">
-      <div class="row between"><div><span class="eyebrow">Deal Desk · ${esc(unit.en)}</span><h1 class="h2"><span class="hz">${esc(unit.title)}</span></h1><p class="lead">${esc(unit.brief)}</p></div><a class="btn btn-sm btn-ghost" href="#/business">← all units</a></div>
-      <section class="card stack"><h2 class="h3">Terms</h2>${unit.terms.map(t => `<div class="row between"><div><span class="mid-hz">${esc(t.w)}</span> <span class="py">${pinyinHTML(t.p)}</span> <span class="muted">${esc(t.m)}</span>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ''}</div><span class="row">${playBtn(t.w)}${sayBtn(t.w)}<button class="btn btn-sm" data-addword="${esc(JSON.stringify({ w: t.w, p: t.p, m: t.m }))}">＋ deck</button></span></div>`).join('')}</section>
-      <section class="card stack"><h2 class="h3">Phrases that move a deal</h2>${unit.phrases.map(x => `<div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.3rem">${esc(x.zh)}</span><span class="row">${playBtn(x.zh)}${playBtn(x.zh, { slow: true, rate: 0.6 })}${sayBtn(x.zh)}</span></div><div class="py">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.en)}</div>${x.note ? `<div class="small faint">${esc(x.note)}</div>` : ''}</div>`).join('')}</section>
-      <div class="row"><a class="btn btn-primary" href="#/talk/biz-${unit.id === 'terms' ? 'terms' : unit.id === 'dd' ? 'dd' : unit.id === 'closing' || unit.id === 'legal' ? 'closing' : unit.id === 'banquet' ? 'banquet' : unit.id === 'fund' ? 'lp' : 'intro'}">Practise this live with the tutor</a></div>
-    </div>`;
-    const today = todayDay(); const desk = S.dealDesk(today, S.CONFIG.businessStartDay);
-    return `<div class="stack-lg">
-      <div><span class="eyebrow">Deal Desk · 交易台</span><h1 class="h2">Mandarin for cross-border private equity and venture deals</h1><p class="lead">${esc(B.intro)}</p></div>
-      ${desk ? `<section class="card card-accent stack"><span class="eyebrow">Today’s deal desk · cycle ${desk.cycle}</span><div class="row">${desk.terms.map(t => `<span class="chip chip-gold"><span class="hz">${esc(t.w)}</span> ${esc(t.p)} · ${esc(t.m)}</span>`).join('')}</div><div class="hz" style="font-size:1.3rem">${esc(desk.phrase.zh)}</div><div class="muted">${esc(desk.phrase.p)} — ${esc(desk.phrase.en)}</div></section>` : ''}
-      <div class="grid grid-3">${B.units.map((u, i) => `<a class="tile" href="#/business/${u.id}"><span class="faint small">Unit ${i + 1}</span><span class="hz" style="font-size:1.5rem">${esc(u.title)}</span><b>${esc(u.en)}</b><span class="small muted">${u.terms.length} terms · ${u.phrases.length} phrases</span></a>`).join('')}</div>
-      <section class="card stack"><h2 class="h3">Worked dialogues</h2>${B.dialogues.map(d => `<details><summary><b>${esc(d.en)}</b> <span class="hz muted">${esc(d.title)}</span></summary><div class="stack" style="margin-top:.6rem">${d.lines.map(l => `<div class="sentence" style="border-left-color:var(--grape-500)"><div class="row between"><span><span class="faint small">${esc(l.who)}</span><br><span class="hz" style="font-size:1.2rem">${esc(l.zh)}</span></span><span class="row">${playBtn(l.zh)}${sayBtn(l.zh)}</span></div><div class="py small">${pinyinHTML(l.p)}</div><div class="muted small">${esc(l.en)}</div></div>`).join('')}</div></details>`).join('')}</section>
-      <section class="card stack"><h2 class="h3">Live deal-room practice</h2><p class="muted small">Six role-plays with the AI tutor: first meeting, LP pitch, term-sheet negotiation, diligence call, closing call and the banquet. The tutor uses real deal vocabulary at your level and corrects every turn.</p><div class="row">${(window.SENLIN_SCENARIOS || []).filter(x => x.track === 'business').map(x => `<a class="btn btn-sm" href="#/talk/${x.id}">${esc(x.en)}</a>`).join('')}</div></section>
-    </div>`;
-  };
-  routes.business.after = () => { document.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { if (window.SenLinApp.addWord) { window.SenLinApp.addWord(JSON.parse(b.dataset.addword)); b.textContent = '✓ in deck'; } }); };
-
-  /* ------------------------------------------------------------ METHOD */
-  routes.method = function () {
-    return `<div class="prose stack">
+      ${s.levels.map(o=>{const r=e.find(a=>a.level===o.level);return`<section class="card stack">
+        <div class="row between"><div><span class="eyebrow">${i(o.name)} · ${i(o.cefr)} · ${o.words} new words (${o.cumWords.toLocaleString()} cumulative)</span><h2 class="h3">${i(o.canDo.split(".")[0])}.</h2></div><span class="chip${r.status==="done"?" chip-accent":r.status==="current"?" chip-gold":""}">${r.status==="done"?"complete":r.status==="current"?"in progress":"from "+i(q(r.startDate))}</span></div>
+        <p class="muted">${i(o.canDo)}</p>
+        <div class="grid grid-2"><div><b>The exam</b><p class="small muted">${i(o.exam)}</p></div><div><b>Official textbook</b><p class="small muted">${i(o.book)}. Study hours: ${o.hours[0]}–${o.hours[1]}. In SenLin: days ${r.start}–${r.end} (${r.total} lessons, ${i(O(r.startDate))} → ${i(O(r.endDate))}).</p></div></div>
+        <details class="small"><summary class="muted">Units and topics this level covers</summary><ul class="stack" style="gap:.25rem;margin-top:.5rem">${o.topics.map(a=>`<li>· ${i(a)}</li>`).join("")}</ul></details>
+      </section>`}).join("")}
+      <p class="small muted">${i(s.note30)}</p>
+    </div>`},w.business=function(s){const e=c.BUSINESS,t=e.units.find(r=>r.id===s);if(t)return`<div class="stack-lg">
+      <div class="row between"><div><span class="eyebrow">Deal Desk · ${i(t.en)}</span><h1 class="h2"><span class="hz">${i(t.title)}</span></h1><p class="lead">${i(t.brief)}</p></div><a class="btn btn-sm btn-ghost" href="#/business">← all units</a></div>
+      <section class="card stack"><h2 class="h3">Terms</h2>${t.terms.map(r=>`<div class="row between"><div><span class="mid-hz">${i(r.w)}</span> <span class="py">${g(r.p)}</span> <span class="muted">${i(r.m)}</span>${r.note?`<div class="small muted">${i(r.note)}</div>`:""}</div><span class="row">${m(r.w)}${D(r.w)}<button class="btn btn-sm" data-addword="${i(JSON.stringify({w:r.w,p:r.p,m:r.m}))}">＋ deck</button></span></div>`).join("")}</section>
+      <section class="card stack"><h2 class="h3">Phrases that move a deal</h2>${t.phrases.map(r=>`<div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.3rem">${i(r.zh)}</span><span class="row">${m(r.zh)}${m(r.zh,{slow:!0,rate:.6})}${D(r.zh)}</span></div><div class="py">${g(r.p)}</div><div class="muted">${i(r.en)}</div>${r.note?`<div class="small faint">${i(r.note)}</div>`:""}</div>`).join("")}</section>
+      <div class="row"><a class="btn btn-primary" href="#/talk/biz-${t.id==="terms"?"terms":t.id==="dd"?"dd":t.id==="closing"||t.id==="legal"?"closing":t.id==="banquet"?"banquet":t.id==="fund"?"lp":"intro"}">Practise this live with the tutor</a></div>
+    </div>`;const n=k(),o=c.dealDesk(n,c.CONFIG.businessStartDay);return`<div class="stack-lg">
+      <div><span class="eyebrow">Deal Desk · 交易台</span><h1 class="h2">Mandarin for cross-border private equity and venture deals</h1><p class="lead">${i(e.intro)}</p></div>
+      ${o?`<section class="card card-accent stack"><span class="eyebrow">Today’s deal desk · cycle ${o.cycle}</span><div class="row">${o.terms.map(r=>`<span class="chip chip-gold"><span class="hz">${i(r.w)}</span> ${i(r.p)} · ${i(r.m)}</span>`).join("")}</div><div class="hz" style="font-size:1.3rem">${i(o.phrase.zh)}</div><div class="muted">${i(o.phrase.p)} — ${i(o.phrase.en)}</div></section>`:""}
+      <div class="grid grid-3">${e.units.map((r,a)=>`<a class="tile" href="#/business/${r.id}"><span class="faint small">Unit ${a+1}</span><span class="hz" style="font-size:1.5rem">${i(r.title)}</span><b>${i(r.en)}</b><span class="small muted">${r.terms.length} terms · ${r.phrases.length} phrases</span></a>`).join("")}</div>
+      <section class="card stack"><h2 class="h3">Worked dialogues</h2>${e.dialogues.map(r=>`<details><summary><b>${i(r.en)}</b> <span class="hz muted">${i(r.title)}</span></summary><div class="stack" style="margin-top:.6rem">${r.lines.map(a=>`<div class="sentence" style="border-left-color:var(--grape-500)"><div class="row between"><span><span class="faint small">${i(a.who)}</span><br><span class="hz" style="font-size:1.2rem">${i(a.zh)}</span></span><span class="row">${m(a.zh)}${D(a.zh)}</span></div><div class="py small">${g(a.p)}</div><div class="muted small">${i(a.en)}</div></div>`).join("")}</div></details>`).join("")}</section>
+      <section class="card stack"><h2 class="h3">Live deal-room practice</h2><p class="muted small">Six role-plays with the AI tutor: first meeting, LP pitch, term-sheet negotiation, diligence call, closing call and the banquet. The tutor uses real deal vocabulary at your level and corrects every turn.</p><div class="row">${(window.SENLIN_SCENARIOS||[]).filter(r=>r.track==="business").map(r=>`<a class="btn btn-sm" href="#/talk/${r.id}">${i(r.en)}</a>`).join("")}</div></section>
+    </div>`},w.business.after=()=>{document.querySelectorAll("[data-addword]").forEach(s=>s.onclick=()=>{window.SenLinApp.addWord&&(window.SenLinApp.addWord(JSON.parse(s.dataset.addword)),s.textContent="✓ in deck")})},w.method=function(){return`<div class="prose stack">
       <div><span class="eyebrow">The method</span><h1 class="h2">The SenLin Way</h1><p class="lead">森林 sēnlín means forest. 木 is a tree; two make woods (林); three make a forest (森). That is the whole philosophy: one small tree, every single day, compounding.</p></div>
       <h2 class="h3">Seven pillars, borrowed from the best</h2>
       <p><b>1 · Pronunciation before everything.</b> The first twelve days teach nothing but sound: every initial, every final, the four tones and the neutral tone, then all twenty tone pairs and the sandhi rules. A bad accent fossilises if you start with vocabulary, so the ear and mouth come first.</p>
@@ -767,37 +217,29 @@
       <h2 class="h3">The road</h2>
       <ul>
         <li><b>Days 1–12 · Pronunciation Mastery.</b> Sounds, tones, tone pairs, and casting your actors, sets and props.</li>
-        ${(() => { const st = S.curriculumStats(DAYS); let start = 13; return st.levels.map(l => { const li = `<li><b>Days ${start}–${l.lastDay} · Phase ${l.level}, ${esc(l.name)}.</b> ${l.characters} characters, ${l.words} words and ${l.sentences} sentences, each unlocking exactly when you are ready for it.</li>`; start = l.lastDay + 1; return li; }).join(''); })()}
-        <li><b>After the last level · Consolidation.</b> Daily review keeps the forest alive. HSK 6 is the ceiling of the standard test: at three characters a day the full road is about ${Math.round((S.CHARACTERS.length / 3 + 12) / 30)} months of ten-minute lessons, and you can raise the pace in Settings.</li>
+        ${(()=>{const s=c.curriculumStats(y);let e=13;return s.levels.map(t=>{const n=`<li><b>Days ${e}–${t.lastDay} · Phase ${t.level}, ${i(t.name)}.</b> ${t.characters} characters, ${t.words} words and ${t.sentences} sentences, each unlocking exactly when you are ready for it.</li>`;return e=t.lastDay+1,n}).join("")})()}
+        <li><b>After the last level · Consolidation.</b> Daily review keeps the forest alive. HSK 6 is the ceiling of the standard test: at three characters a day the full road is about ${Math.round((c.CHARACTERS.length/3+12)/30)} months of ten-minute lessons, and you can raise the pace in Settings.</li>
       </ul>
       <h2 class="h3">Levels and the Deal Desk</h2>
       <p>The six phases are aligned with the published HSK 2.0 vocabulary lists (every listed word is taught, at its listed level) and mirror the unit structure of the <i>HSK Standard Course</i> textbooks. The <a href="#/levels" style="text-decoration:underline">Levels</a> page defines each level, its exam and the date you reach it at your pace. The <a href="#/business" style="text-decoration:underline">Deal Desk</a> is a parallel track for cross-border private-equity and venture work: two terms and one closing phrase join every lesson, and six deal-room role-plays live in Talk.</p>
       <h2 class="h3">Credits</h2>
       <p class="small muted">The SenLin Way is an original curriculum. It stands on the shoulders of James Heisig (component mnemonics), Paul Pimsleur (graduated recall), Piotr Woźniak (SM-2 spaced repetition), Stephen Krashen (comprehensible input) and Alexander Argüelles (shadowing), and on the published HSK vocabulary lists. Character decompositions are mnemonic-level approximations chosen for memorability. Stroke-order animations use the open-source <a href="https://hanziwriter.org" rel="noopener" target="_blank" style="text-decoration:underline">Hanzi Writer</a> library and Make Me a Hanzi data. HSK is a trademark of its owners; this course is HSK-aligned and is not affiliated with or endorsed by them. <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>.</p>
-    </div>`;
-  };
-
-  /* ------------------------------------------------------------ SETTINGS */
-  routes.settings = function (arg) {
-    const s = state.settings;
-    if (arg === 'dev') { s.developer = !s.developer; save(); toast(s.developer ? 'Developer options on' : 'Developer options off'); location.hash = '#/settings'; return ''; }
-    const voices = tts.voices;
-    return `<div class="stack-lg" style="max-width:640px">
-      ${window.SenLinApp && window.SenLinApp.accountExtra ? window.SenLinApp.accountExtra() : ''}
+    </div>`},w.settings=function(s){const e=l.settings;if(s==="dev")return e.developer=!e.developer,f(),z(e.developer?"Developer options on":"Developer options off"),location.hash="#/settings","";const t=A.voices;return`<div class="stack-lg" style="max-width:640px">
+      ${window.SenLinApp&&window.SenLinApp.accountExtra?window.SenLinApp.accountExtra():""}
       <div><span class="eyebrow">Settings</span><h1 class="h2">Make it yours</h1></div>
       <section class="card stack">
-        <div class="field"><label for="start">Day 1 date</label><input class="input" type="date" id="start" value="${esc(s.startDate)}"><span class="faint small">Today is Day ${todayDay()}. Change this to restart or to shift the calendar.</span></div>
-        <div class="field"><label for="pace">New characters per day</label><select class="input" id="pace">${[2, 3, 4, 5].map(n => `<option value="${n}"${s.charsPerDay === n ? ' selected' : ''}>${n} per day (${Math.ceil(S.CHARACTERS.length / n) + S.PINYIN.pronunciationDays.length} days for Phase 1)</option>`).join('')}</select></div>
-        <div class="field"><label><input type="checkbox" id="biztoggle"${s.business ? ' checked' : ''}> Business track (Deal Desk) in every lesson</label><span class="faint small">Two PE/VC terms and one closing phrase a day, from Day 13. The full track lives under Deal Desk.</span></div>
-        <div class="field"><label for="theme">Theme</label><select class="input" id="theme">${['auto', 'light', 'dark'].map(t => `<option value="${t}"${s.theme === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
+        <div class="field"><label for="start">Day 1 date</label><input class="input" type="date" id="start" value="${i(e.startDate)}"><span class="faint small">Today is Day ${k()}. Change this to restart or to shift the calendar.</span></div>
+        <div class="field"><label for="pace">New characters per day</label><select class="input" id="pace">${[2,3,4,5].map(n=>`<option value="${n}"${e.charsPerDay===n?" selected":""}>${n} per day (${Math.ceil(c.CHARACTERS.length/n)+c.PINYIN.pronunciationDays.length} days for Phase 1)</option>`).join("")}</select></div>
+        <div class="field"><label><input type="checkbox" id="biztoggle"${e.business?" checked":""}> Business track (Deal Desk) in every lesson</label><span class="faint small">Two PE/VC terms and one closing phrase a day, from Day 13. The full track lives under Deal Desk.</span></div>
+        <div class="field"><label for="theme">Theme</label><select class="input" id="theme">${["auto","light","dark"].map(n=>`<option value="${n}"${e.theme===n?" selected":""}>${n}</option>`).join("")}</select></div>
       </section>
       <section class="card stack">
         <h2 class="h3">Voice</h2>
-        <div class="field"><label for="voicesource">Voice source</label><select class="input" id="voicesource">${[['auto', 'Best available: recorded audio, then device voice, then cloud voice'], ['recorded', 'Recorded audio first, device voice as backup'], ['device', 'Device voice only'], ['cloud', 'Cloud voice (needs an account)']].map(([v, l]) => `<option value="${v}"${(s.voiceSource || 'auto') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+        <div class="field"><label for="voicesource">Voice source</label><select class="input" id="voicesource">${[["auto","Best available: recorded audio, then device voice, then cloud voice"],["recorded","Recorded audio first, device voice as backup"],["device","Device voice only"],["cloud","Cloud voice (needs an account)"]].map(([n,o])=>`<option value="${n}"${(e.voiceSource||"auto")===n?" selected":""}>${o}</option>`).join("")}</select>
           <span class="faint small">Best browsers: Chrome (desktop and Android) for both speaking and the microphone; Safari for speaking. The preview inside the Claude app has no speech engine, so it uses the online voice; the microphone needs Chrome.</span></div>
-        <div class="field"><label for="voice">Mandarin voice</label><select class="input" id="voice"><option value="">Automatic${voices.length ? '' : ' (no Chinese voice found yet)'}</option>${voices.map(v => `<option value="${esc(v.name)}"${s.voice === v.name ? ' selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
+        <div class="field"><label for="voice">Mandarin voice</label><select class="input" id="voice"><option value="">Automatic${t.length?"":" (no Chinese voice found yet)"}</option>${t.map(n=>`<option value="${i(n.name)}"${e.voice===n.name?" selected":""}>${i(n.name)} (${i(n.lang)})</option>`).join("")}</select>
           <span class="faint small">No Chinese voice? macOS: System Settings → Accessibility → Spoken Content → add Tingting. Windows: Settings → Time & Language → add Chinese (Simplified) speech. Chrome also ships a Google 普通话 voice online.</span></div>
-        <div class="field"><label for="rate">Speed: <span id="rateval">${s.rate}</span></label><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${s.rate}"></div>
+        <div class="field"><label for="rate">Speed: <span id="rateval">${e.rate}</span></label><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${e.rate}"></div>
         <button class="btn" id="testvoice">Test: 你好，我是森林。</button>
       </section>
       <section class="card stack">
@@ -805,47 +247,11 @@
         <p class="muted small">Your progress lives in this browser. Sign in above to sync it across devices with automatic backups, or export a file here.</p>
         <div class="row"><button class="btn" id="export">Export backup</button><label class="btn">Import backup<input type="file" id="import" accept="application/json" class="sr-only"></label><button class="btn btn-ghost" id="reset" style="color:var(--vermilion)">Reset everything</button></div>
       </section>
-      ${window.SenLinApp && window.SenLinApp.placementExtra ? window.SenLinApp.placementExtra() : ''}
-      ${window.SenLinApp && window.SenLinApp.settingsExtra ? window.SenLinApp.settingsExtra() : ''}
+      ${window.SenLinApp&&window.SenLinApp.placementExtra?window.SenLinApp.placementExtra():""}
+      ${window.SenLinApp&&window.SenLinApp.settingsExtra?window.SenLinApp.settingsExtra():""}
       <section class="card card-soft stack">
         <h2 class="h3">Daily reminder</h2>
-        ${window.SenLinApp && window.SenLinApp.reminderExtra ? window.SenLinApp.reminderExtra() : ''}
+        ${window.SenLinApp&&window.SenLinApp.reminderExtra?window.SenLinApp.reminderExtra():""}
         <p class="small muted">Prefer a calendar? Add the 10-minute slot: <a href="daily.ics" download>daily.ics</a> (7:00 every day, with a link straight to that day’s lesson).</p>
       </section>
-    </div>`;
-  };
-  routes.settings.after = () => {
-    const s = state.settings;
-    $('#start').onchange = e => { if (e.target.value) { s.startDate = e.target.value; save(); toast('Day 1 set to ' + s.startDate); } };
-    $('#pace').onchange = e => { s.charsPerDay = +e.target.value; save(); rebuild(); toast('Pace updated'); };
-    $('#theme').onchange = e => { s.theme = e.target.value; save(); applyTheme(); };
-    $('#biztoggle').onchange = e => { s.business = e.target.checked; save(); toast(s.business ? 'Deal Desk on' : 'Deal Desk off'); };
-    $('#voice').onchange = e => { s.voice = e.target.value; save(); };
-    $('#voicesource').onchange = e => { s.voiceSource = e.target.value; save(); };
-    $('#rate').oninput = e => { s.rate = +e.target.value; $('#rateval').textContent = s.rate; save(); };
-    $('#testvoice').onclick = () => tts.speak('你好，我是森林。');
-    $('#export').onclick = () => { const blob = new Blob([JSON.stringify({ settings: s, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `senlin-backup-${S.isoDate(new Date())}.json`; a.click(); };
-    $('#import').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); Object.assign(state.settings, d.settings || {}); state.cast = d.cast || state.cast; state.srs = d.srs || state.srs; state.scenes = d.scenes || state.scenes; state.progress = d.progress || state.progress; save(); rebuild(); applyTheme(); toast('Backup restored'); navigate(); } catch (err) { toast('That file is not a SenLin backup'); } }; r.readAsText(f); };
-    $('#reset').onclick = () => { if (confirm('Delete all progress, reviews, scenes and cast? This cannot be undone.')) { ['settings', 'cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => localStorage.removeItem('senlin.' + k)); location.reload(); } };
-    if (window.SenLinApp && window.SenLinApp.settingsExtraAfter) window.SenLinApp.settingsExtraAfter();
-    if (window.SenLinApp && window.SenLinApp.placementExtraAfter) window.SenLinApp.placementExtraAfter();
-    if (window.SenLinApp && window.SenLinApp.accountExtraAfter) window.SenLinApp.accountExtraAfter();
-    if (window.SenLinApp && window.SenLinApp.reminderExtraAfter) window.SenLinApp.reminderExtraAfter();
-  };
-
-  /* ------------------------------------------------------------ bridge for add-on modules (tutor.js) */
-  /** Replace the learner's data (cloud pull / backup restore) and re-render. */
-  function applyData(d) {
-    if (!d) return;
-    Object.assign(state.settings, d.settings || {});
-    ['cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => { if (d[k]) state[k] = d[k]; });
-    save(); rebuild(); applyTheme(); navigate();
-  }
-  const snapshot = () => ({ settings: state.settings, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress, extra: state.extra, talks: state.talks });
-  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, playBtn, navigate, rebuild, applyData, snapshot, listenOnce, listenEngine, matchScore, DAYS: () => DAYS, todayDay, levelStatus, locked, settingsExtra: null, settingsExtraAfter: null, accountExtra: null, accountExtraAfter: null, reminderExtra: null, reminderExtraAfter: null, extraReviewItems: () => [], addWord: null };
-
-  /* ------------------------------------------------------------ go */
-  navigate();
-  /* pull in the remaining levels in the background once the first screen is up, so Library and Levels are instant later */
-  if (LAZY.pending) (window.requestIdleCallback || (f => setTimeout(f, 1500)))(() => { LAZY.load().then(() => { rebuild(); if (/^#\/(library|levels|progress|plan)/.test(location.hash)) navigate(); }).catch(() => {}); });
-})();
+    </div>`},w.settings.after=()=>{const s=l.settings;u("#start").onchange=e=>{e.target.value&&(s.startDate=e.target.value,f(),z("Day 1 set to "+s.startDate))},u("#pace").onchange=e=>{s.charsPerDay=+e.target.value,f(),E(),z("Pace updated")},u("#theme").onchange=e=>{s.theme=e.target.value,f(),I()},u("#biztoggle").onchange=e=>{s.business=e.target.checked,f(),z(s.business?"Deal Desk on":"Deal Desk off")},u("#voice").onchange=e=>{s.voice=e.target.value,f()},u("#voicesource").onchange=e=>{s.voiceSource=e.target.value,f()},u("#rate").oninput=e=>{s.rate=+e.target.value,u("#rateval").textContent=s.rate,f()},u("#testvoice").onclick=()=>A.speak("你好，我是森林。"),u("#export").onclick=()=>{const e=new Blob([JSON.stringify({settings:s,cast:l.cast,srs:l.srs,scenes:l.scenes,progress:l.progress},null,2)],{type:"application/json"}),t=document.createElement("a");t.href=URL.createObjectURL(e),t.download=`senlin-backup-${c.isoDate(new Date)}.json`,t.click()},u("#import").onchange=e=>{const t=e.target.files[0];if(!t)return;const n=new FileReader;n.onload=()=>{try{const o=JSON.parse(n.result);Object.assign(l.settings,o.settings||{}),l.cast=o.cast||l.cast,l.srs=o.srs||l.srs,l.scenes=o.scenes||l.scenes,l.progress=o.progress||l.progress,f(),E(),I(),z("Backup restored"),L()}catch{z("That file is not a SenLin backup")}},n.readAsText(t)},u("#reset").onclick=()=>{confirm("Delete all progress, reviews, scenes and cast? This cannot be undone.")&&(["settings","cast","srs","scenes","progress","extra","talks"].forEach(e=>localStorage.removeItem("senlin."+e)),location.reload())},window.SenLinApp&&window.SenLinApp.settingsExtraAfter&&window.SenLinApp.settingsExtraAfter(),window.SenLinApp&&window.SenLinApp.placementExtraAfter&&window.SenLinApp.placementExtraAfter(),window.SenLinApp&&window.SenLinApp.accountExtraAfter&&window.SenLinApp.accountExtraAfter(),window.SenLinApp&&window.SenLinApp.reminderExtraAfter&&window.SenLinApp.reminderExtraAfter()};function ze(s){s&&(Object.assign(l.settings,s.settings||{}),["cast","srs","scenes","progress","extra","talks"].forEach(e=>{s[e]&&(l[e]=s[e])}),f(),E(),I(),L())}const Le=()=>({settings:l.settings,cast:l.cast,srs:l.srs,scenes:l.scenes,progress:l.progress,extra:l.extra,talks:l.talks});window.SenLinApp={routes:w,state:l,save:f,esc:i,tts:A,toast:z,pinyinHTML:g,sayBtn:D,playBtn:m,navigate:L,rebuild:E,applyData:ze,snapshot:Le,listenOnce:G,listenEngine:Y,matchScore:_,DAYS:()=>y,todayDay:k,levelStatus:W,locked:ee,settingsExtra:null,settingsExtraAfter:null,accountExtra:null,accountExtraAfter:null,reminderExtra:null,reminderExtraAfter:null,extraReviewItems:()=>[],addWord:null},L(),R.pending&&(window.requestIdleCallback||(s=>setTimeout(s,1500)))(()=>{R.load().then(()=>{E(),/^#\/(library|levels|progress|plan)/.test(location.hash)&&L()}).catch(()=>{})})})();
