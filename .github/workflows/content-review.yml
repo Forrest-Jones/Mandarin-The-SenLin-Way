@@ -42,8 +42,8 @@ jobs:
       - name: Commit the reviewed CSVs and patches
         run: |
           git config user.name "senlin-bot"; git config user.email "senlin-bot@users.noreply.github.com"
-          git add review/*-reviewed.csv review/*.patch.json
-          if ! git diff --cached --quiet; then git commit -m "Content review: Claude native-editor pass" && git pull --rebase origin main && git push; fi
+          git add review/*.csv review/*.patch.json
+          if ! git diff --cached --quiet; then git commit -m "Content review: Claude native-editor pass" && git pull --rebase --autostash origin main && git push; fi
       - uses: actions/upload-artifact@v4
         with:
           name: content-review
