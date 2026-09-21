@@ -207,6 +207,8 @@ textarea.input { min-height: 84px; resize: vertical; line-height: 1.5; }
 .table th { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-faint); font-weight: 900; }
 .table .input { padding: .45rem .7rem; }
 .table tr:hover td { background: var(--bg-soft); }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+.show-sm { display: none; }
 
 /* ---------- Tones ---------- */
 .t1 { color: var(--tone1); } .t2 { color: var(--tone2); } .t3 { color: var(--tone3); } .t4 { color: var(--tone4); } .t5 { color: var(--tone5); }
@@ -321,5 +323,8 @@ audio.mine { max-width: 220px; }
   .card.stat { padding: .9rem 1rem; }
   .stat b { font-size: 1.6rem; }
   .grid-3:has(> .stat) { grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  .hide-sm { display: none !important; }
+  .show-sm { display: inline; }
+  .table { font-size: .85rem; } .table th, .table td { padding: .55rem .35rem; }
 }
 @media print { .header, .lesson-top, footer, .btn { display: none !important; } }

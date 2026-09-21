@@ -33,6 +33,14 @@ async function codeHash(env, email, code) {
   return sha256Hex(`${email}:${code}:${await jwtSecret(env)}`);
 }
 
+/** OWNER_EMAIL (comma-separated) accounts are always Pro, so the owner can test every screen without paying themselves. */
+export function applyOwner(env, user) {
+  if (!user || !env || !env.OWNER_EMAIL) return user;
+  const owners = String(env.OWNER_EMAIL).toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+  if (owners.includes(String(user.email || '').toLowerCase())) return Object.assign(user, { plan: 'pro', plan_expires_at: null, owner: true });
+  return user;
+}
+
 export function publicUser(user) {
   return { id: user.id, email: user.email, plan: effectivePlan(user) };
 }
@@ -98,7 +106,7 @@ export async function handleAuthVerify(request, env) {
   await env.CACHE.delete(codeKey(email));
   await env.CACHE.delete(attemptsKey(email));
 
-  const user = await findOrCreateUser(env, email);
+  const user = applyOwner(env, await findOrCreateUser(env, email));
   await updateUser(env, user.id, { last_seen: nowIso() });
   const token = await signJwt({ sub: user.id, email: user.email }, await jwtSecret(env), { expiresInSec: TOKEN_TTL_SEC });
   return json({ token, user: publicUser(user) });
@@ -111,7 +119,7 @@ export async function getUser(request, env) {
   if (!m) return null;
   const payload = await verifyJwt(m[1].trim(), await jwtSecret(env));
   if (!payload || !payload.sub) return null;
-  return getUserById(env, payload.sub);
+  return applyOwner(env, await getUserById(env, payload.sub));
 }
 
 /** Bearer token → user row, or throws 401. */
@@ -188,7 +196,7 @@ export async function handleAuthPassword(request, env) {
     throw new HttpError(401, 'bad_password');
   }
   await env.CACHE.delete(pwAttemptsKey(email));
-  const user = await findOrCreateUser(env, email);
+  const user = applyOwner(env, await findOrCreateUser(env, email));
   await updateUser(env, user.id, { last_seen: nowIso() });
   const token = await signJwt({ sub: user.id, email: user.email }, await jwtSecret(env), { expiresInSec: TOKEN_TTL_SEC });
   return json({ token, user: publicUser(user), created: !stored });

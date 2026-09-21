@@ -35,7 +35,8 @@ SITE_URL = "https://forrest-jones.github.io/Mandarin-The-SenLin-Way/"   # where 
 # STRIPE_PRICE_MONTHLY = "price_..."     # $11.99 / month
 # STRIPE_PRICE_YEARLY = "price_..."      # $59.99 / year (the 7-day trial is added by the server at checkout)
 # STRIPE_PRICE_LIFETIME = "price_..."    # $149.99 one-time
-# PAYWALL = "1"                                      # uncomment to gate HSK 2+ and the Deal Desk behind Pro
+PAYWALL = "1"                                        # HSK 1 (the first 72 days) is free; HSK 2+ and the Deal Desk need Pro. Comment out to open everything
+OWNER_EMAIL = "forrestjones2010@gmail.com"           # comma-separated; these accounts are always Pro (the owner can test every screen)
 # DEV = "1"                                          # allows http://localhost:8080 as an origin
 # DEV_ECHO_CODE = "1"                                # returns the sign-in code in the API response (never in production)
 

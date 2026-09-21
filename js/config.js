@@ -7,7 +7,7 @@ window.SENLIN_CONFIG = {
   audioBase: 'audio/',         // pre-generated MP3s from tools/audio.js (audio/index.json)
   sentryDsn: '',               // Sentry browser DSN; empty = errors go to apiBase/v1/errors when signed in, else nowhere
   analytics: 'opt-in',         // 'off' | 'opt-in' (asks once in Settings) | 'on'
-  paywall: false,              // true = HSK 3+ and the Deal Desk need a Pro entitlement
+  paywall: true,               // true = HSK 2+ (day 73 on) and the Deal Desk need a Pro entitlement; HSK 1 stays free
   freeDays: 72,                // with paywall: days 1–72 (all of HSK 1 at 3 characters a day) are free
   revenuecat: { android: '', ios: '', web: '' },  // public API keys per platform
   checkoutUrl: '',             // optional fallback: a Stripe Payment Link; normally Checkout is created by the server (/v1/billing/checkout)

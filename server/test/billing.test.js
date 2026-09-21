@@ -174,3 +174,14 @@ test('billing: one-shot stripe setup creates product, prices, webhook and portal
   await worker.fetch(req('/v1/billing/portal', { method: 'POST', token }), env, new FakeCtx());
   assert.equal(created.find(([k]) => k === 'portal_session')[1].get('configuration'), 'bpc_1');
 });
+
+test('OWNER_EMAIL accounts are always Pro, everyone else follows their row', async () => {
+  const { applyOwner, publicUser } = await import('../src/auth.js');
+  const env = { OWNER_EMAIL: 'Owner@Example.com, second@example.com' };
+  const owner = applyOwner(env, { id: 'u1', email: 'owner@example.com', plan: 'free', plan_expires_at: null });
+  assert.equal(publicUser(owner).plan, 'pro');
+  const other = applyOwner(env, { id: 'u2', email: 'someone@example.com', plan: 'free', plan_expires_at: null });
+  assert.equal(publicUser(other).plan, 'free');
+  assert.equal(applyOwner({}, { id: 'u3', email: 'owner@example.com', plan: 'free' }).plan, 'free');
+  assert.equal(applyOwner(env, null), null);
+});
