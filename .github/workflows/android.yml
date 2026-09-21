@@ -45,7 +45,7 @@ jobs:
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$sdk" > ~/.bubblewrap/config.json
           cat ~/.bubblewrap/config.json
           yes | "$sdk/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
-          "$sdk/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0" "platforms;android-35" "build-tools;34.0.0" "platforms;android-34" > /dev/null 2>&1 || true
+          "$sdk/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "platforms;android-35" "build-tools;35.0.0" "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1 || true
       - name: Clean the Cloudflare token
         id: token
         run: |
@@ -92,9 +92,11 @@ jobs:
           print('versionCode', n, 'versionName', m['appVersionName'])
           PY
           bubblewrap update --skipVersionUpgrade < /dev/null
-          # Play requires new apps to target a recent API level; pin compile/target to 35 whatever the template says.
-          sed -i -E 's/compileSdkVersion [0-9]+/compileSdkVersion 35/; s/targetSdkVersion [0-9]+/targetSdkVersion 35/' app/build.gradle
-          grep -nE 'compileSdkVersion|targetSdkVersion|minSdkVersion|versionCode|versionName' app/build.gradle
+          # Play requires new apps to target a recent API level. Bubblewrap's template already compiles against the
+          # latest SDK (its androidx.browser dependency needs 36+), so only make sure targetSdk is never below 35.
+          t=$(grep -oE 'targetSdkVersion [0-9]+' app/build.gradle | grep -oE '[0-9]+' || echo 0)
+          if [ "${t:-0}" -lt 35 ]; then sed -i -E 's/targetSdkVersion [0-9]+/targetSdkVersion 35/' app/build.gradle; fi
+          grep -nE 'compileSdkVersion|compileSdk |targetSdkVersion|targetSdk |minSdkVersion|minSdk |versionCode|versionName' app/build.gradle
           bubblewrap build --skipPwaValidation < /dev/null
           ls -la *.aab *.apk
       - name: Write the fingerprint into .well-known/assetlinks.json and commit it

@@ -110,7 +110,7 @@ Play ranks on two things: the text it indexes, and how people behave once they s
 **Technical health (Android vitals)**
 - Thresholds Google demotes past: crash rate 1.09% (8% on any one device), ANR 0.47%. The TWA shell is a thin Chrome wrapper, so the vitals that matter are the web app's: no uncaught errors (CI runs the e2e suite with a console-error assertion), a service worker that never serves a broken shell, and `.well-known/assetlinks.json` verified so Play never shows the browser bar.
 - Keep the bundle small: the TWA is ~2 MB; the site loads HSK 4–6 lazily and audio on demand, and the published copy is minified at deploy time (sources stay readable on `main`).
-- Every build sets `versionCode` from the workflow run number and targets API 35, so each upload is accepted by Play without hand edits.
+- Every build sets `versionCode` from the workflow run number and targets at least API 35 (the template already compiles against the newest SDK), so each upload is accepted by Play without hand edits.
 
 **Ratings and reviews**
 - Stay above 4.0 or lose "similar apps" placement. The app asks for a rating only at a good moment: after a completed lesson on a streak of three or more, at most once every 90 days, never on a cold open or after an error (`js/app.js` → `reviewPrompt`). In the Capacitor build this becomes the native In-App Review API; in the TWA it opens the Play listing.
