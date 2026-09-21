@@ -1,18 +1,1757 @@
 {
   "version": 1,
   "source": "review/hsk6-reviewed.csv",
-  "generated": "2026-09-20T23:21:35.002Z",
+  "generated": "2026-09-21T00:58:53.974Z",
   "summary": {
     "rows": 323,
-    "ok": 0,
-    "fix": 0,
+    "ok": 244,
+    "fix": 79,
     "drop": 0,
-    "blank": 323,
+    "blank": 0,
     "unknownStatus": 0,
     "unknownId": 0,
     "fixWithoutCorrection": 0,
     "unchanged": 0
   },
-  "changes": [],
+  "changes": [
+    {
+      "id": "160493e45a57d6a7",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[0]",
+      "from": {
+        "zh": "他被关进了监狱。",
+        "p": "Tā bèi guān jìn le jiānyù.",
+        "en": "He was put in prison."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā bèi guānjìn le jiānyù.||关进 is one verb-complement word in pinyin.",
+      "to": {
+        "zh": "他被关进了监狱。",
+        "p": "Tā bèi guānjìn le jiānyù.",
+        "en": "He was put in prison."
+      },
+      "newId": "160493e45a57d6a7",
+      "comment": "关进 is one verb-complement word in pinyin."
+    },
+    {
+      "id": "8980a6019e121307",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[6]",
+      "from": {
+        "zh": "这里就像天堂一样。",
+        "p": "Zhèlǐ jiù xiàng tiāntáng yíyàng.",
+        "en": "This place is just like heaven."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zhèlǐ jiù xiàng tiāntáng yīyàng.||一 keeps its dictionary tone in this course's pinyin convention.",
+      "to": {
+        "zh": "这里就像天堂一样。",
+        "p": "Zhèlǐ jiù xiàng tiāntáng yīyàng.",
+        "en": "This place is just like heaven."
+      },
+      "newId": "8980a6019e121307",
+      "comment": "一 keeps its dictionary tone in this course's pinyin convention."
+    },
+    {
+      "id": "0834cfa1afcb33fe",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[10]",
+      "from": {
+        "zh": "他承诺明年一定回来。",
+        "p": "Tā chéngnuò míngnián yídìng huílái.",
+        "en": "He promised he would definitely come back next year."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā chéngnuò míngnián yīdìng huílái.||一 written with dictionary tone, no sandhi.",
+      "to": {
+        "zh": "他承诺明年一定回来。",
+        "p": "Tā chéngnuò míngnián yīdìng huílái.",
+        "en": "He promised he would definitely come back next year."
+      },
+      "newId": "0834cfa1afcb33fe",
+      "comment": "一 written with dictionary tone, no sandhi."
+    },
+    {
+      "id": "9cdef63bc9a60210",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[13]",
+      "from": {
+        "zh": "他是无辜的，不是罪犯。",
+        "p": "Tā shì wúgū de, bú shì zuìfàn.",
+        "en": "He is innocent; he is not a criminal."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā shì wúgū de, bù shì zuìfàn.||不 written with dictionary tone, no sandhi.",
+      "to": {
+        "zh": "他是无辜的，不是罪犯。",
+        "p": "Tā shì wúgū de, bù shì zuìfàn.",
+        "en": "He is innocent; he is not a criminal."
+      },
+      "newId": "9cdef63bc9a60210",
+      "comment": "不 written with dictionary tone, no sandhi."
+    },
+    {
+      "id": "6b791f00522a6b88",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[14]",
+      "from": {
+        "zh": "一个人住久了会觉得孤独。",
+        "p": "Yí ge rén zhù jiǔ le huì juéde gūdú.",
+        "en": "Living alone for a long time can make you feel lonely."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Yī ge rén zhù jiǔ le huì juéde gūdú.||一 keeps its dictionary tone in pinyin.",
+      "to": {
+        "zh": "一个人住久了会觉得孤独。",
+        "p": "Yī ge rén zhù jiǔ le huì juéde gūdú.",
+        "en": "Living alone for a long time can make you feel lonely."
+      },
+      "newId": "6b791f00522a6b88",
+      "comment": "一 keeps its dictionary tone in pinyin."
+    },
+    {
+      "id": "ad90855d869440cc",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[20]",
+      "from": {
+        "zh": "会议室里一片混乱。",
+        "p": "Huìyìshì lǐ yípiàn hùnluàn.",
+        "en": "The meeting room was in chaos."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Huìyìshì lǐ yīpiàn hùnluàn.||一 keeps its dictionary tone yī in pinyin (sandhi not written).",
+      "to": {
+        "zh": "会议室里一片混乱。",
+        "p": "Huìyìshì lǐ yīpiàn hùnluàn.",
+        "en": "The meeting room was in chaos."
+      },
+      "newId": "ad90855d869440cc",
+      "comment": "一 keeps its dictionary tone yī in pinyin (sandhi not written)."
+    },
+    {
+      "id": "79675dfada1f33dd",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[27]",
+      "from": {
+        "zh": "你不要欺骗自己。",
+        "p": "Nǐ búyào qīpiàn zìjǐ.",
+        "en": "Don’t deceive yourself."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Nǐ bùyào qīpiàn zìjǐ.||不 keeps dictionary tone bù in pinyin.",
+      "to": {
+        "zh": "你不要欺骗自己。",
+        "p": "Nǐ bùyào qīpiàn zìjǐ.",
+        "en": "Don’t deceive yourself."
+      },
+      "newId": "79675dfada1f33dd",
+      "comment": "不 keeps dictionary tone bù in pinyin."
+    },
+    {
+      "id": "7018b93adbaaa939",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[32]",
+      "from": {
+        "zh": "不要掩盖自己的错误。",
+        "p": "Búyào yǎngài zìjǐ de cuòwù.",
+        "en": "Don’t cover up your own mistakes."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Bùyào yǎngài zìjǐ de cuòwù.||不 keeps dictionary tone bù in pinyin.",
+      "to": {
+        "zh": "不要掩盖自己的错误。",
+        "p": "Bùyào yǎngài zìjǐ de cuòwù.",
+        "en": "Don’t cover up your own mistakes."
+      },
+      "newId": "7018b93adbaaa939",
+      "comment": "不 keeps dictionary tone bù in pinyin."
+    },
+    {
+      "id": "bc4fe367d414fe56",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[35]",
+      "from": {
+        "zh": "诚实是最好的荣誉。",
+        "p": "Chéngshí shì zuì hǎo de róngyù.",
+        "en": "Honesty is the best honor."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "诚实是最大的荣誉。|Chéngshí shì zuì dà de róngyù.|Honesty is the greatest honor.|最好的荣誉 is unidiomatic; 最大的荣誉 is the natural collocation.",
+      "to": {
+        "zh": "诚实是最大的荣誉。",
+        "p": "Chéngshí shì zuì dà de róngyù.",
+        "en": "Honesty is the greatest honor."
+      },
+      "newId": "289158b375c59cf1",
+      "comment": "最好的荣誉 is unidiomatic; 最大的荣誉 is the natural collocation."
+    },
+    {
+      "id": "3e8b8e91ba0558a0",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[40]",
+      "from": {
+        "zh": "他演奏了一首钢琴曲。",
+        "p": "Tā yǎnzòu le yì shǒu gāngqín qǔ.",
+        "en": "He played a piano piece."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā yǎnzòu le yī shǒu gāngqínqǔ.||一 keeps dictionary tone yī (no written sandhi); 钢琴曲 is one word.",
+      "to": {
+        "zh": "他演奏了一首钢琴曲。",
+        "p": "Tā yǎnzòu le yī shǒu gāngqínqǔ.",
+        "en": "He played a piano piece."
+      },
+      "newId": "3e8b8e91ba0558a0",
+      "comment": "一 keeps dictionary tone yī (no written sandhi); 钢琴曲 is one word."
+    },
+    {
+      "id": "77c145a815a9ae8b",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[43]",
+      "from": {
+        "zh": "走廊里请不要大声说话。",
+        "p": "Zǒuláng lǐ qǐng búyào dàshēng shuōhuà.",
+        "en": "Please don’t talk loudly in the corridor."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zǒuláng lǐ qǐng bùyào dàshēng shuōhuà.||不 keeps dictionary tone bù, sandhi not written.",
+      "to": {
+        "zh": "走廊里请不要大声说话。",
+        "p": "Zǒuláng lǐ qǐng bùyào dàshēng shuōhuà.",
+        "en": "Please don’t talk loudly in the corridor."
+      },
+      "newId": "77c145a815a9ae8b",
+      "comment": "不 keeps dictionary tone bù, sandhi not written."
+    },
+    {
+      "id": "ba68bdb8edb84456",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[45]",
+      "from": {
+        "zh": "她从小就喜欢舞蹈。",
+        "p": "Tā cóng xiǎo jiù xǐhuan wǔdǎo.",
+        "en": "She has loved dancing since she was little."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā cóngxiǎo jiù xǐhuan wǔdǎo.||从小 is a single word in pinyin.",
+      "to": {
+        "zh": "她从小就喜欢舞蹈。",
+        "p": "Tā cóngxiǎo jiù xǐhuan wǔdǎo.",
+        "en": "She has loved dancing since she was little."
+      },
+      "newId": "ba68bdb8edb84456",
+      "comment": "从小 is a single word in pinyin."
+    },
+    {
+      "id": "123207feca836df9",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[54]",
+      "from": {
+        "zh": "我们请了一位保姆照顾孩子。",
+        "p": "Wǒmen qǐng le yí wèi bǎomǔ zhàogù háizi.",
+        "en": "We hired a nanny to look after the children."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen qǐng le yī wèi bǎomǔ zhàogù háizi.||一 keeps dictionary tone yī, sandhi not written.",
+      "to": {
+        "zh": "我们请了一位保姆照顾孩子。",
+        "p": "Wǒmen qǐng le yī wèi bǎomǔ zhàogù háizi.",
+        "en": "We hired a nanny to look after the children."
+      },
+      "newId": "123207feca836df9",
+      "comment": "一 keeps dictionary tone yī, sandhi not written."
+    },
+    {
+      "id": "15d69a300f2d7d8b",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[55]",
+      "from": {
+        "zh": "他遭遇了一场车祸。",
+        "p": "Tā zāoyù le yì chǎng chēhuò.",
+        "en": "He was in a car accident."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā zāoyù le yī chǎng chēhuò.||一 keeps dictionary tone yī, sandhi not written.",
+      "to": {
+        "zh": "他遭遇了一场车祸。",
+        "p": "Tā zāoyù le yī chǎng chēhuò.",
+        "en": "He was in a car accident."
+      },
+      "newId": "15d69a300f2d7d8b",
+      "comment": "一 keeps dictionary tone yī, sandhi not written."
+    },
+    {
+      "id": "688ab8a32e624f7e",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[59]",
+      "from": {
+        "zh": "墙上留下了一道痕迹。",
+        "p": "Qiáng shang liúxià le yí dào hénjì.",
+        "en": "A mark was left on the wall."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Qiáng shang liúxià le yī dào hénjì.||一 keeps dictionary tone yī, sandhi not written.",
+      "to": {
+        "zh": "墙上留下了一道痕迹。",
+        "p": "Qiáng shang liúxià le yī dào hénjì.",
+        "en": "A mark was left on the wall."
+      },
+      "newId": "688ab8a32e624f7e",
+      "comment": "一 keeps dictionary tone yī, sandhi not written."
+    },
+    {
+      "id": "a4b77a758181e66e",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[62]",
+      "from": {
+        "zh": "她一个人在房间里哭泣。",
+        "p": "Tā yí ge rén zài fángjiān lǐ kūqì.",
+        "en": "She was weeping alone in the room."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā yī ge rén zài fángjiān lǐ kūqì.||一 keeps its dictionary tone yī (sandhi not written).",
+      "to": {
+        "zh": "她一个人在房间里哭泣。",
+        "p": "Tā yī ge rén zài fángjiān lǐ kūqì.",
+        "en": "She was weeping alone in the room."
+      },
+      "newId": "a4b77a758181e66e",
+      "comment": "一 keeps its dictionary tone yī (sandhi not written)."
+    },
+    {
+      "id": "5a118378b7152cd1",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[63]",
+      "from": {
+        "zh": "火车穿过了一条长长的隧道。",
+        "p": "Huǒchē chuānguò le yì tiáo chángcháng de suìdào.",
+        "en": "The train passed through a long tunnel."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Huǒchē chuānguò le yī tiáo chángcháng de suìdào.||一 should be written yī, not yì.",
+      "to": {
+        "zh": "火车穿过了一条长长的隧道。",
+        "p": "Huǒchē chuānguò le yī tiáo chángcháng de suìdào.",
+        "en": "The train passed through a long tunnel."
+      },
+      "newId": "5a118378b7152cd1",
+      "comment": "一 should be written yī, not yì."
+    },
+    {
+      "id": "a893f8b85a9a4d85",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[81]",
+      "from": {
+        "zh": "天气冷酷得让人受不了。",
+        "p": "Tiānqì lěngkù de ràng rén shòu bu liǎo.",
+        "en": "The weather is unbearably harsh."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "天气寒冷得让人受不了。|Tiānqì hánlěng de ràng rén shòu bu liǎo.||冷酷 describes cruel people, not weather; 寒冷 is the natural word.",
+      "to": {
+        "zh": "天气寒冷得让人受不了。",
+        "p": "Tiānqì hánlěng de ràng rén shòu bu liǎo.",
+        "en": "The weather is unbearably harsh."
+      },
+      "newId": "769d6ee38d916103",
+      "comment": "冷酷 describes cruel people, not weather; 寒冷 is the natural word."
+    },
+    {
+      "id": "da6fa9ca75176879",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[86]",
+      "from": {
+        "zh": "他住在一个遥远的小村子里。",
+        "p": "Tā zhù zài yí ge yáoyuǎn de xiǎo cūnzi lǐ.",
+        "en": "He lives in a distant little village."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā zhù zài yī ge yáoyuǎn de xiǎo cūnzi lǐ.||一 keeps its dictionary tone yī in this course's pinyin.",
+      "to": {
+        "zh": "他住在一个遥远的小村子里。",
+        "p": "Tā zhù zài yī ge yáoyuǎn de xiǎo cūnzi lǐ.",
+        "en": "He lives in a distant little village."
+      },
+      "newId": "da6fa9ca75176879",
+      "comment": "一 keeps its dictionary tone yī in this course's pinyin."
+    },
+    {
+      "id": "3e9ed5c65f7de38d",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[88]",
+      "from": {
+        "zh": "这是一个巨大的阴谋。",
+        "p": "Zhè shì yí ge jùdà de yīnmóu.",
+        "en": "This is a huge conspiracy."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zhè shì yī ge jùdà de yīnmóu.||一 should be written yī without sandhi.",
+      "to": {
+        "zh": "这是一个巨大的阴谋。",
+        "p": "Zhè shì yī ge jùdà de yīnmóu.",
+        "en": "This is a huge conspiracy."
+      },
+      "newId": "3e9ed5c65f7de38d",
+      "comment": "一 should be written yī without sandhi."
+    },
+    {
+      "id": "b9bcd7a2c859a6dc",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[91]",
+      "from": {
+        "zh": "一瞬间，他就不见了。",
+        "p": "Yí shùnjiān, tā jiù bú jiàn le.",
+        "en": "In an instant, he was gone."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Yī shùnjiān, tā jiù bù jiàn le.||一 and 不 keep dictionary tones (yī, bù).",
+      "to": {
+        "zh": "一瞬间，他就不见了。",
+        "p": "Yī shùnjiān, tā jiù bù jiàn le.",
+        "en": "In an instant, he was gone."
+      },
+      "newId": "b9bcd7a2c859a6dc",
+      "comment": "一 and 不 keep dictionary tones (yī, bù)."
+    },
+    {
+      "id": "c73c50c0b5b6764d",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[95]",
+      "from": {
+        "zh": "他一生气就砸东西。",
+        "p": "Tā yì shēngqì jiù zá dōngxi.",
+        "en": "As soon as he gets angry, he smashes things."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā yī shēngqì jiù zá dōngxi.||一 written without tone sandhi.",
+      "to": {
+        "zh": "他一生气就砸东西。",
+        "p": "Tā yī shēngqì jiù zá dōngxi.",
+        "en": "As soon as he gets angry, he smashes things."
+      },
+      "newId": "c73c50c0b5b6764d",
+      "comment": "一 written without tone sandhi."
+    },
+    {
+      "id": "9a747e869c67f541",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[96]",
+      "from": {
+        "zh": "她生了一对双胞胎。",
+        "p": "Tā shēng le yí duì shuāngbāotāi.",
+        "en": "She gave birth to twins."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā shēng le yī duì shuāngbāotāi.||一 written without tone sandhi.",
+      "to": {
+        "zh": "她生了一对双胞胎。",
+        "p": "Tā shēng le yī duì shuāngbāotāi.",
+        "en": "She gave birth to twins."
+      },
+      "newId": "9a747e869c67f541",
+      "comment": "一 written without tone sandhi."
+    },
+    {
+      "id": "152fd0bd4f854b19",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[99]",
+      "from": {
+        "zh": "我们在山上搭了一个帐篷。",
+        "p": "Wǒmen zài shān shang dā le yí ge zhàngpeng.",
+        "en": "We pitched a tent on the mountain."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen zài shān shang dā le yī ge zhàngpeng.||一 written without tone sandhi.",
+      "to": {
+        "zh": "我们在山上搭了一个帐篷。",
+        "p": "Wǒmen zài shān shang dā le yī ge zhàngpeng.",
+        "en": "We pitched a tent on the mountain."
+      },
+      "newId": "152fd0bd4f854b19",
+      "comment": "一 written without tone sandhi."
+    },
+    {
+      "id": "25e425deb9687d93",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[100]",
+      "from": {
+        "zh": "他一直盯着手机看。",
+        "p": "Tā yìzhí dīngzhe shǒujī kàn.",
+        "en": "He kept staring at his phone."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā yīzhí dīngzhe shǒujī kàn.||一 keeps its dictionary tone yī in pinyin (sandhi not written).",
+      "to": {
+        "zh": "他一直盯着手机看。",
+        "p": "Tā yīzhí dīngzhe shǒujī kàn.",
+        "en": "He kept staring at his phone."
+      },
+      "newId": "25e425deb9687d93",
+      "comment": "一 keeps its dictionary tone yī in pinyin (sandhi not written)."
+    },
+    {
+      "id": "1651e4734b83566a",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[102]",
+      "from": {
+        "zh": "机器出了故障。",
+        "p": "Jīqì chū le gùzhàng.",
+        "en": "The machine broke down."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Jīqì chūle gùzhàng.||了 is written attached to the verb: chūle.",
+      "to": {
+        "zh": "机器出了故障。",
+        "p": "Jīqì chūle gùzhàng.",
+        "en": "The machine broke down."
+      },
+      "newId": "1651e4734b83566a",
+      "comment": "了 is written attached to the verb: chūle."
+    },
+    {
+      "id": "1f336b441e1f35d5",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[105]",
+      "from": {
+        "zh": "火焰越来越高。",
+        "p": "Huǒyàn yuè lái yuè gāo.",
+        "en": "The flames rose higher and higher."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "||The flames are getting higher and higher.|Chinese is present/ongoing, not past.",
+      "to": {
+        "zh": "火焰越来越高。",
+        "p": "Huǒyàn yuè lái yuè gāo.",
+        "en": "The flames are getting higher and higher."
+      },
+      "newId": "1f336b441e1f35d5",
+      "comment": "Chinese is present/ongoing, not past."
+    },
+    {
+      "id": "0f31b49541d02931",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[106]",
+      "from": {
+        "zh": "请不要骚扰别人。",
+        "p": "Qǐng búyào sāorǎo biérén.",
+        "en": "Please don’t harass others."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Qǐng bùyào sāorǎo biérén.||不 keeps its dictionary tone bù (sandhi not written).",
+      "to": {
+        "zh": "请不要骚扰别人。",
+        "p": "Qǐng bùyào sāorǎo biérén.",
+        "en": "Please don’t harass others."
+      },
+      "newId": "0f31b49541d02931",
+      "comment": "不 keeps its dictionary tone bù (sandhi not written)."
+    },
+    {
+      "id": "2853184d47d4975d",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[107]",
+      "from": {
+        "zh": "广告的诱惑力很大。",
+        "p": "Guǎnggào de yòuhuò lì hěn dà.",
+        "en": "Advertisements are very tempting."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Guǎnggào de yòuhuòlì hěn dà.||诱惑力 is one word in pinyin.",
+      "to": {
+        "zh": "广告的诱惑力很大。",
+        "p": "Guǎnggào de yòuhuòlì hěn dà.",
+        "en": "Advertisements are very tempting."
+      },
+      "newId": "2853184d47d4975d",
+      "comment": "诱惑力 is one word in pinyin."
+    },
+    {
+      "id": "e35dc91e66a114e6",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[111]",
+      "from": {
+        "zh": "双方签署了和平协议。",
+        "p": "Shuāngfāng qiānshǔ le hépíng xiéyì.",
+        "en": "The two sides signed a peace agreement."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Shuāngfāng qiānshǔle hépíng xiéyì.||了 is written attached to the verb.",
+      "to": {
+        "zh": "双方签署了和平协议。",
+        "p": "Shuāngfāng qiānshǔle hépíng xiéyì.",
+        "en": "The two sides signed a peace agreement."
+      },
+      "newId": "e35dc91e66a114e6",
+      "comment": "了 is written attached to the verb."
+    },
+    {
+      "id": "10de3b803a2da7b0",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[116]",
+      "from": {
+        "zh": "他勉强同意了。",
+        "p": "Tā miǎnqiǎng tóngyì le.",
+        "en": "He reluctantly agreed."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā miǎnqiǎng tóngyìle.||了 is written attached to the verb.",
+      "to": {
+        "zh": "他勉强同意了。",
+        "p": "Tā miǎnqiǎng tóngyìle.",
+        "en": "He reluctantly agreed."
+      },
+      "newId": "10de3b803a2da7b0",
+      "comment": "了 is written attached to the verb."
+    },
+    {
+      "id": "41540081b093d7e8",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[118]",
+      "from": {
+        "zh": "他找到了理想的伴侣。",
+        "p": "Tā zhǎodào le lǐxiǎng de bànlǚ.",
+        "en": "He found his ideal partner."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā zhǎodàole lǐxiǎng de bànlǚ.||了 is written attached to the verb complement.",
+      "to": {
+        "zh": "他找到了理想的伴侣。",
+        "p": "Tā zhǎodàole lǐxiǎng de bànlǚ.",
+        "en": "He found his ideal partner."
+      },
+      "newId": "41540081b093d7e8",
+      "comment": "了 is written attached to the verb complement."
+    },
+    {
+      "id": "f2bfd7857f3bef07",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[121]",
+      "from": {
+        "zh": "赌博害了他一辈子。",
+        "p": "Dǔbó hài le tā yíbèizi.",
+        "en": "Gambling ruined his whole life."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Dǔbó hài le tā yībèizi.||一 keeps its dictionary tone yī in this course's pinyin convention.",
+      "to": {
+        "zh": "赌博害了他一辈子。",
+        "p": "Dǔbó hài le tā yībèizi.",
+        "en": "Gambling ruined his whole life."
+      },
+      "newId": "f2bfd7857f3bef07",
+      "comment": "一 keeps its dictionary tone yī in this course's pinyin convention."
+    },
+    {
+      "id": "8423c9f5f42e2ee6",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[123]",
+      "from": {
+        "zh": "地球围绕太阳旋转。",
+        "p": "Dìqiú wéirào tàiyáng xuánzhuǎn.",
+        "en": "The earth rotates around the sun."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "||The earth revolves around the sun.|围绕…旋转 here means revolve/orbit, not rotate on its axis.",
+      "to": {
+        "zh": "地球围绕太阳旋转。",
+        "p": "Dìqiú wéirào tàiyáng xuánzhuǎn.",
+        "en": "The earth revolves around the sun."
+      },
+      "newId": "8423c9f5f42e2ee6",
+      "comment": "围绕…旋转 here means revolve/orbit, not rotate on its axis."
+    },
+    {
+      "id": "c4b4b6d4fd177e34",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[128]",
+      "from": {
+        "zh": "这条路的直径是十米。",
+        "p": "Zhè tiáo lù de zhíjìng shì shí mǐ.",
+        "en": "The diameter of this road is ten meters."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "这个圆的直径是十米。|Zhège yuán de zhíjìng shì shí mǐ.|The diameter of this circle is ten meters.|A road has no 直径; the noun must be a circular object.",
+      "to": {
+        "zh": "这个圆的直径是十米。",
+        "p": "Zhège yuán de zhíjìng shì shí mǐ.",
+        "en": "The diameter of this circle is ten meters."
+      },
+      "newId": "37a087282321902c",
+      "comment": "A road has no 直径; the noun must be a circular object."
+    },
+    {
+      "id": "bae06782275ec6a3",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[131]",
+      "from": {
+        "zh": "不要相信谣言。",
+        "p": "Búyào xiāngxìn yáoyán.",
+        "en": "Don’t believe rumors."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Bùyào xiāngxìn yáoyán.||不 keeps its dictionary tone bù (sandhi not written).",
+      "to": {
+        "zh": "不要相信谣言。",
+        "p": "Bùyào xiāngxìn yáoyán.",
+        "en": "Don’t believe rumors."
+      },
+      "newId": "bae06782275ec6a3",
+      "comment": "不 keeps its dictionary tone bù (sandhi not written)."
+    },
+    {
+      "id": "80de39e82aa6c175",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[133]",
+      "from": {
+        "zh": "这是一个悲惨的故事。",
+        "p": "Zhè shì yí ge bēicǎn de gùshi.",
+        "en": "This is a tragic story."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zhè shì yī ge bēicǎn de gùshi.||一 keeps its dictionary tone yī.",
+      "to": {
+        "zh": "这是一个悲惨的故事。",
+        "p": "Zhè shì yī ge bēicǎn de gùshi.",
+        "en": "This is a tragic story."
+      },
+      "newId": "80de39e82aa6c175",
+      "comment": "一 keeps its dictionary tone yī."
+    },
+    {
+      "id": "038a527dd050e02d",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[135]",
+      "from": {
+        "zh": "他为国家奉献了一生。",
+        "p": "Tā wèi guójiā fèngxiàn le yìshēng.",
+        "en": "He devoted his whole life to the country."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā wèi guójiā fèngxiàn le yīshēng.||一 keeps its dictionary tone yī.",
+      "to": {
+        "zh": "他为国家奉献了一生。",
+        "p": "Tā wèi guójiā fèngxiàn le yīshēng.",
+        "en": "He devoted his whole life to the country."
+      },
+      "newId": "038a527dd050e02d",
+      "comment": "一 keeps its dictionary tone yī."
+    },
+    {
+      "id": "cfbe140315a105ac",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[141]",
+      "from": {
+        "zh": "他们在海边买了一栋别墅。",
+        "p": "Tāmen zài hǎibiān mǎi le yí dòng biéshù.",
+        "en": "They bought a villa by the sea."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tāmen zài hǎibiān mǎi le yī dòng biéshù.||一 keeps its dictionary tone yī in pinyin (sandhi not written).",
+      "to": {
+        "zh": "他们在海边买了一栋别墅。",
+        "p": "Tāmen zài hǎibiān mǎi le yī dòng biéshù.",
+        "en": "They bought a villa by the sea."
+      },
+      "newId": "cfbe140315a105ac",
+      "comment": "一 keeps its dictionary tone yī in pinyin (sandhi not written)."
+    },
+    {
+      "id": "ac71d5cf6aab045d",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[148]",
+      "from": {
+        "zh": "灾民们又饥饿又寒冷。",
+        "p": "Zāimínmen yòu jī’è yòu hánlěng.",
+        "en": "The disaster victims are both hungry and cold."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zāimínmen yòu jī'è yòu hánlěng.||Use the standard straight apostrophe in jī'è.",
+      "to": {
+        "zh": "灾民们又饥饿又寒冷。",
+        "p": "Zāimínmen yòu jī'è yòu hánlěng.",
+        "en": "The disaster victims are both hungry and cold."
+      },
+      "newId": "ac71d5cf6aab045d",
+      "comment": "Use the standard straight apostrophe in jī'è."
+    },
+    {
+      "id": "11fae472647fb676",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[151]",
+      "from": {
+        "zh": "他的态度非常极端。",
+        "p": "Tā de tàidù fēicháng jíduān.",
+        "en": "His attitude is extremely radical."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "||His attitude is very extreme.|极端 means 'extreme' rather than 'radical' here.",
+      "to": {
+        "zh": "他的态度非常极端。",
+        "p": "Tā de tàidù fēicháng jíduān.",
+        "en": "His attitude is very extreme."
+      },
+      "newId": "11fae472647fb676",
+      "comment": "极端 means 'extreme' rather than 'radical' here."
+    },
+    {
+      "id": "bce4898d6359efa5",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[154]",
+      "from": {
+        "zh": "他叹了一口气，走了。",
+        "p": "Tā tàn le yì kǒu qì, zǒu le.",
+        "en": "He sighed and left."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā tàn le yī kǒu qì, zǒu le.||一 keeps its dictionary tone yī in pinyin.",
+      "to": {
+        "zh": "他叹了一口气，走了。",
+        "p": "Tā tàn le yī kǒu qì, zǒu le.",
+        "en": "He sighed and left."
+      },
+      "newId": "bce4898d6359efa5",
+      "comment": "一 keeps its dictionary tone yī in pinyin."
+    },
+    {
+      "id": "49d6b20fe8bdc487",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[158]",
+      "from": {
+        "zh": "她一个人抚养两个孩子。",
+        "p": "Tā yí ge rén fǔyǎng liǎng ge háizi.",
+        "en": "She raised two children on her own."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā yī ge rén fǔyǎng liǎng ge háizi.||一 keeps its dictionary tone yī in pinyin.",
+      "to": {
+        "zh": "她一个人抚养两个孩子。",
+        "p": "Tā yī ge rén fǔyǎng liǎng ge háizi.",
+        "en": "She raised two children on her own."
+      },
+      "newId": "49d6b20fe8bdc487",
+      "comment": "一 keeps its dictionary tone yī in pinyin."
+    },
+    {
+      "id": "8e4a0a3e1a4a582b",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[160]",
+      "from": {
+        "zh": "考试作弊是不对的。",
+        "p": "Kǎoshì zuòbì shì bú duì de.",
+        "en": "Cheating on exams is wrong."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Kǎoshì zuòbì shì bù duì de.||Tone sandhi of 不 should not be written.",
+      "to": {
+        "zh": "考试作弊是不对的。",
+        "p": "Kǎoshì zuòbì shì bù duì de.",
+        "en": "Cheating on exams is wrong."
+      },
+      "newId": "8e4a0a3e1a4a582b",
+      "comment": "Tone sandhi of 不 should not be written."
+    },
+    {
+      "id": "3448f1987848317a",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[164]",
+      "from": {
+        "zh": "工人们在挖掘一条新的隧道。",
+        "p": "Gōngrénmen zài wājué yì tiáo xīn de suìdào.",
+        "en": "The workers are digging a new tunnel."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Gōngrénmen zài wājué yī tiáo xīn de suìdào.||一 keeps its dictionary tone in pinyin.",
+      "to": {
+        "zh": "工人们在挖掘一条新的隧道。",
+        "p": "Gōngrénmen zài wājué yī tiáo xīn de suìdào.",
+        "en": "The workers are digging a new tunnel."
+      },
+      "newId": "3448f1987848317a",
+      "comment": "一 keeps its dictionary tone in pinyin."
+    },
+    {
+      "id": "ad9a509b1f5dab0c",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[166]",
+      "from": {
+        "zh": "贪婪的人永远不会满足。",
+        "p": "Tānlán de rén yǒngyuǎn bú huì mǎnzú.",
+        "en": "A greedy person will never be satisfied."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tānlán de rén yǒngyuǎn bù huì mǎnzú.||不 sandhi should not be written.",
+      "to": {
+        "zh": "贪婪的人永远不会满足。",
+        "p": "Tānlán de rén yǒngyuǎn bù huì mǎnzú.",
+        "en": "A greedy person will never be satisfied."
+      },
+      "newId": "ad9a509b1f5dab0c",
+      "comment": "不 sandhi should not be written."
+    },
+    {
+      "id": "1241e854833c7495",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[173]",
+      "from": {
+        "zh": "这是一个庞大的工程。",
+        "p": "Zhè shì yí ge pángdà de gōngchéng.",
+        "en": "This is a huge project."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zhè shì yī ge pángdà de gōngchéng.||一 keeps its dictionary tone in pinyin.",
+      "to": {
+        "zh": "这是一个庞大的工程。",
+        "p": "Zhè shì yī ge pángdà de gōngchéng.",
+        "en": "This is a huge project."
+      },
+      "newId": "1241e854833c7495",
+      "comment": "一 keeps its dictionary tone in pinyin."
+    },
+    {
+      "id": "2cf2b7852d926532",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[177]",
+      "from": {
+        "zh": "我嫂子是一名护士。",
+        "p": "Wǒ sǎozi shì yì míng hùshi.",
+        "en": "My sister-in-law is a nurse."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒ sǎozi shì yī míng hùshi.||一 keeps its dictionary tone in pinyin.",
+      "to": {
+        "zh": "我嫂子是一名护士。",
+        "p": "Wǒ sǎozi shì yī míng hùshi.",
+        "en": "My sister-in-law is a nurse."
+      },
+      "newId": "2cf2b7852d926532",
+      "comment": "一 keeps its dictionary tone in pinyin."
+    },
+    {
+      "id": "51e84487ac052494",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[178]",
+      "from": {
+        "zh": "他只是一个平凡的人。",
+        "p": "Tā zhǐshì yí ge píngfán de rén.",
+        "en": "He is just an ordinary person."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā zhǐshì yī ge píngfán de rén.||一 keeps its dictionary tone in pinyin.",
+      "to": {
+        "zh": "他只是一个平凡的人。",
+        "p": "Tā zhǐshì yī ge píngfán de rén.",
+        "en": "He is just an ordinary person."
+      },
+      "newId": "51e84487ac052494",
+      "comment": "一 keeps its dictionary tone in pinyin."
+    },
+    {
+      "id": "5b4fc1488d5b2aaf",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[183]",
+      "from": {
+        "zh": "饭前要洗手，去掉细菌。",
+        "p": "Fàn qián yào xǐshǒu, qùdiào xìjūn.",
+        "en": "Wash your hands before meals to get rid of germs."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "饭前要洗手，去除细菌。|Fàn qián yào xǐshǒu, qùchú xìjūn.||去掉细菌 is unnatural; 去除细菌 is the standard collocation.",
+      "to": {
+        "zh": "饭前要洗手，去除细菌。",
+        "p": "Fàn qián yào xǐshǒu, qùchú xìjūn.",
+        "en": "Wash your hands before meals to get rid of germs."
+      },
+      "newId": "641aae0dbd0e6eb6",
+      "comment": "去掉细菌 is unnatural; 去除细菌 is the standard collocation."
+    },
+    {
+      "id": "9baaf64820ac6ce5",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[200]",
+      "from": {
+        "zh": "请你陈述一下事情的经过。",
+        "p": "Qǐng nǐ chénshù yíxià shìqing de jīngguò.",
+        "en": "Please describe what happened."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Qǐng nǐ chénshù yīxià shìqing de jīngguò.||一 keeps its dictionary tone in pinyin: yīxià.",
+      "to": {
+        "zh": "请你陈述一下事情的经过。",
+        "p": "Qǐng nǐ chénshù yīxià shìqing de jīngguò.",
+        "en": "Please describe what happened."
+      },
+      "newId": "9baaf64820ac6ce5",
+      "comment": "一 keeps its dictionary tone in pinyin: yīxià."
+    },
+    {
+      "id": "0435b9562c02d70f",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[205]",
+      "from": {
+        "zh": "这个动作要循环做十次。",
+        "p": "Zhège dòngzuò yào xúnhuán zuò shí cì.",
+        "en": "Repeat this movement ten times."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "这个动作要重复做十次。|Zhège dòngzuò yào chóngfù zuò shí cì.||循环 (cycle) is unnatural here; 重复 matches the English.",
+      "to": {
+        "zh": "这个动作要重复做十次。",
+        "p": "Zhège dòngzuò yào chóngfù zuò shí cì.",
+        "en": "Repeat this movement ten times."
+      },
+      "newId": "a20ba3c2f1dd475b",
+      "comment": "循环 (cycle) is unnatural here; 重复 matches the English."
+    },
+    {
+      "id": "b847cf440e9568d2",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[209]",
+      "from": {
+        "zh": "做事不要太盲目。",
+        "p": "Zuòshì búyào tài mángmù.",
+        "en": "Don’t act too blindly."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zuòshì bùyào tài mángmù.||不 keeps its dictionary tone: bùyào.",
+      "to": {
+        "zh": "做事不要太盲目。",
+        "p": "Zuòshì bùyào tài mángmù.",
+        "en": "Don’t act too blindly."
+      },
+      "newId": "b847cf440e9568d2",
+      "comment": "不 keeps its dictionary tone: bùyào."
+    },
+    {
+      "id": "e2eb14c8344173a6",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[211]",
+      "from": {
+        "zh": "我们要建设一个和谐的社会。",
+        "p": "Wǒmen yào jiànshè yí ge héxié de shèhuì.",
+        "en": "We want to build a harmonious society."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen yào jiànshè yī ge héxié de shèhuì.||一 keeps its dictionary tone: yī ge.",
+      "to": {
+        "zh": "我们要建设一个和谐的社会。",
+        "p": "Wǒmen yào jiànshè yī ge héxié de shèhuì.",
+        "en": "We want to build a harmonious society."
+      },
+      "newId": "e2eb14c8344173a6",
+      "comment": "一 keeps its dictionary tone: yī ge."
+    },
+    {
+      "id": "5012a6bb3bf806b8",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[214]",
+      "from": {
+        "zh": "猫捕捉到了一只老鼠。",
+        "p": "Māo bǔzhuō dào le yì zhī lǎoshǔ.",
+        "en": "The cat caught a mouse."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Māo bǔzhuō dào le yī zhī lǎoshǔ.||一 keeps its dictionary tone: yī zhī.",
+      "to": {
+        "zh": "猫捕捉到了一只老鼠。",
+        "p": "Māo bǔzhuō dào le yī zhī lǎoshǔ.",
+        "en": "The cat caught a mouse."
+      },
+      "newId": "5012a6bb3bf806b8",
+      "comment": "一 keeps its dictionary tone: yī zhī."
+    },
+    {
+      "id": "18cc006ead85f36a",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[216]",
+      "from": {
+        "zh": "医生给他把了把脉搏。",
+        "p": "Yīshēng gěi tā bǎ le bǎ màibó.",
+        "en": "The doctor took his pulse."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "医生给他把了把脉。|Yīshēng gěi tā bǎ le bǎ mài.||把脉 is the fixed verb-object phrase; 把脉搏 is ungrammatical.",
+      "to": {
+        "zh": "医生给他把了把脉。",
+        "p": "Yīshēng gěi tā bǎ le bǎ mài.",
+        "en": "The doctor took his pulse."
+      },
+      "newId": "147cdb746b0602c7",
+      "comment": "把脉 is the fixed verb-object phrase; 把脉搏 is ungrammatical."
+    },
+    {
+      "id": "3ca371d4a701641b",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[232]",
+      "from": {
+        "zh": "这个歹徒被抓住了。",
+        "p": "Zhège dǎitú bèi zhuāzhù le.",
+        "en": "The gangster was caught."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "||The thug was caught.|歹徒 means a thug/criminal rather than specifically a gangster.",
+      "to": {
+        "zh": "这个歹徒被抓住了。",
+        "p": "Zhège dǎitú bèi zhuāzhù le.",
+        "en": "The thug was caught."
+      },
+      "newId": "3ca371d4a701641b",
+      "comment": "歹徒 means a thug/criminal rather than specifically a gangster."
+    },
+    {
+      "id": "641c2c673df9e4a3",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[235]",
+      "from": {
+        "zh": "每个人都要坚守自己的岗位。",
+        "p": "Měi ge rén dōu yào jiānshǒu zìjǐ de gǎngwèi.",
+        "en": "Everyone must stick to their post."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Měi gè rén dōu yào jiānshǒu zìjǐ de gǎngwèi.||个 in 每个人 should carry its dictionary tone gè.",
+      "to": {
+        "zh": "每个人都要坚守自己的岗位。",
+        "p": "Měi gè rén dōu yào jiānshǒu zìjǐ de gǎngwèi.",
+        "en": "Everyone must stick to their post."
+      },
+      "newId": "641c2c673df9e4a3",
+      "comment": "个 in 每个人 should carry its dictionary tone gè."
+    },
+    {
+      "id": "3ba5e0ca847c6254",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[239]",
+      "from": {
+        "zh": "工作了一天，我感到十分疲惫。",
+        "p": "Gōngzuò le yì tiān, wǒ gǎndào shífēn píbèi.",
+        "en": "After a day of work, I feel exhausted."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Gōngzuò le yī tiān, wǒ gǎndào shífēn píbèi.||一 should keep its dictionary tone yī, not the sandhi yì.",
+      "to": {
+        "zh": "工作了一天，我感到十分疲惫。",
+        "p": "Gōngzuò le yī tiān, wǒ gǎndào shífēn píbèi.",
+        "en": "After a day of work, I feel exhausted."
+      },
+      "newId": "3ba5e0ca847c6254",
+      "comment": "一 should keep its dictionary tone yī, not the sandhi yì."
+    },
+    {
+      "id": "3cd62029c2a72461",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[243]",
+      "from": {
+        "zh": "老师纠正了我的发音。",
+        "p": "Lǎoshī jiūzhèng le wǒ de fāyīn.",
+        "en": "The teacher corrected my pronunciation."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Lǎoshī jiūzhèngle wǒ de fāyīn.||了 should be attached to the verb in pinyin.",
+      "to": {
+        "zh": "老师纠正了我的发音。",
+        "p": "Lǎoshī jiūzhèngle wǒ de fāyīn.",
+        "en": "The teacher corrected my pronunciation."
+      },
+      "newId": "3cd62029c2a72461",
+      "comment": "了 should be attached to the verb in pinyin."
+    },
+    {
+      "id": "5765894648ad208d",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[245]",
+      "from": {
+        "zh": "猛烈的风吹倒了大树。",
+        "p": "Měngliè de fēng chuī dǎo le dà shù.",
+        "en": "The violent wind blew down the big tree."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Měngliè de fēng chuīdǎole dà shù.||Resultative verb and 了 written as one unit.",
+      "to": {
+        "zh": "猛烈的风吹倒了大树。",
+        "p": "Měngliè de fēng chuīdǎole dà shù.",
+        "en": "The violent wind blew down the big tree."
+      },
+      "newId": "5765894648ad208d",
+      "comment": "Resultative verb and 了 written as one unit."
+    },
+    {
+      "id": "7f6eaaf2e5085e04",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[246]",
+      "from": {
+        "zh": "医生解剖了这只动物。",
+        "p": "Yīshēng jiěpōu le zhè zhī dòngwù.",
+        "en": "The doctor dissected the animal."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Yīshēng jiěpōule zhè zhī dòngwù.||了 should be attached to the verb in pinyin.",
+      "to": {
+        "zh": "医生解剖了这只动物。",
+        "p": "Yīshēng jiěpōule zhè zhī dòngwù.",
+        "en": "The doctor dissected the animal."
+      },
+      "newId": "7f6eaaf2e5085e04",
+      "comment": "了 should be attached to the verb in pinyin."
+    },
+    {
+      "id": "34e22d05a4493622",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[247]",
+      "from": {
+        "zh": "我想澄清一下这个误会。",
+        "p": "Wǒ xiǎng chéngqīng yíxià zhège wùhuì.",
+        "en": "I want to clear up this misunderstanding."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒ xiǎng chéngqīng yīxià zhège wùhuì.||一 keeps its dictionary tone (yī) per course convention.",
+      "to": {
+        "zh": "我想澄清一下这个误会。",
+        "p": "Wǒ xiǎng chéngqīng yīxià zhège wùhuì.",
+        "en": "I want to clear up this misunderstanding."
+      },
+      "newId": "34e22d05a4493622",
+      "comment": "一 keeps its dictionary tone (yī) per course convention."
+    },
+    {
+      "id": "b3ff67cf0a51ee41",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[248]",
+      "from": {
+        "zh": "医生发现他身体里有一个肿瘤。",
+        "p": "Yīshēng fāxiàn tā shēntǐ lǐ yǒu yí ge zhǒngliú.",
+        "en": "The doctor found a tumor in his body."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Yīshēng fāxiàn tā shēntǐ lǐ yǒu yī ge zhǒngliú.||一 keeps its dictionary tone (yī).",
+      "to": {
+        "zh": "医生发现他身体里有一个肿瘤。",
+        "p": "Yīshēng fāxiàn tā shēntǐ lǐ yǒu yī ge zhǒngliú.",
+        "en": "The doctor found a tumor in his body."
+      },
+      "newId": "b3ff67cf0a51ee41",
+      "comment": "一 keeps its dictionary tone (yī)."
+    },
+    {
+      "id": "db6fe05eae5a80c3",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[251]",
+      "from": {
+        "zh": "他因为盗窃被判了三年。",
+        "p": "Tā yīnwèi dàoqiè bèi pàn le sān nián.",
+        "en": "He was sentenced to three years for theft."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā yīnwèi dàoqiè bèi pànle sān nián.||了 should be attached to the verb in pinyin.",
+      "to": {
+        "zh": "他因为盗窃被判了三年。",
+        "p": "Tā yīnwèi dàoqiè bèi pànle sān nián.",
+        "en": "He was sentenced to three years for theft."
+      },
+      "newId": "db6fe05eae5a80c3",
+      "comment": "了 should be attached to the verb in pinyin."
+    },
+    {
+      "id": "2f1b44bd7555fa3f",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[254]",
+      "from": {
+        "zh": "公园里有一座美丽的雕塑。",
+        "p": "Gōngyuán lǐ yǒu yí zuò měilì de diāosù.",
+        "en": "There is a beautiful sculpture in the park."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Gōngyuán lǐ yǒu yī zuò měilì de diāosù.||一 keeps its dictionary tone (yī).",
+      "to": {
+        "zh": "公园里有一座美丽的雕塑。",
+        "p": "Gōngyuán lǐ yǒu yī zuò měilì de diāosù.",
+        "en": "There is a beautiful sculpture in the park."
+      },
+      "newId": "2f1b44bd7555fa3f",
+      "comment": "一 keeps its dictionary tone (yī)."
+    },
+    {
+      "id": "9cf9df165498fa61",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[257]",
+      "from": {
+        "zh": "广场上飘扬着一面红旗。",
+        "p": "Guǎngchǎng shang piāoyángzhe yí miàn hóngqí.",
+        "en": "A red flag is flying over the square."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Guǎngchǎng shang piāoyángzhe yī miàn hóngqí.||一 keeps its dictionary tone (yī).",
+      "to": {
+        "zh": "广场上飘扬着一面红旗。",
+        "p": "Guǎngchǎng shang piāoyángzhe yī miàn hóngqí.",
+        "en": "A red flag is flying over the square."
+      },
+      "newId": "9cf9df165498fa61",
+      "comment": "一 keeps its dictionary tone (yī)."
+    },
+    {
+      "id": "0afc2035df337856",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[261]",
+      "from": {
+        "zh": "我们之间有一些分歧。",
+        "p": "Wǒmen zhījiān yǒu yìxiē fēnqí.",
+        "en": "There are some differences between us."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen zhījiān yǒu yīxiē fēnqí.||一 keeps its dictionary tone yī (sandhi not written).",
+      "to": {
+        "zh": "我们之间有一些分歧。",
+        "p": "Wǒmen zhījiān yǒu yīxiē fēnqí.",
+        "en": "There are some differences between us."
+      },
+      "newId": "0afc2035df337856",
+      "comment": "一 keeps its dictionary tone yī (sandhi not written)."
+    },
+    {
+      "id": "fb269ae477adcfd1",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[263]",
+      "from": {
+        "zh": "请饶恕我这一次。",
+        "p": "Qǐng ráoshù wǒ zhè yí cì.",
+        "en": "Please forgive me this once."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Qǐng ráoshù wǒ zhè yī cì.||一 should keep dictionary tone yī.",
+      "to": {
+        "zh": "请饶恕我这一次。",
+        "p": "Qǐng ráoshù wǒ zhè yī cì.",
+        "en": "Please forgive me this once."
+      },
+      "newId": "fb269ae477adcfd1",
+      "comment": "一 should keep dictionary tone yī."
+    },
+    {
+      "id": "dc823f3429a1de11",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[267]",
+      "from": {
+        "zh": "作者描绘了一幅美丽的画面。",
+        "p": "Zuòzhě miáohuì le yì fú měilì de huàmiàn.",
+        "en": "The author depicted a beautiful scene."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zuòzhě miáohuì le yī fú měilì de huàmiàn.||一 should keep dictionary tone yī.",
+      "to": {
+        "zh": "作者描绘了一幅美丽的画面。",
+        "p": "Zuòzhě miáohuì le yī fú měilì de huàmiàn.",
+        "en": "The author depicted a beautiful scene."
+      },
+      "newId": "dc823f3429a1de11",
+      "comment": "一 should keep dictionary tone yī."
+    },
+    {
+      "id": "de5a6a294bb53dd2",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[277]",
+      "from": {
+        "zh": "不要混淆这两个概念。",
+        "p": "Búyào hùnxiáo zhè liǎng ge gàiniàn.",
+        "en": "Don’t confuse these two concepts."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Bùyào hùnxiáo zhè liǎng ge gàiniàn.||不 keeps its dictionary tone bù (sandhi not written).",
+      "to": {
+        "zh": "不要混淆这两个概念。",
+        "p": "Bùyào hùnxiáo zhè liǎng ge gàiniàn.",
+        "en": "Don’t confuse these two concepts."
+      },
+      "newId": "de5a6a294bb53dd2",
+      "comment": "不 keeps its dictionary tone bù (sandhi not written)."
+    },
+    {
+      "id": "bedd26e6cd7a5f4d",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[281]",
+      "from": {
+        "zh": "他的观察力很敏锐。",
+        "p": "Tā de guānchá lì hěn mǐnruì.",
+        "en": "His powers of observation are very keen."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā de guānchálì hěn mǐnruì.||观察力 is one word in pinyin orthography.",
+      "to": {
+        "zh": "他的观察力很敏锐。",
+        "p": "Tā de guānchálì hěn mǐnruì.",
+        "en": "His powers of observation are very keen."
+      },
+      "newId": "bedd26e6cd7a5f4d",
+      "comment": "观察力 is one word in pinyin orthography."
+    },
+    {
+      "id": "3ef4ecea344db20f",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[290]",
+      "from": {
+        "zh": "打了针，我就有免疫力了。",
+        "p": "Dǎ le zhēn, wǒ jiù yǒu miǎnyì lì le.",
+        "en": "After the injection, I have immunity."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Dǎ le zhēn, wǒ jiù yǒu miǎnyìlì le.||免疫力 should be written as one pinyin word.",
+      "to": {
+        "zh": "打了针，我就有免疫力了。",
+        "p": "Dǎ le zhēn, wǒ jiù yǒu miǎnyìlì le.",
+        "en": "After the injection, I have immunity."
+      },
+      "newId": "3ef4ecea344db20f",
+      "comment": "免疫力 should be written as one pinyin word."
+    },
+    {
+      "id": "0a4f1d9b5440681b",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[299]",
+      "from": {
+        "zh": "这本杂志每月刊登一次。",
+        "p": "Zhè běn zázhì měi yuè kāndēng yí cì.",
+        "en": "This magazine is published once a month."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "这本杂志每月出版一次。|Zhè běn zázhì měi yuè chūbǎn yí cì.||刊登 takes an article as object; a magazine itself 出版/发行.",
+      "to": {
+        "zh": "这本杂志每月出版一次。",
+        "p": "Zhè běn zázhì měi yuè chūbǎn yí cì.",
+        "en": "This magazine is published once a month."
+      },
+      "newId": "10b45c3944fc72af",
+      "comment": "刊登 takes an article as object; a magazine itself 出版/发行."
+    },
+    {
+      "id": "be6a03652b25e743",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[301]",
+      "from": {
+        "zh": "不要诽谤别人。",
+        "p": "Búyào fěibàng biérén.",
+        "en": "Don’t slander others."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Bùyào fěibàng biérén.||Tone sandhi of 不 should not be written.",
+      "to": {
+        "zh": "不要诽谤别人。",
+        "p": "Bùyào fěibàng biérén.",
+        "en": "Don’t slander others."
+      },
+      "newId": "be6a03652b25e743",
+      "comment": "Tone sandhi of 不 should not be written."
+    },
+    {
+      "id": "ea091f6bb9c07ac4",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[308]",
+      "from": {
+        "zh": "倘若明天下雨，我们就不去了。",
+        "p": "Tǎngruò míngtiān xiàyǔ, wǒmen jiù bú qù le.",
+        "en": "If it rains tomorrow, we won’t go."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tǎngruò míngtiān xiàyǔ, wǒmen jiù bù qù le.||不 keeps its dictionary tone in pinyin.",
+      "to": {
+        "zh": "倘若明天下雨，我们就不去了。",
+        "p": "Tǎngruò míngtiān xiàyǔ, wǒmen jiù bù qù le.",
+        "en": "If it rains tomorrow, we won’t go."
+      },
+      "newId": "ea091f6bb9c07ac4",
+      "comment": "不 keeps its dictionary tone in pinyin."
+    },
+    {
+      "id": "b86a563f3596388c",
+      "action": "fix",
+      "level": 6,
+      "kind": "sentence",
+      "file": "js/data/hsk6.js",
+      "path": "sentences[309]",
+      "from": {
+        "zh": "他拔了一颗牙。",
+        "p": "Tā bá le yì kē yá.",
+        "en": "He had a tooth pulled."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Tā bá le yī kē yá.||一 should keep dictionary tone yī, not sandhi yì.",
+      "to": {
+        "zh": "他拔了一颗牙。",
+        "p": "Tā bá le yī kē yá.",
+        "en": "He had a tooth pulled."
+      },
+      "newId": "b86a563f3596388c",
+      "comment": "一 should keep dictionary tone yī, not sandhi yì."
+    },
+    {
+      "id": "1a96be155a7fad0f",
+      "action": "fix",
+      "level": 6,
+      "kind": "grammar",
+      "file": "js/data/grammar.js",
+      "path": "[77]",
+      "from": {
+        "zh": "哪怕只有一点希望，我们也不放弃。",
+        "p": "Nǎpà zhǐyǒu yìdiǎn xīwàng, wǒmen yě bú fàngqì.",
+        "en": "Even if there is only a sliver of hope, we won’t give up."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Nǎpà zhǐyǒu yīdiǎn xīwàng, wǒmen yě bù fàngqì.||一 and 不 sandhi should not be written in pinyin.",
+      "to": {
+        "zh": "哪怕只有一点希望，我们也不放弃。",
+        "p": "Nǎpà zhǐyǒu yīdiǎn xīwàng, wǒmen yě bù fàngqì.",
+        "en": "Even if there is only a sliver of hope, we won’t give up."
+      },
+      "newId": "1a96be155a7fad0f",
+      "comment": "一 and 不 sandhi should not be written in pinyin."
+    },
+    {
+      "id": "6ffc706d0b3ed7a0",
+      "action": "fix",
+      "level": 6,
+      "kind": "grammar",
+      "file": "js/data/grammar.js",
+      "path": "[83]",
+      "from": {
+        "zh": "与去年相比，今年的收入增加了一倍。",
+        "p": "Yǔ qùnián xiāngbǐ, jīnnián de shōurù zēngjiā le yí bèi.",
+        "en": "Compared with last year, this year’s income doubled."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Yǔ qùnián xiāngbǐ, jīnnián de shōurù zēngjiāle yī bèi.||一 should keep its dictionary tone yī (sandhi not written), and 了 attaches to the verb.",
+      "to": {
+        "zh": "与去年相比，今年的收入增加了一倍。",
+        "p": "Yǔ qùnián xiāngbǐ, jīnnián de shōurù zēngjiāle yī bèi.",
+        "en": "Compared with last year, this year’s income doubled."
+      },
+      "newId": "6ffc706d0b3ed7a0",
+      "comment": "一 should keep its dictionary tone yī (sandhi not written), and 了 attaches to the verb."
+    }
+  ],
   "problems": []
 }

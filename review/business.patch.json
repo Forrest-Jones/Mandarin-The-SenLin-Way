@@ -1,18 +1,635 @@
 {
   "version": 1,
   "source": "review/business-reviewed.csv",
-  "generated": "2026-09-20T23:21:35.074Z",
+  "generated": "2026-09-21T00:58:54.061Z",
   "summary": {
     "rows": 244,
-    "ok": 0,
-    "fix": 0,
+    "ok": 216,
+    "fix": 28,
     "drop": 0,
-    "blank": 244,
+    "blank": 0,
     "unknownStatus": 0,
     "unknownId": 0,
     "fixWithoutCorrection": 0,
     "unchanged": 0
   },
-  "changes": [],
+  "changes": [
+    {
+      "id": "ff3cb4dc9b454580",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[0].phrases[2]",
+      "from": {
+        "zh": "我们是一家专注于跨境投资的私募股权基金。",
+        "p": "Wǒmen shì yì jiā zhuānzhù yú kuàjìng tóuzī de sīmù gǔquán jījīn.",
+        "en": "We are a private equity fund focused on cross-border investment."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen shì yī jiā zhuānzhù yú kuàjìng tóuzī de sīmù gǔquán jījīn.||Tone sandhi of 一 should not be written; use dictionary tone yī.",
+      "to": {
+        "zh": "我们是一家专注于跨境投资的私募股权基金。",
+        "p": "Wǒmen shì yī jiā zhuānzhù yú kuàjìng tóuzī de sīmù gǔquán jījīn.",
+        "en": "We are a private equity fund focused on cross-border investment."
+      },
+      "newId": "ff3cb4dc9b454580",
+      "comment": "Tone sandhi of 一 should not be written; use dictionary tone yī."
+    },
+    {
+      "id": "8e5b42630ac43fb6",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[2].phrases[0]",
+      "from": {
+        "zh": "这个项目我们很感兴趣，想进一步了解。",
+        "p": "Zhè ge xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyíbù liǎojiě.",
+        "en": "We are very interested in this deal and would like to learn more."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zhège xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyībù liǎojiě.||一 keeps its dictionary tone: jìnyībù, not jìnyíbù.",
+      "to": {
+        "zh": "这个项目我们很感兴趣，想进一步了解。",
+        "p": "Zhège xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyībù liǎojiě.",
+        "en": "We are very interested in this deal and would like to learn more."
+      },
+      "newId": "8e5b42630ac43fb6",
+      "comment": "一 keeps its dictionary tone: jìnyībù, not jìnyíbù."
+    },
+    {
+      "id": "31c17b0a591406d2",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[2].phrases[1]",
+      "from": {
+        "zh": "这一轮谁领投？我们可以考虑跟投。",
+        "p": "Zhè yì lún shéi lǐngtóu? Wǒmen kěyǐ kǎolǜ gēntóu.",
+        "en": "Who is leading this round? We could consider following."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zhè yī lún shéi lǐngtóu? Wǒmen kěyǐ kǎolǜ gēntóu.||Tone sandhi is not written: 一 should be yī.",
+      "to": {
+        "zh": "这一轮谁领投？我们可以考虑跟投。",
+        "p": "Zhè yī lún shéi lǐngtóu? Wǒmen kěyǐ kǎolǜ gēntóu.",
+        "en": "Who is leading this round? We could consider following."
+      },
+      "newId": "31c17b0a591406d2",
+      "comment": "Tone sandhi is not written: 一 should be yī."
+    },
+    {
+      "id": "f7d089e5e8d8c336",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-term",
+      "file": "js/data/business.js",
+      "path": "units[3].terms[9]",
+      "from": {
+        "zh": "一票否决权",
+        "p": "yí piào fǒujuéquán",
+        "en": "veto right"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|yī piào fǒujuéquán||一 keeps its dictionary tone yī; sandhi is not written.",
+      "to": {
+        "zh": "一票否决权",
+        "p": "yī piào fǒujuéquán",
+        "en": "veto right"
+      },
+      "newId": "f7d089e5e8d8c336",
+      "comment": "一 keeps its dictionary tone yī; sandhi is not written."
+    },
+    {
+      "id": "3c0b492e3e0357ba",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[3].phrases[0]",
+      "from": {
+        "zh": "我们的报价是投前估值两亿美元，投资三千万美元。",
+        "p": "Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.",
+        "en": "Our offer is a 200 million pre-money valuation, investing 30 million."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "||Our offer is a pre-money valuation of 200 million US dollars, with an investment of 30 million US dollars.|English omitted the currency (美元) stated in the Chinese.",
+      "to": {
+        "zh": "我们的报价是投前估值两亿美元，投资三千万美元。",
+        "p": "Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.",
+        "en": "Our offer is a pre-money valuation of 200 million US dollars, with an investment of 30 million US dollars."
+      },
+      "newId": "3c0b492e3e0357ba",
+      "comment": "English omitted the currency (美元) stated in the Chinese."
+    },
+    {
+      "id": "ec2092a99d64f46d",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[3].phrases[1]",
+      "from": {
+        "zh": "一倍不参与分配的优先清算权是我们的底线。",
+        "p": "Yí bèi bù cānyù fēnpèi de yōuxiān qīngsuànquán shì wǒmen de dǐxiàn.",
+        "en": "A one-times non-participating liquidation preference is our bottom line."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Yī bèi bù cānyù fēnpèi de yōuxiān qīngsuànquán shì wǒmen de dǐxiàn.||一 should keep dictionary tone yī without written sandhi.",
+      "to": {
+        "zh": "一倍不参与分配的优先清算权是我们的底线。",
+        "p": "Yī bèi bù cānyù fēnpèi de yōuxiān qīngsuànquán shì wǒmen de dǐxiàn.",
+        "en": "A one-times non-participating liquidation preference is our bottom line."
+      },
+      "newId": "ec2092a99d64f46d",
+      "comment": "一 should keep dictionary tone yī without written sandhi."
+    },
+    {
+      "id": "925cb54f686ff554",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[4].phrases[0]",
+      "from": {
+        "zh": "请把最近三年的审计报告放进数据室。",
+        "p": "Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàng jìn shùjùshì.",
+        "en": "Please put the last three years of audit reports in the data room."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàngjìn shùjùshì.||放进 is one word in pinyin.",
+      "to": {
+        "zh": "请把最近三年的审计报告放进数据室。",
+        "p": "Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàngjìn shùjùshì.",
+        "en": "Please put the last three years of audit reports in the data room."
+      },
+      "newId": "925cb54f686ff554",
+      "comment": "放进 is one word in pinyin."
+    },
+    {
+      "id": "babcccdd60c2eea4",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[4].phrases[2]",
+      "from": {
+        "zh": "毛利率为什么去年下降了五个百分点？",
+        "p": "Máolìlǜ wèi shénme qùnián xiàjiàng le wǔ ge bǎifēndiǎn?",
+        "en": "Why did gross margin fall five percentage points last year?"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "毛利率去年为什么下降了五个百分点？|Máolìlǜ qùnián wèishénme xiàjiàngle wǔ ge bǎifēndiǎn?||Time word normally precedes 为什么; pinyin joins 为什么 and 下降了.",
+      "to": {
+        "zh": "毛利率去年为什么下降了五个百分点？",
+        "p": "Máolìlǜ qùnián wèishénme xiàjiàngle wǔ ge bǎifēndiǎn?",
+        "en": "Why did gross margin fall five percentage points last year?"
+      },
+      "newId": "2a9a307faeff17d4",
+      "comment": "Time word normally precedes 为什么; pinyin joins 为什么 and 下降了."
+    },
+    {
+      "id": "04d6a2338abac8a9",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-term",
+      "file": "js/data/business.js",
+      "path": "units[5].terms[7]",
+      "from": {
+        "zh": "达成一致",
+        "p": "dáchéng yízhì",
+        "en": "reach agreement"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|dáchéng yīzhì||一 keeps its dictionary tone (sandhi not written).",
+      "to": {
+        "zh": "达成一致",
+        "p": "dáchéng yīzhì",
+        "en": "reach agreement"
+      },
+      "newId": "04d6a2338abac8a9",
+      "comment": "一 keeps its dictionary tone (sandhi not written)."
+    },
+    {
+      "id": "23c647a4dfc45578",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-term",
+      "file": "js/data/business.js",
+      "path": "units[5].terms[8]",
+      "from": {
+        "zh": "原则上",
+        "p": "yuánzé shang",
+        "en": "in principle"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|yuánzé shàng||上 here is full fourth tone.",
+      "to": {
+        "zh": "原则上",
+        "p": "yuánzé shàng",
+        "en": "in principle"
+      },
+      "newId": "23c647a4dfc45578",
+      "comment": "上 here is full fourth tone."
+    },
+    {
+      "id": "f80ff15d167e37c3",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[5].phrases[0]",
+      "from": {
+        "zh": "我们原则上同意，细节还需要再讨论。",
+        "p": "Wǒmen yuánzé shang tóngyì, xìjié hái xūyào zài tǎolùn.",
+        "en": "We agree in principle; the details need more discussion."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen yuánzé shàng tóngyì, xìjié hái xūyào zài tǎolùn.||上 should be shàng.",
+      "to": {
+        "zh": "我们原则上同意，细节还需要再讨论。",
+        "p": "Wǒmen yuánzé shàng tóngyì, xìjié hái xūyào zài tǎolùn.",
+        "en": "We agree in principle; the details need more discussion."
+      },
+      "newId": "f80ff15d167e37c3",
+      "comment": "上 should be shàng."
+    },
+    {
+      "id": "0e8d1438bfb1fda1",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[5].phrases[1]",
+      "from": {
+        "zh": "这一点我们可以让步，但估值上希望您也灵活一些。",
+        "p": "Zhè yì diǎn wǒmen kěyǐ ràngbù, dàn gūzhí shang xīwàng nín yě línghuó yìxiē.",
+        "en": "We can concede this point, but we hope you can be flexible on valuation too."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Zhè yī diǎn wǒmen kěyǐ ràngbù, dàn gūzhí shàng xīwàng nín yě línghuó yīxiē.||一 keeps dictionary tone and 上 is shàng.",
+      "to": {
+        "zh": "这一点我们可以让步，但估值上希望您也灵活一些。",
+        "p": "Zhè yī diǎn wǒmen kěyǐ ràngbù, dàn gūzhí shàng xīwàng nín yě línghuó yīxiē.",
+        "en": "We can concede this point, but we hope you can be flexible on valuation too."
+      },
+      "newId": "0e8d1438bfb1fda1",
+      "comment": "一 keeps dictionary tone and 上 is shàng."
+    },
+    {
+      "id": "9b26726202ceb4f5",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[5].phrases[2]",
+      "from": {
+        "zh": "我们内部再讨论一下，明天给您答复。",
+        "p": "Wǒmen nèibù zài tǎolùn yíxià, míngtiān gěi nín dáfù.",
+        "en": "We will discuss internally and reply tomorrow."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen nèibù zài tǎolùn yīxià, míngtiān gěi nín dáfù.||一 sandhi should not be written.",
+      "to": {
+        "zh": "我们内部再讨论一下，明天给您答复。",
+        "p": "Wǒmen nèibù zài tǎolùn yīxià, míngtiān gěi nín dáfù.",
+        "en": "We will discuss internally and reply tomorrow."
+      },
+      "newId": "9b26726202ceb4f5",
+      "comment": "一 sandhi should not be written."
+    },
+    {
+      "id": "0581eef79ac8cca6",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[5].phrases[4]",
+      "from": {
+        "zh": "我看我们各让一步，折中一下怎么样？",
+        "p": "Wǒ kàn wǒmen gè ràng yí bù, zhézhōng yíxià zěnmeyàng?",
+        "en": "How about we each give a little and split the difference?"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒ kàn wǒmen gè ràng yī bù, zhézhōng yīxià zěnmeyàng?||一 keeps dictionary tone in both places.",
+      "to": {
+        "zh": "我看我们各让一步，折中一下怎么样？",
+        "p": "Wǒ kàn wǒmen gè ràng yī bù, zhézhōng yīxià zěnmeyàng?",
+        "en": "How about we each give a little and split the difference?"
+      },
+      "newId": "0581eef79ac8cca6",
+      "comment": "一 keeps dictionary tone in both places."
+    },
+    {
+      "id": "4472c788b0ca7c57",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[6].phrases[0]",
+      "from": {
+        "zh": "所有交割条件满足后三个工作日内付款。",
+        "p": "Suǒyǒu jiāogē tiáojiàn mǎnzú hòu sān ge gōngzuòrì nèi fùkuǎn.",
+        "en": "Payment within three business days after all conditions precedent are satisfied."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "所有交割条件满足后，三个工作日内付款。|Suǒyǒu jiāogē tiáojiàn mǎnzú hòu, sān ge gōngzuòrì nèi fùkuǎn.||A comma after the long adverbial clause is needed for readability.",
+      "to": {
+        "zh": "所有交割条件满足后，三个工作日内付款。",
+        "p": "Suǒyǒu jiāogē tiáojiàn mǎnzú hòu, sān ge gōngzuòrì nèi fùkuǎn.",
+        "en": "Payment within three business days after all conditions precedent are satisfied."
+      },
+      "newId": "b093acaf33e31602",
+      "comment": "A comma after the long adverbial clause is needed for readability."
+    },
+    {
+      "id": "350f39717c4337bf",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[7].phrases[2]",
+      "from": {
+        "zh": "合同一式两份，双方签字盖章后生效。",
+        "p": "Hétong yí shì liǎng fèn, shuāngfāng qiānzì gàizhāng hòu shēngxiào.",
+        "en": "Two originals; effective once both sides sign and chop."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Hétong yīshì liǎng fèn, shuāngfāng qiānzì gàizhāng hòu shēngxiào.||一 should keep its dictionary tone yī (sandhi not written) and 一式 is one word.",
+      "to": {
+        "zh": "合同一式两份，双方签字盖章后生效。",
+        "p": "Hétong yīshì liǎng fèn, shuāngfāng qiānzì gàizhāng hòu shēngxiào.",
+        "en": "Two originals; effective once both sides sign and chop."
+      },
+      "newId": "350f39717c4337bf",
+      "comment": "一 should keep its dictionary tone yī (sandhi not written) and 一式 is one word."
+    },
+    {
+      "id": "52461d99a1168197",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[8].phrases[1]",
+      "from": {
+        "zh": "上一期基金的内部收益率是百分之二十五，回报倍数三倍。",
+        "p": "Shàng yì qī jījīn de nèibù shōuyìlǜ shì bǎi fēn zhī èrshíwǔ, huíbào bèishù sān bèi.",
+        "en": "The previous fund’s IRR was 25 percent with a 3x multiple."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Shàng yī qī jījīn de nèibù shōuyìlǜ shì bǎi fēn zhī èrshíwǔ, huíbào bèishù sān bèi.||一 keeps its dictionary tone yī since tone sandhi is not written.",
+      "to": {
+        "zh": "上一期基金的内部收益率是百分之二十五，回报倍数三倍。",
+        "p": "Shàng yī qī jījīn de nèibù shōuyìlǜ shì bǎi fēn zhī èrshíwǔ, huíbào bèishù sān bèi.",
+        "en": "The previous fund’s IRR was 25 percent with a 3x multiple."
+      },
+      "newId": "52461d99a1168197",
+      "comment": "一 keeps its dictionary tone yī since tone sandhi is not written."
+    },
+    {
+      "id": "91f24c4e8e173ffc",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[9].phrases[0]",
+      "from": {
+        "zh": "我敬您一杯，感谢您的信任和支持。",
+        "p": "Wǒ jìng nín yì bēi, gǎnxiè nín de xìnrèn hé zhīchí.",
+        "en": "A toast to you, with thanks for your trust and support."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒ jìng nín yī bēi, gǎnxiè nín de xìnrèn hé zhīchí.||一 keeps its dictionary tone yī; sandhi not written.",
+      "to": {
+        "zh": "我敬您一杯，感谢您的信任和支持。",
+        "p": "Wǒ jìng nín yī bēi, gǎnxiè nín de xìnrèn hé zhīchí.",
+        "en": "A toast to you, with thanks for your trust and support."
+      },
+      "newId": "91f24c4e8e173ffc",
+      "comment": "一 keeps its dictionary tone yī; sandhi not written."
+    },
+    {
+      "id": "8e1f5230c6e2179c",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[9].phrases[2]",
+      "from": {
+        "zh": "今天我做东，大家别客气。",
+        "p": "Jīntiān wǒ zuòdōng, dàjiā bié kèqi.",
+        "en": "Tonight is on me, everyone; please don’t stand on ceremony."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "||Today it's on me, everyone; please don't stand on ceremony.|今天 means today, not tonight.",
+      "to": {
+        "zh": "今天我做东，大家别客气。",
+        "p": "Jīntiān wǒ zuòdōng, dàjiā bié kèqi.",
+        "en": "Today it's on me, everyone; please don't stand on ceremony."
+      },
+      "newId": "8e1f5230c6e2179c",
+      "comment": "今天 means today, not tonight."
+    },
+    {
+      "id": "c62a5980029654f7",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-term",
+      "file": "js/data/business.js",
+      "path": "units[10].terms[5]",
+      "from": {
+        "zh": "百分之",
+        "p": "bǎi fēn zhī",
+        "en": "percent (百分之二十 = 20%)"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|bǎifēnzhī||Pinyin is written as a single unit, not spaced syllables.",
+      "to": {
+        "zh": "百分之",
+        "p": "bǎifēnzhī",
+        "en": "percent (百分之二十 = 20%)"
+      },
+      "newId": "c62a5980029654f7",
+      "comment": "Pinyin is written as a single unit, not spaced syllables."
+    },
+    {
+      "id": "9ae42421ec384cda",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[10].phrases[0]",
+      "from": {
+        "zh": "三千万美元，大约两亿一千万人民币。",
+        "p": "Sānqiān wàn měiyuán, dàyuē liǎng yì yìqiān wàn rénmínbì.",
+        "en": "Thirty million dollars, roughly 210 million RMB."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Sānqiān wàn měiyuán, dàyuē liǎng yì yīqiān wàn rénmínbì.||一 keeps its dictionary tone yī in pinyin (no written sandhi).",
+      "to": {
+        "zh": "三千万美元，大约两亿一千万人民币。",
+        "p": "Sānqiān wàn měiyuán, dàyuē liǎng yì yīqiān wàn rénmínbì.",
+        "en": "Thirty million dollars, roughly 210 million RMB."
+      },
+      "newId": "9ae42421ec384cda",
+      "comment": "一 keeps its dictionary tone yī in pinyin (no written sandhi)."
+    },
+    {
+      "id": "f74451c8c20b4bf0",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[11].phrases[1]",
+      "from": {
+        "zh": "方便的话，我们下周三北京时间上午十点视频会议？",
+        "p": "Fāngbiàn de huà, wǒmen xià zhōusān Běijīng shíjiān shàngwǔ shí diǎn shìpín huìyì?",
+        "en": "If convenient, a video call next Wednesday at 10 a.m. Beijing time?"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "方便的话，我们下周三北京时间上午十点开个视频会议？|Fāngbiàn de huà, wǒmen xià zhōusān Běijīng shíjiān shàngwǔ shí diǎn kāi ge shìpín huìyì?||The sentence needs a verb; 开个视频会议 is the natural phrasing.",
+      "to": {
+        "zh": "方便的话，我们下周三北京时间上午十点开个视频会议？",
+        "p": "Fāngbiàn de huà, wǒmen xià zhōusān Běijīng shíjiān shàngwǔ shí diǎn kāi ge shìpín huìyì?",
+        "en": "If convenient, a video call next Wednesday at 10 a.m. Beijing time?"
+      },
+      "newId": "f9294f0861a3566b",
+      "comment": "The sentence needs a verb; 开个视频会议 is the natural phrasing."
+    },
+    {
+      "id": "8f43e3fef2708104",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-phrase",
+      "file": "js/data/business.js",
+      "path": "units[11].phrases[2]",
+      "from": {
+        "zh": "麻烦您加一下我的微信，方便后续对接。",
+        "p": "Máfan nín jiā yíxià wǒ de Wēixìn, fāngbiàn hòuxù duìjiē.",
+        "en": "Please add my WeChat so we can coordinate going forward."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Máfan nín jiā yīxià wǒ de Wēixìn, fāngbiàn hòuxù duìjiē.||一 should keep dictionary tone yī in pinyin.",
+      "to": {
+        "zh": "麻烦您加一下我的微信，方便后续对接。",
+        "p": "Máfan nín jiā yīxià wǒ de Wēixìn, fāngbiàn hòuxù duìjiē.",
+        "en": "Please add my WeChat so we can coordinate going forward."
+      },
+      "newId": "8f43e3fef2708104",
+      "comment": "一 should keep dictionary tone yī in pinyin."
+    },
+    {
+      "id": "5ab338e6a246ea1d",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-dialogue",
+      "file": "js/data/business.js",
+      "path": "dialogues[0].lines[2]",
+      "from": {
+        "zh": "估值我们可以再谈，但一倍优先清算权和一个董事会席位是底线。",
+        "p": "Gūzhí wǒmen kěyǐ zài tán, dàn yí bèi yōuxiān qīngsuànquán hé yí ge dǒngshìhuì xíwèi shì dǐxiàn.",
+        "en": "Valuation is open, but a 1x liquidation preference and one board seat are our bottom line."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Gūzhí wǒmen kěyǐ zài tán, dàn yī bèi yōuxiān qīngsuànquán hé yī ge dǒngshìhuì xíwèi shì dǐxiàn.||Tone sandhi of 一 should not be written; use yī.",
+      "to": {
+        "zh": "估值我们可以再谈，但一倍优先清算权和一个董事会席位是底线。",
+        "p": "Gūzhí wǒmen kěyǐ zài tán, dàn yī bèi yōuxiān qīngsuànquán hé yī ge dǒngshìhuì xíwèi shì dǐxiàn.",
+        "en": "Valuation is open, but a 1x liquidation preference and one board seat are our bottom line."
+      },
+      "newId": "5ab338e6a246ea1d",
+      "comment": "Tone sandhi of 一 should not be written; use yī."
+    },
+    {
+      "id": "546dee1c757910a7",
+      "action": "fix",
+      "level": "biz",
+      "kind": "business-dialogue",
+      "file": "js/data/business.js",
+      "path": "dialogues[0].lines[5]",
+      "from": {
+        "zh": "我们内部讨论一下，明天给您答复。",
+        "p": "Wǒmen nèibù tǎolùn yíxià, míngtiān gěi nín dáfù.",
+        "en": "We will discuss internally and reply tomorrow."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen nèibù tǎolùn yīxià, míngtiān gěi nín dáfù.||一 keeps dictionary tone: yīxià.",
+      "to": {
+        "zh": "我们内部讨论一下，明天给您答复。",
+        "p": "Wǒmen nèibù tǎolùn yīxià, míngtiān gěi nín dáfù.",
+        "en": "We will discuss internally and reply tomorrow."
+      },
+      "newId": "546dee1c757910a7",
+      "comment": "一 keeps dictionary tone: yīxià."
+    },
+    {
+      "id": "f1cb9dcb12cb0c8b",
+      "action": "fix",
+      "level": "biz",
+      "kind": "scenario",
+      "file": "js/data/scenarios.js",
+      "path": "[14].opener",
+      "from": {
+        "zh": "你们的条款清单我看了。估值太低了，而且我不太能接受一票否决权。",
+        "p": "Nǐmen de tiáokuǎn qīngdān wǒ kàn le. Gūzhí tài dī le, érqiě wǒ bú tài néng jiēshòu yí piào fǒujuéquán.",
+        "en": "I have read your term sheet. The valuation is too low, and I cannot really accept a veto right."
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Nǐmen de tiáokuǎn qīngdān wǒ kàn le. Gūzhí tài dī le, érqiě wǒ bù tài néng jiēshòu yī piào fǒujuéquán.||Tone sandhi should not be written: 不 and 一 keep dictionary tones.",
+      "to": {
+        "zh": "你们的条款清单我看了。估值太低了，而且我不太能接受一票否决权。",
+        "p": "Nǐmen de tiáokuǎn qīngdān wǒ kàn le. Gūzhí tài dī le, érqiě wǒ bù tài néng jiēshòu yī piào fǒujuéquán.",
+        "en": "I have read your term sheet. The valuation is too low, and I cannot really accept a veto right."
+      },
+      "newId": "f1cb9dcb12cb0c8b",
+      "comment": "Tone sandhi should not be written: 不 and 一 keep dictionary tones."
+    },
+    {
+      "id": "df26dc939358fb72",
+      "action": "fix",
+      "level": "biz",
+      "kind": "scenario",
+      "file": "js/data/scenarios.js",
+      "path": "[16].opener",
+      "from": {
+        "zh": "我们过一下交割清单吧。目前还有哪些条件没有满足？",
+        "p": "Wǒmen guò yíxià jiāogē qīngdān ba. Mùqián hái yǒu nǎxiē tiáojiàn méiyǒu mǎnzú?",
+        "en": "Let’s go through the closing checklist. Which conditions are still outstanding?"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Wǒmen guò yīxià jiāogē qīngdān ba. Mùqián hái yǒu nǎxiē tiáojiàn méiyǒu mǎnzú?||一 keeps its dictionary tone in pinyin (yīxià).",
+      "to": {
+        "zh": "我们过一下交割清单吧。目前还有哪些条件没有满足？",
+        "p": "Wǒmen guò yīxià jiāogē qīngdān ba. Mùqián hái yǒu nǎxiē tiáojiàn méiyǒu mǎnzú?",
+        "en": "Let’s go through the closing checklist. Which conditions are still outstanding?"
+      },
+      "newId": "df26dc939358fb72",
+      "comment": "一 keeps its dictionary tone in pinyin (yīxià)."
+    },
+    {
+      "id": "be1480054d4c4b70",
+      "action": "fix",
+      "level": "biz",
+      "kind": "scenario",
+      "file": "js/data/scenarios.js",
+      "path": "[17].opener",
+      "from": {
+        "zh": "来来来，签约成功，我先敬你一杯！",
+        "p": "Lái lái lái, qiānyuē chénggōng, wǒ xiān jìng nǐ yì bēi!",
+        "en": "Come, come — the signing is done, let me toast you first!"
+      },
+      "reviewer": "claude:claude-opus-5",
+      "note": "|Lái lái lái, qiānyuē chénggōng, wǒ xiān jìng nǐ yī bēi!||一 should be written yī, not sandhi yì.",
+      "to": {
+        "zh": "来来来，签约成功，我先敬你一杯！",
+        "p": "Lái lái lái, qiānyuē chénggōng, wǒ xiān jìng nǐ yī bēi!",
+        "en": "Come, come — the signing is done, let me toast you first!"
+      },
+      "newId": "be1480054d4c4b70",
+      "comment": "一 should be written yī, not sandhi yì."
+    }
+  ],
   "problems": []
 }
