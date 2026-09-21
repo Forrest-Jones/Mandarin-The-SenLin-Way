@@ -356,7 +356,7 @@
     const today = todayDay();
     return `<div class="stack"><span class="eyebrow">Curriculum</span><h1 class="h2">Every day, at a glance</h1>
       <table class="table"><thead><tr><th>Day</th><th>Date</th><th>Phase</th><th>New</th><th></th></tr></thead><tbody>
-      ${DAYS.map(d => `<tr${d.day === today ? ' style="background:var(--accent-soft)"' : ''}><td>${d.day}</td><td class="small muted">${fmtDate(S.dateForDay(d.day, state.settings.startDate))}</td><td class="small">${d.type === 'pron' ? esc(d.pron.title) : esc(d.phase)}</td>
+      ${DAYS.map(d => `<tr${d.day === today ? ' style="background:var(--accent-soft)"' : ''}><td>${d.day}</td><td class="small muted" style="white-space:nowrap">${fmtDate(S.dateForDay(d.day, state.settings.startDate)).replace(/^(\w+), /, '<span class="hide-sm">$1, </span>')}</td><td class="small">${d.type === 'pron' ? esc(d.pron.title) : esc(d.phase)}</td>
         <td class="hz">${d.chars.map(c => c.h).join(' ')} <span class="small muted">${d.words.map(w => w.w).join(' · ')}</span></td>
         <td><a class="btn btn-sm${state.progress.completed[d.day] ? '' : ' btn-ghost'}" href="#/lesson/${d.day}">${state.progress.completed[d.day] ? '✓ done' : 'open'}</a></td></tr>`).join('')}
       </tbody></table></div>`;
@@ -423,6 +423,7 @@
         <p class="muted small">Listen, then say it five times. Exaggerate the contours: high-flat, rising, low-dip, falling.</p>
       </div>
       ${L.warmup.kind === 'pron' ? `<div class="card stack"><span class="eyebrow">Sound drills</span>${L.warmup.drills.map(d => `<div class="row between"><span class="py" style="font-size:1.2rem">${pinyinHTML(d.replace(/\(.*\)/, ''))} <span class="muted small">${esc((d.match(/\(.*\)/) || [''])[0])}</span></span>${playBtn(d.replace(/\(.*\)|[→]/g, ''))}</div>`).join('')}</div>`
+        : !L.warmup.drills.length ? `<div class="card stack"><span class="eyebrow">Your first tree day</span><p class="muted small">Nothing to recall yet: today you plant the first three characters. From tomorrow this card holds yesterday's characters to say aloud from memory.</p></div>`
         : `<div class="card stack"><span class="eyebrow">Say these aloud from memory</span><div class="grid grid-tiles">${L.warmup.drills.map(c => `<div class="tile"><span class="hz">${c.h}</span><span class="py">${pinyinHTML(c.p)}</span><span class="muted small">${esc(c.m)}</span><span>${playBtn(c.h)}</span></div>`).join('')}</div></div>`}
     </div>`;
   }
