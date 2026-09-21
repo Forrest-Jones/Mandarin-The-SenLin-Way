@@ -80,7 +80,7 @@
           { w: '保密协议', p: 'bǎomì xiéyì', m: 'non-disclosure agreement (NDA)' }
         ],
         phrases: [
-          { zh: '这个项目我们很感兴趣，想进一步了解。', p: 'Zhè ge xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyíbù liǎojiě.', en: 'We are very interested in this deal and would like to learn more.' },
+          { zh: '这个项目我们很感兴趣，想进一步了解。', p: 'Zhège xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyíbù liǎojiě.', en: 'We are very interested in this deal and would like to learn more.' },
           { zh: '这一轮谁领投？我们可以考虑跟投。', p: 'Zhè yì lún shéi lǐngtóu? Wǒmen kěyǐ kǎolǜ gēntóu.', en: 'Who is leading this round? We could consider following.' },
           { zh: '请先签保密协议，然后我们发商业计划书。', p: 'Qǐng xiān qiān bǎomì xiéyì, ránhòu wǒmen fā shāngyè jìhuàshū.', en: 'Please sign the NDA first, then we will send the business plan.' }
         ] },
@@ -106,7 +106,7 @@
           { w: '锁定期', p: 'suǒdìngqī', m: 'lock-up period' }
         ],
         phrases: [
-          { zh: '我们的报价是投前估值两亿美元，投资三千万美元。', p: 'Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.', en: 'Our offer is a 200 million pre-money valuation, investing 30 million.' },
+          { zh: '我们的报价是投前估值两亿美元，投资三千万美元。', p: 'Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.', en: 'Our offer is a pre-money valuation of 200 million US dollars, with an investment of 30 million US dollars.' },
           { zh: '一倍不参与分配的优先清算权是我们的底线。', p: 'Yí bèi bù cānyù fēnpèi de yōuxiān qīngsuànquán shì wǒmen de dǐxiàn.', en: 'A one-times non-participating liquidation preference is our bottom line.' },
           { zh: '估值可以谈，但是董事会席位不能少。', p: 'Gūzhí kěyǐ tán, dànshì dǒngshìhuì xíwèi bù néng shǎo.', en: 'Valuation is negotiable, but the board seat is not.' }
         ] },
@@ -130,9 +130,9 @@
           { w: '客户集中度', p: 'kèhù jízhōngdù', m: 'customer concentration' }
         ],
         phrases: [
-          { zh: '请把最近三年的审计报告放进数据室。', p: 'Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàng jìn shùjùshì.', en: 'Please put the last three years of audit reports in the data room.' },
+          { zh: '请把最近三年的审计报告放进数据室。', p: 'Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàngjìn shùjùshì.', en: 'Please put the last three years of audit reports in the data room.' },
           { zh: '这笔关联交易是怎么定价的？', p: 'Zhè bǐ guānlián jiāoyì shì zěnme dìngjià de?', en: 'How was this related-party transaction priced?' },
-          { zh: '毛利率为什么去年下降了五个百分点？', p: 'Máolìlǜ wèi shénme qùnián xiàjiàng le wǔ ge bǎifēndiǎn?', en: 'Why did gross margin fall five percentage points last year?' }
+          { zh: '毛利率去年为什么下降了五个百分点？', p: 'Máolìlǜ qùnián wèishénme xiàjiàngle wǔ ge bǎifēndiǎn?', en: 'Why did gross margin fall five percentage points last year?' }
         ] },
       { id: 'negotiation', title: '谈判用语', en: 'Negotiation language', brief: 'Pushing, conceding and holding without losing face on either side.',
         terms: [
@@ -144,7 +144,7 @@
           { w: '妥协', p: 'tuǒxié', m: 'compromise' },
           { w: '分歧', p: 'fēnqí', m: 'disagreement / gap' },
           { w: '达成一致', p: 'dáchéng yízhì', m: 'reach agreement' },
-          { w: '原则上', p: 'yuánzé shang', m: 'in principle' },
+          { w: '原则上', p: 'yuánzé shàng', m: 'in principle' },
           { w: '灵活', p: 'línghuó', m: 'flexible' },
           { w: '诚意', p: 'chéngyì', m: 'sincerity / good faith', note: 'Chinese counterparties speak of 诚意 constantly; show it with concrete steps.' },
           { w: '面子', p: 'miànzi', m: 'face (reputation)', note: 'Never make the other side lose face in front of their team; push hard in private.' },
@@ -152,8 +152,8 @@
           { w: '最后报价', p: 'zuìhòu bàojià', m: 'final offer' }
         ],
         phrases: [
-          { zh: '我们原则上同意，细节还需要再讨论。', p: 'Wǒmen yuánzé shang tóngyì, xìjié hái xūyào zài tǎolùn.', en: 'We agree in principle; the details need more discussion.' },
-          { zh: '这一点我们可以让步，但估值上希望您也灵活一些。', p: 'Zhè yì diǎn wǒmen kěyǐ ràngbù, dàn gūzhí shang xīwàng nín yě línghuó yìxiē.', en: 'We can concede this point, but we hope you can be flexible on valuation too.' },
+          { zh: '我们原则上同意，细节还需要再讨论。', p: 'Wǒmen yuánzé shàng tóngyì, xìjié hái xūyào zài tǎolùn.', en: 'We agree in principle; the details need more discussion.' },
+          { zh: '这一点我们可以让步，但估值上希望您也灵活一些。', p: 'Zhè yì diǎn wǒmen kěyǐ ràngbù, dàn gūzhí shàng xīwàng nín yě línghuó yìxiē.', en: 'We can concede this point, but we hope you can be flexible on valuation too.' },
           { zh: '我们内部再讨论一下，明天给您答复。', p: 'Wǒmen nèibù zài tǎolùn yíxià, míngtiān gěi nín dáfù.', en: 'We will discuss internally and reply tomorrow.', note: 'The polite way to buy time without saying no.' },
           { zh: '这已经是我们最后的报价了。', p: 'Zhè yǐjīng shì wǒmen zuìhòu de bàojià le.', en: 'This is already our final offer.' },
           { zh: '我看我们各让一步，折中一下怎么样？', p: 'Wǒ kàn wǒmen gè ràng yí bù, zhézhōng yíxià zěnmeyàng?', en: 'How about we each give a little and split the difference?' }
@@ -184,7 +184,7 @@
           { w: '工商变更', p: 'gōngshāng biàngēng', m: 'company registry update (SAMR)' }
         ],
         phrases: [
-          { zh: '所有交割条件满足后三个工作日内付款。', p: 'Suǒyǒu jiāogē tiáojiàn mǎnzú hòu sān ge gōngzuòrì nèi fùkuǎn.', en: 'Payment within three business days after all conditions precedent are satisfied.' },
+          { zh: '所有交割条件满足后，三个工作日内付款。', p: 'Suǒyǒu jiāogē tiáojiàn mǎnzú hòu, sān ge gōngzuòrì nèi fùkuǎn.', en: 'Payment within three business days after all conditions precedent are satisfied.' },
           { zh: '资金先打到托管账户，工商变更完成后再释放。', p: 'Zījīn xiān dǎ dào tuōguǎn zhànghù, gōngshāng biàngēng wánchéng hòu zài shìfàng.', en: 'Funds go to escrow first and are released after the registry update is complete.' },
           { zh: '境外直接投资备案大概需要多长时间？', p: 'Jìngwài zhíjiē tóuzī bèi’àn dàgài xūyào duō cháng shíjiān?', en: 'Roughly how long will the ODI filing take?' },
           { zh: '我们按签约日的汇率结算。', p: 'Wǒmen àn qiānyuē rì de huìlǜ jiésuàn.', en: 'We settle at the exchange rate on the signing date.' },
@@ -209,7 +209,7 @@
         phrases: [
           { zh: '协议适用香港法律，争议提交香港国际仲裁中心仲裁。', p: 'Xiéyì shìyòng Xiānggǎng fǎlǜ, zhēngyì tíjiāo Xiānggǎng Guójì Zhòngcái Zhōngxīn zhòngcái.', en: 'The agreement is governed by Hong Kong law; disputes go to HKIAC arbitration.' },
           { zh: '请贵方律师尽快回复我们的修改意见。', p: 'Qǐng guìfāng lǜshī jǐnkuài huífù wǒmen de xiūgǎi yìjiàn.', en: 'Please have your counsel respond to our mark-up as soon as possible.', note: '贵方 = your side (formal); 我方 = our side.' },
-          { zh: '合同一式两份，双方签字盖章后生效。', p: 'Hétong yí shì liǎng fèn, shuāngfāng qiānzì gàizhāng hòu shēngxiào.', en: 'Two originals; effective once both sides sign and chop.' }
+          { zh: '合同一式两份，双方签字盖章后生效。', p: 'Hétong yíshì liǎng fèn, shuāngfāng qiānzì gàizhāng hòu shēngxiào.', en: 'Two originals; effective once both sides sign and chop.' }
         ] },
       { id: 'exit', title: '退出与回报', en: 'Exits and returns', brief: 'How the money comes back, and how to talk about performance.',
         terms: [
@@ -249,7 +249,7 @@
         phrases: [
           { zh: '我敬您一杯，感谢您的信任和支持。', p: 'Wǒ jìng nín yì bēi, gǎnxiè nín de xìnrèn hé zhīchí.', en: 'A toast to you, with thanks for your trust and support.' },
           { zh: '合作愉快，以后常来往！', p: 'Hézuò yúkuài, yǐhòu cháng láiwǎng!', en: 'To a happy partnership; let’s stay in close touch!' },
-          { zh: '今天我做东，大家别客气。', p: 'Jīntiān wǒ zuòdōng, dàjiā bié kèqi.', en: 'Tonight is on me, everyone; please don’t stand on ceremony.' },
+          { zh: '今天我做东，大家别客气。', p: 'Jīntiān wǒ zuòdōng, dàjiā bié kèqi.', en: 'Today it\'s on me, everyone; please don\'t stand on ceremony.' },
           { zh: '先做朋友，再做生意。', p: 'Xiān zuò péngyou, zài zuò shēngyi.', en: 'Friends first, business second.' }
         ] },
       { id: 'numbers', title: '数字与金额', en: 'Numbers and money', brief: 'Chinese counts in ten-thousands. Get 万 and 亿 wrong and the deal is off by a hundredfold.',
@@ -259,7 +259,7 @@
           { w: '人民币', p: 'rénmínbì', m: 'renminbi (RMB, CNY)' },
           { w: '美元', p: 'měiyuán', m: 'US dollar' },
           { w: '港币', p: 'gǎngbì', m: 'Hong Kong dollar' },
-          { w: '百分之', p: 'bǎi fēn zhī', m: 'percent (百分之二十 = 20%)' },
+          { w: '百分之', p: 'bǎifēnzhī', m: 'percent (百分之二十 = 20%)' },
           { w: '基点', p: 'jīdiǎn', m: 'basis point' },
           { w: '倍', p: 'bèi', m: 'times / multiple (三倍 = 3x)' },
           { w: '折扣', p: 'zhékòu', m: 'discount', note: '八折 = 20% off (you pay 80%).' },
@@ -291,7 +291,7 @@
         ],
         phrases: [
           { zh: '王总您好，附件是今天的会议纪要，请您确认。', p: 'Wáng zǒng nín hǎo, fùjiàn shì jīntiān de huìyì jìyào, qǐng nín quèrèn.', en: 'Hello Mr Wang, attached are today’s minutes, please confirm.' },
-          { zh: '方便的话，我们下周三北京时间上午十点视频会议？', p: 'Fāngbiàn de huà, wǒmen xià zhōusān Běijīng shíjiān shàngwǔ shí diǎn shìpín huìyì?', en: 'If convenient, a video call next Wednesday at 10 a.m. Beijing time?' },
+          { zh: '方便的话，我们下周三北京时间上午十点开个视频会议？', p: 'Fāngbiàn de huà, wǒmen xià zhōusān Běijīng shíjiān shàngwǔ shí diǎn kāi ge shìpín huìyì?', en: 'If convenient, a video call next Wednesday at 10 a.m. Beijing time?' },
           { zh: '麻烦您加一下我的微信，方便后续对接。', p: 'Máfan nín jiā yíxià wǒ de Wēixìn, fāngbiàn hòuxù duìjiē.', en: 'Please add my WeChat so we can coordinate going forward.' },
           { zh: '我们尽快推进，争取月底前完成交割。', p: 'Wǒmen jǐnkuài tuījìn, zhēngqǔ yuèdǐ qián wánchéng jiāogē.', en: 'We will push ahead quickly and aim to close before month-end.' }
         ] }

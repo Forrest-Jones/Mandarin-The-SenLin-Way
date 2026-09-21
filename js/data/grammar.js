@@ -98,7 +98,7 @@
     { level: 6, name: '非…不可', pattern: '非 + verb + 不可', zh: '这件事非你去不可。', p: 'Zhè jiàn shì fēi nǐ qù bùkě.', en: 'This is something you must go and do yourself.', note: 'Double negative = strong necessity or determination.' },
     { level: 6, name: '无非 / 不过是', pattern: 'A + 无非 / 不过是 + B', zh: '他说的无非是那几句老话。', p: 'Tā shuō de wúfēi shì nà jǐ jù lǎohuà.', en: 'What he says is nothing more than the same old lines.', note: 'Downplays: “nothing but”.' },
     { level: 6, name: '总而言之', pattern: '总而言之 / 总之，…', zh: '总而言之，这次合作非常成功。', p: 'Zǒng’éryánzhī, zhè cì hézuò fēicháng chénggōng.', en: 'In short, this collaboration was a great success.', note: 'Summarising connector for essays and speeches.' },
-    { level: 6, name: '与…相比', pattern: '与 / 跟 A 相比，B …', zh: '与去年相比，今年的收入增加了一倍。', p: 'Yǔ qùnián xiāngbǐ, jīnnián de shōurù zēngjiā le yí bèi.', en: 'Compared with last year, this year’s income doubled.', note: 'Formal comparison frame used in reports.' },
+    { level: 6, name: '与…相比', pattern: '与 / 跟 A 相比，B …', zh: '与去年相比，今年的收入增加了一倍。', p: 'Yǔ qùnián xiāngbǐ, jīnnián de shōurù zēngjiāle yí bèi.', en: 'Compared with last year, this year’s income doubled.', note: 'Formal comparison frame used in reports.' },
     { level: 6, name: '不禁 / 忍不住', pattern: 'subject + 不禁 / 忍不住 + verb', zh: '听到这个消息，她不禁流下了眼泪。', p: 'Tīngdào zhè ge xiāoxi, tā bùjīn liúxià le yǎnlèi.', en: 'Hearing the news, she couldn’t help but shed tears.', note: '不禁 is literary; 忍不住 is everyday speech.' },
     { level: 6, name: '至于', pattern: '…。至于 + topic，…', zh: '价格没问题。至于时间，我们再商量。', p: 'Jiàgé méi wèntí. Zhìyú shíjiān, wǒmen zài shāngliang.', en: 'The price is fine. As for the timing, let’s discuss it further.', note: 'Shifts to a new topic; also 不至于 = “not to the point of”.' }
   ];

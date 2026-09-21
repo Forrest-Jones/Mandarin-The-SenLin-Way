@@ -10,6 +10,7 @@ node tools/review.js                               # HSK 4–6, all kinds, CSV i
 node tools/review.js --levels 5 --kinds sentences   # one level, one kind
 node tools/review.js --format md                    # Markdown tables instead of CSV
 node tools/review.js --apply review/hsk4-reviewed.csv   # read the review back → review/hsk4.patch.json
+node tools/apply-review.js [--write] [review/hsk4.patch.json]   # write the patch into js/data/*.js (dry run without --write)
 ```
 
 ## For the reviewer
