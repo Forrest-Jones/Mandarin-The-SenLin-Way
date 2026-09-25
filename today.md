@@ -1,31 +1,30 @@
-# Mandarin The SenLin Way — Day 4
+# Mandarin The SenLin Way — Day 5
 *Pronunciation Mastery · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/4
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/5
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-4**: 商店 shāngdiàn — shop. Say it five times.
-- gāi kāi hāi
-- gěi kěi hēi
-- gāo kāo hǎo
-- gǒu kǒu hòu
+Tone pair of the day **2-1**: 明天 míngtiān — tomorrow. Say it five times.
+- jī qī xī
+- jiā qiā xiā
+- jù qù xù (all ü!)
 
 ## 2 · Review (2½ min)
 Nothing to review yet — enjoy the warm-up twice.
 
 ## 3 · New (3½ min)
-**Actors: g k h**
+**Actors: j q x — the smile sounds**
 
-Back-of-the-tongue sounds. Mandarin h is rougher than English h — think of fogging a mirror.
-- Actor **g-** (gè 个): like the k in “skip” — no puff. Cast: Gandalf
-- Actor **k-** (kàn 看): like the k in “kit” — big puff. Cast: Kermit
-- Actor **h-** (hǎo 好): rougher than English h — a light throat-clearing. Cast: Harry Potter
-- Set **-ai** (lái 来): “eye”. Location: a hospital
-- Set **-ei** (bēi 杯): “ay” as in “day”. Location: an airport
-- Set **-ao** (hǎo 好): “ow” as in “cow”. Location: a stadium
-- Set **-ou** (gǒu 狗): “oh” as in “low”. Location: a shopping mall
+j q x are only ever followed by i or ü. Tongue tip down behind the lower teeth, lips in a wide smile. The “u” after j q x is secretly ü.
+- Actor **j-** (jiā 家): like “jee” but with the tongue tip DOWN behind the lower teeth. Cast: James Bond
+- Actor **q-** (qù 去): like “chee” with the tongue tip down — always followed by i or ü. Cast: Queen Elizabeth
+- Actor **x-** (xiǎo 小): between “see” and “she”, tongue tip down, big smile. Cast: Xena
+- Set **-an** (sān 三): “ahn”. Location: a temple or church
+- Set **-en** (rén 人): “un” as in “fun”. Location: a hotel
+- Set **-ang** (shàng 上): “ahng” — open nasal. Location: a gym
+- Set **-eng** (lěng 冷): “ung” as in “lung”. Location: a library
 
-**Task:** Cast g k h. Assign four new sets for ai ei ao ou.
+**Task:** Alternate ji / zhi (tomorrow’s sound) to feel the difference: smile for ji, curl back for zhi.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
 
