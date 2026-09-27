@@ -447,7 +447,7 @@
 
   function renderReview(L, r) {
     r = r || lesson.review; const card = L.review[r.i];
-    if (!card) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${L.review.length ? 'Review complete.' : 'Nothing to review yet — new items start appearing tomorrow.'}</p>${L.review.length ? `<p class="muted small">${L.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>` : ''}</div>` + `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${r.standalone ? 'Done' : 'Next →'}</button></div>`;
+    if (!card) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${L.review.length ? 'Review complete.' : 'Nothing to review yet — new items start appearing tomorrow.'}</p>${L.review.length ? `<p class="muted small">${L.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>` : ''}</div>` + `<div class="row" style="margin-top:1.2rem;justify-content:flex-end">${r.standalone && dueCount() ? `<button class="btn" id="review-more">Continue · ${dueCount()} more due</button>` : ''}<button class="btn btn-primary" id="next">${r.standalone ? 'Done' : 'Next →'}</button></div>`;
     const x = card.ref;
     const front = card.type === 'c' ? `<div class="big-hz">${x.h}</div>` : card.type === 'w' ? `<div class="mid-hz" style="font-size:3rem">${x.w}</div>` : `<div class="mid-hz">${esc(x.zh)}</div>`;
     const back = card.type === 's' ? `<div class="py" style="font-size:1.2rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.en)}</div>` : `<div class="py" style="font-size:1.4rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.m)}</div>`;
@@ -658,7 +658,7 @@
   };
   routes.review.after = () => {
     const L = routes.review.L, r = routes.review.r;
-    const draw = () => { $('#review-body').innerHTML = renderReview(L, r); wireReview(L, r, draw); const n = $('#next'); if (n) n.onclick = () => { location.hash = '#/'; }; };
+    const draw = () => { $('#review-body').innerHTML = renderReview(L, r); wireReview(L, r, draw); const n = $('#next'); if (n) n.onclick = () => { location.hash = '#/'; }; const more = $('#review-more'); if (more) more.onclick = () => { window.scrollTo(0, 0); navigate(); }; };
     draw(); document.addEventListener('keydown', reviewKeys);
   };
   function reviewKeys(e) {
