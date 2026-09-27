@@ -415,7 +415,7 @@
         <input class="input" id="rem-time" type="time" aria-label="Reminder time" value="${String(r.hour).padStart(2, '0')}:${String(r.minute).padStart(2, '0')}" style="max-width:130px">
         ${r.on && r.endpoint && r.endpoint !== 'native' ? '<button class="btn btn-sm btn-ghost" id="rem-test">Send a test</button>' : ''}
       </div>
-      <p class="small muted" id="rem-note">${r.on ? 'On. Delivered even when the site is closed.' : 'Off. Uses your phone’s notifications; nothing to install.'}</p>`;
+      <p class="small muted" id="rem-note">${r.on ? `On. Delivered even when the site is closed${signedIn() && r.endpoint !== 'native' ? ', and it names your next lesson (Day, characters, or a catch-up) from your synced progress' : ''}.` : 'Off. Uses your phone’s notifications; nothing to install.'}</p>`;
   };
   A.reminderExtraAfter = () => {
     const on = $('#rem-on'); if (!on) return;
