@@ -237,6 +237,11 @@
     const older = pick(learnedBefore.filter(i => i.type === 's'), 2, rand).map(i => i.ref);
     const sentences = d.sentences.concat(older);
 
+    /* pronunciation days (1–12): no cards, sentences or characters yet, so the segments are the sounds themselves */
+    if (d.type === 'pron') {
+      return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review: [], chars: [], words: [], grammar: [], sentences: [], quiz: pronQuiz(d, rand), segments: PRON_SEGMENTS, business: dealDesk(day, CONFIG.businessStartDay) };
+    }
+
     /* quiz: 5 questions from today's new + review */
     const pool = learnedNow.filter(i => i.type !== 's');
     const targets = chars.map(x => ({ id: itemId('c', x.ch), type: 'c', ref: x.ch }))
@@ -266,6 +271,57 @@
     return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review, chars, words: d.words, grammar: d.grammar || [], sentences, quiz, segments: CONFIG.segments, business: dealDesk(day, CONFIG.businessStartDay) };
   }
 
+  /* ------------------------------------------------------------------ pronunciation-day quiz */
+  const PRON_SEGMENTS = [
+    { id: 'warmup', title: 'Warm-up: tones',      seconds: 90 },
+    { id: 'new',    title: 'Today’s sounds',       seconds: 240 },
+    { id: 'shadow', title: 'Shadowing: say it',   seconds: 150 },
+    { id: 'quiz',   title: 'Quiz: hear the tone', seconds: 120 }
+  ];
+  const TONE_LABELS = ['1st · high-flat ˉ', '2nd · rising ˊ', '3rd · low-dip ˇ', '4th · falling ˋ', 'neutral · light and short'];
+  const toneOf = syl => parsePinyin(syl).tone;          // 1–4 from the tone mark, 5 when unmarked
+  const stripTones = syl => parsePinyin(syl).base;
+  /** Hanzi examples the day introduces: "bā 八" pairs from the initials / finals tables, the ma-series on tone days, tone-pair words. */
+  function pronExamples(d) {
+    const ex = [];
+    const add = str => { const m = /^(\S+)\s+(\S+)$/.exec(str || ''); if (m) ex.push({ p: m[1], hz: m[2] }); };
+    if (d.pron.focus === 'tones') ['mā 妈', 'má 麻', 'mǎ 马', 'mà 骂'].forEach(add);
+    (d.pron.initials || []).forEach(k => { const i = PINYIN.initials.find(x => x.key === k); if (i) add(i.ex); });
+    (d.pron.finals || d.pron.finalsIntro || []).forEach(k => { const f = PINYIN.finals.find(x => x.key === k); if (f) add(f.ex); });
+    if (!ex.length) PINYIN.tonePairs.forEach(tp => { const m = /^(\S+)\s+(\S+)$/.exec(tp.ex); if (m) ex.push({ p: m[2], hz: m[1] }); });
+    const seen = new Set(); return ex.filter(e => !seen.has(e.p) && seen.add(e.p));
+  }
+  /** Five questions: hear a syllable and pick its pinyin, read a syllable and name its tone, find a tone inside a drill row. */
+  function pronQuiz(d, rand) {
+    const rows = d.pron.drills.map(r => r.replace(/\(.*?\)/g, '').trim().split(/\s+/).filter(Boolean));
+    const syls = Array.from(new Set(rows.flat())).filter(x => /[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/.test(x));
+    const examples = pronExamples(d);
+    const items = [];
+    /* listening: which syllable did you hear? (the hanzi is spoken, the answer is its pinyin) */
+    for (const e of pick(examples, 2, rand)) {
+      const others = pick(Array.from(new Set(examples.map(x => x.p).concat(syls))).filter(x => x !== e.p && stripTones(x) !== stripTones(e.p) || toneOf(x) !== toneOf(e.p)).filter(x => x !== e.p), 3, rand);
+      if (others.length < 3) continue;
+      items.push({ kind: 'listen', prompt: e.hz, pinyin: e.p, meaning: '', question: 'Listen — which syllable did you hear?', options: pick([e.p].concat(others), 4, rand), correct: e.p, pinyinOptions: true });
+    }
+    /* find the tone inside a row that runs through the tones (mā má mǎ mà) */
+    const toneRows = rows.filter(r => new Set(r.map(toneOf).filter(t => t < 5)).size >= 4);
+    if (toneRows.length) { const r = pick(toneRows, 1, rand)[0]; const t = 1 + Math.floor(rand() * 4); const correct = r.find(x => toneOf(x) === t); if (correct) items.push({ prompt: r.join('  '), question: `Which one is the ${TONE_LABELS[t - 1]}?`, options: pick(r.filter(x => toneOf(x) < 5).slice(0, 4), 4, rand), correct, pinyinOptions: true, small: true }); }
+    /* name the tone of a syllable */
+    for (const syl of pick(syls, 5 - items.length, rand)) {
+      const t = toneOf(syl); if (t === 5) continue;
+      items.push({ prompt: syl, question: 'Which tone is this?', options: TONE_LABELS.slice(0, 4), correct: TONE_LABELS[t - 1], pinyinPrompt: true });
+    }
+    /* tone-pair days (and any day short of drills): name the tone pair of a two-syllable word */
+    if (items.length < 5) {
+      const pairs = Array.from(new Set(PINYIN.tonePairs.map(tp => tp.pair)));
+      for (const tp of pick(PINYIN.tonePairs, 5 - items.length, rand)) {
+        const m = /^(\S+)\s+(\S+)$/.exec(tp.ex); if (!m) continue;
+        items.push({ prompt: m[2], question: `Which tone pair is ${m[1]} (${tp.en.split(' (')[0]})?`, options: pick([tp.pair].concat(pick(pairs.filter(x => x !== tp.pair), 3, rand)), 4, rand), correct: tp.pair, pinyinPrompt: true });
+      }
+    }
+    return pick(items, Math.min(5, items.length), rand);
+  }
+
   /* ------------------------------------------------------------------ business track ("deal desk") */
   const BIZ_TERMS = BUSINESS ? BUSINESS.units.flatMap(u => u.terms.map(t => Object.assign({ unit: u.id, unitTitle: u.en }, t))) : [];
   const BIZ_PHRASES = BUSINESS ? BUSINESS.units.flatMap(u => u.phrases.map(t => Object.assign({ unit: u.id, unitTitle: u.en }, t))) : [];
@@ -289,13 +345,14 @@
     L.push(`Tone pair of the day **${lesson.warmup.tonePair.pair}**: ${lesson.warmup.tonePair.ex} — ${lesson.warmup.tonePair.en}. Say it five times.`);
     if (lesson.warmup.kind === 'tones' && lesson.warmup.drills.length) L.push('Say aloud: ' + lesson.warmup.drills.map(x => `${x.h} ${x.p}`).join(' · '));
     if (lesson.warmup.kind === 'pron') lesson.warmup.drills.forEach(x => L.push('- ' + x));
-    L.push('\n## 2 · Review (2½ min)');
-    if (!lesson.review.length) L.push('Nothing to review yet — enjoy the warm-up twice.');
+    const pron = lesson.type === 'pron';
+    if (!pron) L.push('\n## 2 · Review (2½ min)');
+    if (!pron && !lesson.review.length) L.push('Nothing to review yet — enjoy the warm-up twice.');
     lesson.review.forEach(i => {
       const r = i.ref;
       L.push(i.type === 'c' ? `- ${r.h} — ${r.p} — ${r.m}` : i.type === 'w' ? `- ${r.w} — ${r.p} — ${r.m}` : `- ${r.zh} — ${r.p} — ${r.en}`);
     });
-    L.push('\n## 3 · New (3½ min)');
+    L.push(pron ? '\n## 2 · Today’s sounds (4 min)' : '\n## 3 · New (3½ min)');
     if (lesson.type === 'pron') {
       const p = lesson.pron;
       L.push(`**${p.title}**\n\n${p.brief}`);
@@ -317,9 +374,9 @@
     if (lesson.words.length) { L.push('\n**New words**'); lesson.words.forEach(w => L.push(`- ${w.w} ${w.p} — ${w.m}`)); }
     lesson.grammar.forEach(g => { L.push(`\n**Pattern of the day: ${g.name}** — ${g.pattern}`); L.push(`${g.zh}  ${g.p}  — ${g.en}`); L.push(g.note); });
     if (lesson.business) { L.push('\n**Deal desk (business Mandarin)**'); lesson.business.terms.forEach(t => L.push(`- ${t.w} ${t.p} — ${t.m}${t.note ? ' · ' + t.note : ''}`)); L.push(`- ${lesson.business.phrase.zh}  ${lesson.business.phrase.p}  — ${lesson.business.phrase.en}`); }
-    L.push('\n## 4 · Sentences: shadow each one 3× (2 min)');
-    lesson.sentences.forEach(s => L.push(`- ${s.zh}  ${s.p}  — ${s.en}`));
-    L.push('\n## 5 · Quiz (1 min)');
+    if (pron) { L.push('\n## 3 · Shadowing: say each row three times (2½ min)'); lesson.pron.drills.forEach(x => L.push('- ' + x)); }
+    else { L.push('\n## 4 · Sentences: shadow each one 3× (2 min)'); lesson.sentences.forEach(s => L.push(`- ${s.zh}  ${s.p}  — ${s.en}`)); }
+    L.push(pron ? '\n## 4 · Quiz: hear the tone (2 min)' : '\n## 5 · Quiz (1 min)');
     lesson.quiz.forEach((q, i) => L.push(q.kind === 'listen' ? `${i + 1}. **${q.pinyin}** — which one is it?  ${q.options.map((o, j) => `(${'abcd'[j]}) ${o}`).join('  ')}` : `${i + 1}. **${q.prompt}** — ${q.question}  ${q.options.map((o, j) => `(${'abcd'[j]}) ${o}`).join('  ')}`));
     L.push('\nAnswers: ' + lesson.quiz.map((q, i) => `${i + 1}${'abcd'[q.options.indexOf(q.correct)]}`).join(' '));
     return L.join('\n');

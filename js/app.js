@@ -388,7 +388,7 @@
   routes.lesson.after = () => renderSegment();
 
   function renderSegment() {
-    const L = lesson.data; const segs = S.CONFIG.segments;
+    const L = lesson.data; const segs = L.segments || S.CONFIG.segments;
     $('#segments').innerHTML = segs.map((s, i) => `<button class="${i < lesson.seg ? 'done' : i === lesson.seg ? 'active' : ''}" data-seg="${i}" title="${esc(s.title)}"><span>${esc(s.title.split(':')[0])}</span></button>`).join('')
       + `<button class="${lesson.seg >= segs.length ? 'active' : ''}" data-seg="${segs.length}" title="Done"><span>Done</span></button>`;
     $('#segments').querySelectorAll('button').forEach(b => b.onclick = () => { lesson.seg = +b.dataset.seg; renderSegment(); });
@@ -402,6 +402,7 @@
     if (seg.id === 'review') html += renderReview(L);
     if (seg.id === 'new') html += renderNew(L) + next();
     if (seg.id === 'sentences') html += renderSentences(L) + next();
+    if (seg.id === 'shadow') html += renderShadow(L) + next();
     if (seg.id === 'quiz') html += renderQuiz(L);
     el.innerHTML = html;
     wireSegment(seg.id);
@@ -425,6 +426,19 @@
       ${L.warmup.kind === 'pron' ? `<div class="card stack"><span class="eyebrow">Sound drills</span>${L.warmup.drills.map(d => `<div class="row between"><span class="py" style="font-size:1.2rem">${pinyinHTML(d.replace(/\(.*\)/, ''))} <span class="muted small">${esc((d.match(/\(.*\)/) || [''])[0])}</span></span>${playBtn(d.replace(/\(.*\)|[→]/g, ''))}</div>`).join('')}</div>`
         : !L.warmup.drills.length ? `<div class="card stack"><span class="eyebrow">Your first tree day</span><p class="muted small">Nothing to recall yet: today you plant the first three characters. From tomorrow this card holds yesterday's characters to say aloud from memory.</p></div>`
         : `<div class="card stack"><span class="eyebrow">Say these aloud from memory</span><div class="grid grid-tiles">${L.warmup.drills.map(c => `<div class="tile"><span class="hz">${c.h}</span><span class="py">${pinyinHTML(c.p)}</span><span class="muted small">${esc(c.m)}</span><span>${playBtn(c.h)}</span></div>`).join('')}</div></div>`}
+    </div>`;
+  }
+
+  /** Pronunciation days: say every drill row three times, slow then normal; a tap marks the row done. */
+  function renderShadow(L) {
+    const rows = L.pron.drills.map(d => d.replace(/\(.*?\)/g, '').trim());
+    const done = rows.filter((r, i) => lesson.shadow['drill' + i]).length;
+    return `<div class="stack" style="margin-top:1rem">
+      <div class="card stack"><span class="eyebrow">Say each row three times · ${done} of ${rows.length} done</span>
+        <p class="muted small">Play it, copy the pitch with your voice, then play it again and match it. Slow first (🐢), then normal speed. Exaggerate: high-flat, rising, low-dip, falling.</p>
+        ${rows.map((r, i) => `<div class="row between" style="gap:.6rem;padding:.35rem 0;border-top:1px solid var(--line)"><span class="py" style="font-size:1.25rem">${pinyinHTML(r)}</span><span class="row" style="gap:.3rem">${playBtn(r)}${playBtn(r, { slow: true, rate: 0.6 })}<button class="btn btn-sm${lesson.shadow['drill' + i] ? ' btn-primary' : ' btn-ghost'}" data-shadow="drill${i}" data-n="${lesson.shadow['drill' + i] ? 0 : 1}" aria-pressed="${lesson.shadow['drill' + i] ? 'true' : 'false'}">${lesson.shadow['drill' + i] ? '✓ said it' : 'Said it ×3'}</button></span></div>`).join('')}
+      </div>
+      ${L.pron.task ? `<div class="card stack" style="background:var(--accent-soft)"><p><b>Task:</b> ${esc(L.pron.task)}</p></div>` : ''}
     </div>`;
   }
 
@@ -518,9 +532,10 @@
       <p class="muted small">Question ${q.i + 1} of ${L.quiz.length}</p>
       <div class="card stack">${item.kind === 'listen'
         ? `<div class="row" style="justify-content:center"><button class="btn btn-lg btn-primary" data-say="${esc(item.prompt)}">🔊 Play</button><button class="btn" data-say="${esc(item.prompt)}" data-rate="0.6">🐢</button></div><p style="text-align:center" class="muted">${esc(item.question)}${window.speechSynthesis ? '' : ` (${esc(item.pinyin)})`}</p>`
+        : item.pinyinPrompt || item.small ? `<div class="py" style="font-size:${item.small ? '1.6rem' : '3rem'};text-align:center;font-weight:800">${pinyinHTML(item.prompt)}</div><p style="text-align:center" class="muted">${esc(item.question)}</p>`
         : `<div class="big-hz" style="font-size:4rem">${esc(item.prompt)}</div><p style="text-align:center" class="muted">${esc(item.question)}</p>`}
-        <div class="stack" style="gap:.5rem">${item.options.map(o => `<button class="quiz-opt${item.kind === 'listen' ? ' hz' : ''}" data-opt="${esc(o)}" style="${item.kind === 'listen' ? 'font-size:1.4rem' : ''}">${item.kind !== 'listen' && item.question.includes('pronounced') ? pinyinHTML(o) : esc(o)}</button>`).join('')}</div>
-        <div id="quiz-next"></div></div></div>`;
+        <div class="stack" style="gap:.5rem">${item.options.map(o => `<button class="quiz-opt${item.kind === 'listen' && !item.pinyinOptions ? ' hz' : ''}" data-opt="${esc(o)}" style="${item.kind === 'listen' ? 'font-size:1.4rem' : ''}">${item.pinyinOptions || (item.kind !== 'listen' && item.question.includes('pronounced')) ? pinyinHTML(o) : esc(o)}</button>`).join('')}</div>
+        <div id="quiz-next"></div>${item.kind === 'listen' ? `<p class="small muted" style="text-align:center;margin:0"><button class="btn btn-sm btn-ghost" data-opt="__skip__">Can’t hear it? Skip this one</button></p>` : ''}</div></div>`;
   }
 
   function renderDone() {
@@ -584,6 +599,7 @@
     if (id === 'quiz') document.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => {
       const q = lesson.quiz; if (q.answered) return; q.answered = true;
       const item = L.quiz[q.i]; const ok = b.dataset.opt === item.correct;
+      if (b.dataset.opt === '__skip__') { L.quiz.splice(q.i, 1); q.answered = false; renderSegment(); return; }   // no voice on this device: drop the question, no penalty
       state.progress.quiz.total++; if (ok) { q.right++; state.progress.quiz.right++; } save();
       document.querySelectorAll('[data-opt]').forEach(o => { if (o.dataset.opt === item.correct) o.classList.add('right'); else if (o === b) o.classList.add('wrong'); });
       $('#quiz-next').innerHTML = `<div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="qn">${ok ? 'Correct →' : 'Next →'}</button></div>`;
