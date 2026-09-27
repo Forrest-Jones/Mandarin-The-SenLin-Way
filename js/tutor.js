@@ -77,6 +77,7 @@ ${FORMAT}`;
     const out = { zh: '', py: '', en: '', fix: '', words: [] };
     const grab = k => { const m = text.match(new RegExp('^' + k + ':\\s*(.*)$', 'm')); return m ? m[1].trim() : ''; };
     out.zh = grab('ZH'); out.py = grab('PY'); out.en = grab('EN'); out.fix = grab('FIX');
+    if (/^[-—–·]?$/.test(out.fix) || /^(none|no fix|nothing to fix|ok|correct)\.?$/i.test(out.fix)) out.fix = '';   // a dash or 'none' is not a correction
     const nw = grab('NEW');
     if (nw && nw !== '-' && nw !== '—') out.words = nw.split(/[;；]/).map(s => s.split('|').map(x => x.trim())).filter(a => a.length >= 2 && /\p{Script=Han}/u.test(a[0])).map(a => ({ w: a[0], p: a[1] || '', m: a[2] || '' }));
     if (!out.zh) out.zh = text.replace(/^ZH:\s*/, '').split('\n')[0];
