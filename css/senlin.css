@@ -34,7 +34,7 @@
   --ink-3: #5b7466;            /* 4.6:1 on white: small helper text stays readable */
 
   /* Tone colours (consistent everywhere) */
-  --tone1: #2f8bff; --tone2: #14a066; --tone3: #8b5cf6; --tone4: #ff4d5a; --tone5: #8a9a92;
+  --tone1: #1f63d8; --tone2: #0f7f4f; --tone3: #6d3fe0; --tone4: #d42a3c; --tone5: #5f6f67;   /* AA contrast (≥4.5:1) on the light backgrounds */
 
   /* Semantic */
   --bg: var(--paper);
@@ -75,6 +75,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --tone1: #4d9bff; --tone2: #34d399; --tone3: #a78bfa; --tone4: #ff6b76; --tone5: #9fb0a8;   /* brighter tones for dark backgrounds */
     --bg: var(--night-950); --bg-elev: var(--night-900); --bg-soft: var(--night-800);
     --fg: #eefbf3; --fg-muted: #b5d4c3; --fg-faint: #7fa08f;
     --line: rgba(255,255,255,.09); --line-strong: rgba(255,255,255,.18);
@@ -86,6 +87,7 @@
   }
 }
 :root[data-theme="dark"] {
+  --tone1: #4d9bff; --tone2: #34d399; --tone3: #a78bfa; --tone4: #ff6b76; --tone5: #9fb0a8;
   --bg: var(--night-950); --bg-elev: var(--night-900); --bg-soft: var(--night-800);
   --fg: #eefbf3; --fg-muted: #b5d4c3; --fg-faint: #7fa08f;
   --line: rgba(255,255,255,.09); --line-strong: rgba(255,255,255,.18);
@@ -170,6 +172,8 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.5rem 0; }
 .tile { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem; display: grid; gap: .25rem; text-align: left; transition: transform .25s var(--bounce), box-shadow .25s var(--ease), border-color .25s; }
 .tile:hover { transform: translateY(-4px) scale(1.01); box-shadow: var(--shadow-md); border-color: var(--accent); }
 .tile .hz { font-size: 2.4rem; line-height: 1.1; }
+.tile.future { background: var(--bg-soft); border-style: dashed; }   /* not planted yet: the character fades, the text stays readable */
+.tile.future .hz { opacity: .55; }
 .stat { display: grid; gap: .2rem; }
 .stat b { font-size: 2rem; font-weight: 900; letter-spacing: -.02em; line-height: 1; background: linear-gradient(120deg, var(--accent-strong), var(--sky-500)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .stat span { font-size: .8rem; color: var(--fg-muted); font-weight: 700; }

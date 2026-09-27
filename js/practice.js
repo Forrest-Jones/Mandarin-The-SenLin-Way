@@ -134,7 +134,7 @@
   A.placementExtra = () => `<section class="card stack">
       <h2 class="h3">Already know some Chinese?</h2>
       <p class="muted small">Mark everything up to a level as learned. Those days leave the catch-up queue and their characters, words and sentences enter your review deck on a gentle 1–5 week schedule, so gaps still surface.</p>
-      <div class="row"><select class="input" id="placement" style="max-width:260px">${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}"${(state.settings.placement || 0) === n ? ' selected' : ''}>${n === 0 ? 'Start from zero' : `I know HSK ${n} (skip to HSK ${n + 1})`}</option>`).join('')}</select><button class="btn" id="placement-apply">Apply</button></div>
+      <div class="row"><select class="input" id="placement" aria-label="Already know some Chinese? Choose the level to skip" style="max-width:260px">${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}"${(state.settings.placement || 0) === n ? ' selected' : ''}>${n === 0 ? 'Start from zero' : `I know HSK ${n} (skip to HSK ${n + 1})`}</option>`).join('')}</select><button class="btn" id="placement-apply">Apply</button></div>
     </section>`;
   A.placementExtraAfter = () => {
     const b = $('#placement-apply'); if (!b) return;
