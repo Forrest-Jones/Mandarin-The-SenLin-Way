@@ -38,3 +38,19 @@ test.describe('lesson runner', () => {
     expect(errs.errors(), JSON.stringify(errs.errors(), null, 2)).toEqual([]);
   });
 });
+
+test.describe('pronunciation days', () => {
+  test('Day 1 has four segments with content and a five-question tone quiz', async ({ page }) => {
+    const errs = watchErrors(page);
+    await go(page, '#/lesson/1');
+    await expect(page.locator('[data-seg]')).toHaveCount(5);            // four segments + Done
+    await expect(page.locator('#segment')).toContainText('Warm-up: tones');
+    await page.locator('[data-seg="2"]').click();
+    await expect(page.locator('#segment')).toContainText('Say each row three times');
+    await expect(page.locator('#segment [data-shadow]')).toHaveCount(3);
+    await page.locator('[data-seg="3"]').click();
+    await expect(page.locator('#segment')).toContainText('Question 1 of 5');
+    await expect(page.locator('#segment .quiz-opt')).toHaveCount(4);
+    expect(errs.errors()).toEqual([]);
+  });
+});

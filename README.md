@@ -29,7 +29,9 @@ Every day is one lesson, always the same shape, always ten minutes on a visible 
 | 2:30 | Review | Spaced-repetition flashcards (SM-2), graded Again / Hard / Good / Easy |
 | 3:30 | New | Three characters as **movie scenes**: actor (initial) + set (final) + room (tone) + props (components), plus the words they unlock |
 | 2:00 | Sentences | Shadow each sentence three times, normal and slow speed |
-| 1:00 | Quiz | Five questions; misses feed tomorrow’s review |
+| 1:00 | Quiz | Five questions; each answer also grades that card in the spaced-repetition deck |
+
+The first twelve days (Pronunciation Mastery) have no cards or sentences yet, so they use a four-segment shape instead: warm-up, today’s sounds, shadowing every drill row (slow and normal), and a five-question tone quiz (hear a syllable and pick its pinyin, name a syllable’s tone, find a tone in a row, name a word’s tone pair). The review deck holds 12 cards on a quiet day and up to 24 when cards are overdue; sentences are practised by shadowing rather than as flashcards, and the third shadowing pass of a sentence reviews the due characters and words inside it. Whatever is still due is one tap away on the **Review anytime** deck.
 
 The curriculum is **top-down**: a word is never shown before all of its characters have been learned, and a sentence never before all of its words. The scheduler (`js/engine.js`) enforces this automatically, so extending the data extends the course.
 
