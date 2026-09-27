@@ -33,11 +33,14 @@ async function codeHash(env, email, code) {
   return sha256Hex(`${email}:${code}:${await jwtSecret(env)}`);
 }
 
-/** OWNER_EMAIL (comma-separated) accounts are always Pro, so the owner can test every screen without paying themselves. */
+const emailList = (v) => String(v || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+/** OWNER_EMAIL (comma-separated) accounts are always Pro and see the owner dashboard, so the owner can test every screen
+ *  without paying themselves. PRO_EMAILS accounts (store reviewers, testers) are always Pro but not owners. */
 export function applyOwner(env, user) {
-  if (!user || !env || !env.OWNER_EMAIL) return user;
-  const owners = String(env.OWNER_EMAIL).toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
-  if (owners.includes(String(user.email || '').toLowerCase())) return Object.assign(user, { plan: 'pro', plan_expires_at: null, owner: true });
+  if (!user || !env) return user;
+  const email = String(user.email || '').toLowerCase();
+  if (emailList(env.OWNER_EMAIL).includes(email)) return Object.assign(user, { plan: 'pro', plan_expires_at: null, owner: true });
+  if (emailList(env.PRO_EMAILS).includes(email)) return Object.assign(user, { plan: 'pro', plan_expires_at: null });
   return user;
 }
 

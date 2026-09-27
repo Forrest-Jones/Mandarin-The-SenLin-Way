@@ -184,4 +184,8 @@ test('OWNER_EMAIL accounts are always Pro, everyone else follows their row', asy
   assert.equal(publicUser(other).plan, 'free');
   assert.equal(applyOwner({}, { id: 'u3', email: 'owner@example.com', plan: 'free' }).plan, 'free');
   assert.equal(applyOwner(env, null), null);
+  // PRO_EMAILS: Pro for store reviewers and testers, without the owner dashboard
+  const rev = applyOwner({ OWNER_EMAIL: 'owner@example.com', PRO_EMAILS: 'Reviewer@Example.com' }, { id: 'u4', email: 'reviewer@example.com', plan: 'free', plan_expires_at: null });
+  assert.equal(publicUser(rev).plan, 'pro');
+  assert.equal(publicUser(rev).owner, false);
 });

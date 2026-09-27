@@ -51,6 +51,11 @@ Copy every field from `store/listing.md` (title, short and full description, bot
 - Data is encrypted in transit; users can delete their account in the app (Settings → Account → Delete account calls `DELETE /v1/me`) or by email. **Account deletion URL** for the form: `https://forrest-jones.github.io/Mandarin-The-SenLin-Way/privacy.html#delete`. Account creation is optional.
 - Sensitive permissions: RECORD_AUDIO (pronunciation feedback), POST_NOTIFICATIONS (daily reminder). Route A needs none declared beyond what Chrome provides.
 
+**App access** (the reviewer must be able to reach everything behind sign-in and the paywall):
+1. In the app, Settings → Account → *Create account* with a dedicated address (for example `senlin.reviewer@<your domain>`) and a password you will paste into the form.
+2. Add that address to `PRO_EMAILS` in `wrangler.toml` (and `server/wrangler.toml`) and push: the worker redeploys and the account is Pro without a purchase, so HSK 3–6, Deal Desk and the tutor all open. It is not an owner, so `#/admin` stays closed.
+3. In Play Console → App content → App access choose *All or some functionality is restricted*, add the email + password, and paste: "Sign in from Settings → Account with the credentials above (password sign-in; no code is needed). The account is on the Pro plan so every level and the AI tutor are available."
+
 **Ads**: none. **Target audience**: 13+ (do not tick "designed for children").
 
 **Trademark wording**: always "HSK-aligned"; never "official HSK course" and never any logo of Hanban / CLEC / Chinese Testing International. `terms.html` carries the disclaimer.
