@@ -254,7 +254,8 @@
   }
   const currentLevelInfo = () => { const ls = levelStatus(); return ls.find(l => l.status === 'current') || ls.filter(l => l.status === 'done').pop() || ls[0]; };
   const monthsBetween = (a, b) => Math.max(1, Math.round((b - a) / (30.44 * 86400000)));
-  const learnedChars = () => S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => i.type === 'c' && state.progress.completed[i.day]).length;
+  /* characters from every finished lesson, including days done ahead of the calendar (learnedItems is a few ms for the whole course) */
+  const learnedChars = () => S.learnedItems(DAYS, DAYS.length).filter(i => i.type === 'c' && state.progress.completed[i.day]).length;
   /* flashcards are characters and words; sentences are practised by shadowing, so their old cards never count as due */
   const isCard = id => !id.startsWith('s:');
   const dueCount = () => { const now = Date.now(); return Object.entries(state.srs).filter(([id, s]) => isCard(id) && s.due <= now).length; };
@@ -585,7 +586,8 @@
       <h2 class="h2">Day ${L.day} complete</h2>
       <p style="font-weight:800;color:var(--lime-400)">Building your Mandarin Word Forest, one tree at a time. 🌲</p>
       <p class="muted">${Math.round(lesson.elapsed / 60)} min ${lesson.elapsed % 60} s · ${streak()}-day streak · ${learnedChars()} characters planted</p>
-      <div class="progress-ring" style="--p:${pct}"><div>${pct}%</div></div>
+      <div class="progress-ring" style="--p:${pct}" title="${Object.keys(state.progress.completed).length} of ${stats.days} lessons"><div>${pct}%</div></div>
+      <p class="muted small">${Object.keys(state.progress.completed).length} of ${stats.days} lessons in the whole course${L.quiz.length ? ` · quiz ${lesson.quiz.right}/${L.quiz.length}` : ''}</p>
       <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
       <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a></div>
     </div>${dueCount() > 12 ? `<div class="card stack" style="margin-top:1rem"><span class="eyebrow">Still waiting</span><p><b>${dueCount()} cards are due.</b> Today’s lesson reviewed what fitted in ten minutes; a few spare minutes on the deck keeps the forest from thinning.</p><div class="row"><a class="btn btn-primary" href="#/review">Review now</a></div></div>` : ''}${reminderNudge()}${reviewPrompt()}`;
