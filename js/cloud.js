@@ -207,6 +207,35 @@
   }
   const ctaText = p => p.trialDays ? `Start ${p.trialDays}-day free trial` : p.interval ? 'Choose ' + p.name.replace('Pro ', '') : 'Buy lifetime access';
   const FEATURES = ['The whole road: HSK 1 to HSK 6, 2,676 characters, 4,641 words, 1,445 sentences', 'Deal Desk: 12 units of cross-border private-equity and venture Mandarin', 'Built-in AI tutor, no API key, up to 400 turns a day', 'Cloud sync across phone and laptop with automatic backups', 'Cloud studio voice and pronunciation checking on every device, including iPhone', 'Everything offline once loaded, forever'];
+  /* ------------------------------------------------------------ owner dashboard (#/admin): live counts from /v1/admin/stats */
+  routes.admin = function () {
+    if (!signedIn() || !(auth.user && auth.user.owner)) return `<div class="stack"><span class="eyebrow">Owner dashboard</span><h1 class="h2">Owners only</h1><p class="muted">Sign in with the owner account (Settings) to see live numbers.</p></div>`;
+    return `<div class="stack-lg"><div class="row between"><div><span class="eyebrow">Owner dashboard</span><h1 class="h2">How the forest is doing</h1></div><button class="btn btn-sm" id="admin-refresh">Refresh</button></div><div id="admin-body"><p class="muted">loading…</p></div></div>`;
+  };
+  routes.admin.after = async () => {
+    const el = $('#admin-body'); if (!el) return;
+    const load = async () => {
+      el.innerHTML = '<p class="muted">loading…</p>';
+      try {
+        const d = await api('/v1/admin/stats');
+        const tile = (n, label) => `<div class="card stat"><b>${esc(String(n))}</b><span>${label}</span></div>`;
+        el.innerHTML = `<div class="grid grid-3">
+            ${tile(d.users.total, `learners · ${d.users.new7d} new this week · ${d.users.new30d} in 30 days`)}
+            ${tile(d.users.pro, 'Pro subscribers')}
+            ${tile(d.activeUsers.last7d, `active this week · ${d.activeUsers.last30d} in 30 days`)}
+            ${tile(d.lessonsDone.last7d, `lessons done this week · ${d.lessonsDone.total} ever`)}
+            ${tile(d.aiMessages.last30d, `tutor turns in 30 days · ${d.aiMessages.total} ever`)}
+            ${tile(d.pushSubscriptions, 'daily reminders set')}
+            ${tile(d.errorsLast24h, 'client errors in 24 h')}
+          </div>
+          <section class="card stack"><h2 class="h3">Latest errors</h2>${(d.recentErrors || []).length ? `<div class="table-scroll"><table class="table"><thead><tr><th>When</th><th>Message</th><th>Page</th><th>Version</th></tr></thead><tbody>${d.recentErrors.map(e => `<tr><td class="small muted" style="white-space:nowrap">${esc((e.at || '').replace('T', ' ').slice(0, 16))}</td><td class="small">${esc(e.message)}</td><td class="small muted">${esc((e.url || '').replace(/^https?:\/\/[^/]+/, '').slice(0, 40))}</td><td class="small muted">${esc(e.version || '')}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted small">None reported.</p>'}</section>
+          <p class="faint small">Counts come from the worker (D1). Active = any event from that learner. Generated ${esc((d.generatedAt || '').replace('T', ' ').slice(0, 16))} UTC.</p>`;
+      } catch (e) { el.innerHTML = `<p class="muted">Could not load: ${esc(e.message || 'error')}</p>`; }
+    };
+    const b = $('#admin-refresh'); if (b) b.onclick = load;
+    load();
+  };
+
   routes.pro = function (arg) {
     if (arg === 'thanks') return `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
       <span class="eyebrow">SenLin Pro</span><h1 class="h2">Welcome to the forest 🌱</h1>
@@ -277,6 +306,7 @@
         <div class="row"><button class="btn btn-sm" id="sync-now">Sync now</button><button class="btn btn-sm btn-ghost" id="acct-out">Sign out</button></div></div>
       <p class="small faint">Server: ${esc(BASE)}${store.get('apiBase', null) ? ' <button class="btn btn-sm btn-ghost" id="api-forget">Disconnect</button>' : ''}</p>
       <div class="row">${!isPro() ? `<a class="btn btn-gold" href="#/pro">Go Pro — from $5 a month</a>` : ''}${isPro() && !isNative() ? `<button class="btn btn-sm" id="acct-manage">Manage subscription</button>` : ''}<button class="btn btn-sm btn-ghost" id="acct-restore">Restore purchase</button></div>
+      ${u.owner ? `<p class="small"><a href="#/admin" style="text-decoration:underline">Owner dashboard →</a></p>` : ''}
       <details><summary class="small">Backups</summary><div id="backups" class="small muted">loading…</div></details>
       ${CFG.analytics === 'opt-in' ? `<label class="row small"><input type="checkbox" id="analytics" ${state.settings.analytics ? 'checked' : ''}> Share anonymous usage counts (which pages and features are used; never your text, voice or email)</label>` : ''}
     </section>`;
@@ -393,5 +423,5 @@
   }
   track('visit', { route: (location.hash.split('/')[1] || 'today') });
   /* app.js rendered the first screen before this file loaded: redraw the routes whose cards come from here */
-  if (/^#\/(settings|pro)\b/.test(location.hash)) A.navigate();
+  if (/^#\/(settings|pro|admin)\b/.test(location.hash)) A.navigate();
 })();

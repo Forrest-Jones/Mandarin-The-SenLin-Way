@@ -50,3 +50,17 @@ test('events: whitelist, anonymous + signed-in, cap 50', async () => {
   assert.equal(sj.errorsLast24h, 1);
   assert.equal(sj.aiMessages.total, 0);
 });
+
+test('an OWNER_EMAIL account can read the admin stats without the key', async () => {
+  const env = makeEnv({ OWNER_EMAIL: 'owner@example.com', ADMIN_KEY: 'adm' });
+  const { token } = await signIn(env, worker, 'owner@example.com');
+  const r = await worker.fetch(req('/v1/admin/stats', { headers: { authorization: `Bearer ${token}` } }), env, new FakeCtx());
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.users.total, 1);
+  assert.equal(j.users.pro, 0);
+  assert.ok(Array.isArray(j.recentErrors));
+  const other = await signIn(env, worker, 'someone@example.com');
+  const denied = await worker.fetch(req('/v1/admin/stats', { headers: { authorization: `Bearer ${other.token}` } }), env, new FakeCtx());
+  assert.equal(denied.status, 401);
+});

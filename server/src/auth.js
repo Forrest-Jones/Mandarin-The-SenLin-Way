@@ -42,7 +42,7 @@ export function applyOwner(env, user) {
 }
 
 export function publicUser(user) {
-  return { id: user.id, email: user.email, plan: effectivePlan(user) };
+  return { id: user.id, email: user.email, plan: effectivePlan(user), owner: !!user.owner };
 }
 
 // POST /v1/auth/request {email}
