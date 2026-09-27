@@ -20,6 +20,8 @@
     extra: store.get('extra', { words: [] }),
     talks: store.get('talks', [])
   };
+  /* first visit: Day 1 is today, not the curriculum's calendar date (otherwise a newcomer opens on 'Day 7, 6 missed') */
+  if (!(store.get('settings', {}) || {}).startDate) { state.settings.startDate = S.isoDate(new Date()); store.set('settings', state.settings); }
   const save = () => { store.set('settings', state.settings); store.set('cast', state.cast); store.set('srs', state.srs); store.set('scenes', state.scenes); store.set('progress', state.progress); store.set('extra', state.extra); store.set('talks', state.talks); if (window.SenLinCloud) window.SenLinCloud.dirty(); };
   const applyTheme = () => { if (state.settings.theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', state.settings.theme); };
   applyTheme();

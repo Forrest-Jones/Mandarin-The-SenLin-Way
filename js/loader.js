@@ -10,7 +10,7 @@
   var REST = [[2, 173, 'js/data/hsk2.js'], [3, 273, 'js/data/hsk3.js'], [4, 452, 'js/data/hsk4.js'], [5, 629, 'js/data/hsk5.js'], [6, 969, 'js/data/hsk6.js']];
   var settings = {}; try { settings = JSON.parse(localStorage.getItem('senlin.settings') || '{}') || {}; } catch (e) { /* private mode */ }
   var pace = settings.charsPerDay || 3;
-  var start = settings.startDate || '2026-09-21';
+  var start = settings.startDate || (function (d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })(new Date());   // first visit: Day 1 is today
   var parts = start.split('-').map(Number);
   var startUTC = Date.UTC(parts[0], parts[1] - 1, parts[2]);
   var now = new Date(); var todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
