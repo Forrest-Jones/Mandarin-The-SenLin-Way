@@ -253,7 +253,9 @@
   const currentLevelInfo = () => { const ls = levelStatus(); return ls.find(l => l.status === 'current') || ls.filter(l => l.status === 'done').pop() || ls[0]; };
   const monthsBetween = (a, b) => Math.max(1, Math.round((b - a) / (30.44 * 86400000)));
   const learnedChars = () => S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => i.type === 'c' && state.progress.completed[i.day]).length;
-  const dueCount = () => { const now = Date.now(); return Object.values(state.srs).filter(s => s.due <= now).length; };
+  /* flashcards are characters and words; sentences are practised by shadowing, so their old cards never count as due */
+  const isCard = id => !id.startsWith('s:');
+  const dueCount = () => { const now = Date.now(); return Object.entries(state.srs).filter(([id, s]) => isCard(id) && s.due <= now).length; };
 
   /* ------------------------------------------------------------ router */
   const routes = {};
@@ -373,7 +375,7 @@
     lesson.data = S.buildLesson(day, DAYS, state.srs, state.cast, Date.now());
     if (window.SenLinCloud) window.SenLinCloud.track('lesson_start', { day });
     const extraDue = window.SenLinApp.extraReviewItems().filter(i => state.srs[i.id] && state.srs[i.id].due <= Date.now());
-    if (extraDue.length) lesson.data.review = extraDue.concat(lesson.data.review).slice(0, S.CONFIG.reviewCap + 4);
+    if (extraDue.length) lesson.data.review = extraDue.concat(lesson.data.review).slice(0, (S.CONFIG.reviewMax || S.CONFIG.reviewCap) + 4);
     lesson.timer = setInterval(() => { lesson.elapsed++; const c = $('#clock'); if (c) { const left = S.CONFIG.lessonMinutes * 60 - lesson.elapsed; c.textContent = (left < 0 ? '+' : '') + seconds(left); c.classList.toggle('over', left < 0); } }, 1000);
   };
   routes.lesson = function (arg) {
@@ -557,7 +559,7 @@
       if (window.SenLinCloud) window.SenLinCloud.track('lesson_done', { day: L.day, quiz: lesson.quiz.right });
       /* enter today's new items into spaced repetition */
       const now = Date.now();
-      S.learnedItems(DAYS, L.day).filter(i => i.day === L.day).forEach(i => { if (!state.srs[i.id]) { const s = S.srsInit(); s.due = now + 86400000; state.srs[i.id] = s; } });
+      S.learnedItems(DAYS, L.day).filter(i => i.day === L.day && i.type !== 's').forEach(i => { if (!state.srs[i.id]) { const s = S.srsInit(); s.due = now + 86400000; state.srs[i.id] = s; } });
       save();
     }
     const stats = S.curriculumStats(DAYS); const pct = Math.round(Object.keys(state.progress.completed).length / stats.days * 100);
@@ -570,7 +572,7 @@
       <div class="progress-ring" style="--p:${pct}"><div>${pct}%</div></div>
       <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
       <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a></div>
-    </div>${reminderNudge()}${reviewPrompt()}`;
+    </div>${dueCount() > 12 ? `<div class="card stack" style="margin-top:1rem"><span class="eyebrow">Still waiting</span><p><b>${dueCount()} cards are due.</b> Today’s lesson reviewed what fitted in ten minutes; a few spare minutes on the deck keeps the forest from thinning.</p><div class="row"><a class="btn btn-primary" href="#/review">Review now</a></div></div>` : ''}${reminderNudge()}${reviewPrompt()}`;
   }
   /** After the first lessons, one card that points at the daily reminder (the single biggest day-7 retention lever). */
   function reminderNudge() {
@@ -606,18 +608,35 @@
     document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
     document.querySelectorAll('[data-reveal]').forEach(e => e.onclick = () => e.classList.remove('hidden'));
     document.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { if (window.SenLinApp.addWord) { window.SenLinApp.addWord(JSON.parse(b.dataset.addword)); b.textContent = '✓ in deck'; } });
-    document.querySelectorAll('[data-shadow]').forEach(b => b.onclick = () => { lesson.shadow[b.dataset.shadow] = +b.dataset.n; renderSegment(); });
+    document.querySelectorAll('[data-shadow]').forEach(b => b.onclick = () => {
+      lesson.shadow[b.dataset.shadow] = +b.dataset.n;
+      const sn = /^\d+$/.test(b.dataset.shadow) && L.sentences[+b.dataset.shadow];
+      if (sn && +b.dataset.n === 3) shadowCredit(sn.zh);
+      renderSegment();
+    });
     if (id === 'quiz') { const q = L.quiz[lesson.quiz.i]; if (q && q.kind === 'listen' && !lesson.quiz.answered) setTimeout(() => tts.speak(q.prompt), 300); }
     if (id === 'quiz') document.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => {
       const q = lesson.quiz; if (q.answered) return; q.answered = true;
       const item = L.quiz[q.i]; const ok = b.dataset.opt === item.correct;
       if (b.dataset.opt === '__skip__') { L.quiz.splice(q.i, 1); q.answered = false; renderSegment(); return; }   // no voice on this device: drop the question, no penalty
-      state.progress.quiz.total++; if (ok) { q.right++; state.progress.quiz.right++; } save();
+      state.progress.quiz.total++; if (ok) { q.right++; state.progress.quiz.right++; }
+      /* a quiz answer is a retrieval: it counts as a spaced-repetition review (right = good, wrong = again) */
+      if (item.id && state.srs[item.id]) state.srs[item.id] = S.srsReview(state.srs[item.id], ok ? S.GRADE.good : S.GRADE.again, Date.now());
+      save();
       document.querySelectorAll('[data-opt]').forEach(o => { if (o.dataset.opt === item.correct) o.classList.add('right'); else if (o === b) o.classList.add('wrong'); });
       $('#quiz-next').innerHTML = `<div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="qn">${ok ? 'Correct →' : 'Next →'}</button></div>`;
       $('#qn').onclick = () => { q.i++; q.answered = false; renderSegment(); };
     });
   }
+  /** Saying a whole sentence three times is a retrieval of every due character and word in it. */
+  function shadowCredit(zh) {
+    const now = Date.now(); let n = 0;
+    const credit = id => { const st = state.srs[id]; if (st && st.due <= now) { state.srs[id] = S.srsReview(st, S.GRADE.good, now); n++; } };
+    for (const ch of zh) credit('c:' + ch);
+    for (const w of S.WORDS) if (w.w.length > 1 && zh.includes(w.w)) credit('w:' + w.w);
+    if (n) { state.progress.reviews.total += n; state.progress.reviews.good += n; save(); }
+  }
+
   function wireReview(L, r, rerender) {
     const reveal = () => { r.shown = true; rerender(); };
     const f = $('#flash'); if (f && !r.shown) f.onclick = reveal;
@@ -633,7 +652,7 @@
   routes.review = function () {
     const now = Date.now();
     const learned = S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => state.progress.completed[i.day]).concat(window.SenLinApp.extraReviewItems());
-    const due = learned.filter(i => state.srs[i.id] && state.srs[i.id].due <= now).sort((a, b) => state.srs[a.id].due - state.srs[b.id].due).slice(0, 40);
+    const due = learned.filter(i => i.type !== 's' && state.srs[i.id] && state.srs[i.id].due <= now).sort((a, b) => state.srs[a.id].due - state.srs[b.id].due).slice(0, 40);
     routes.review.L = { review: due }; routes.review.r = { i: 0, shown: false, standalone: true };
     return `<div class="stack"><div class="row between"><div><span class="eyebrow">Review anytime</span><h1 class="h2">${due.length} card${due.length === 1 ? '' : 's'} due</h1></div><a class="btn btn-sm btn-ghost" href="#/">Exit</a></div><div id="review-body"></div></div>`;
   };
@@ -718,8 +737,8 @@
     const cells = []; const start = Math.max(1, today - 90);
     for (let d = start; d <= today + 6; d++) cells.push(`<i class="${done[d] ? 'on' : d < today ? 'missed' : d > today ? 'future' : ''}${d === today ? ' today' : ''}" title="Day ${d} · ${fmtDate(S.dateForDay(d, state.settings.startDate))}${done[d] ? ' · done' : ''}"></i>`);
     const learned = S.learnedItems(DAYS, Math.min(today, DAYS.length)).filter(i => done[i.day]);
-    const due = Object.entries(state.srs).filter(([, s]) => s.due <= Date.now()).length;
-    const mature = Object.values(state.srs).filter(s => s.ivl >= 21).length;
+    const due = dueCount();
+    const mature = Object.entries(state.srs).filter(([id, s]) => isCard(id) && s.ivl >= 21).length;
     return `<div class="stack-lg">
       <div><span class="eyebrow">Progress</span><h1 class="h2">Your forest</h1></div>
       <section class="grid grid-3">

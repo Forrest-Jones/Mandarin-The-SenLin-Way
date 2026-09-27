@@ -45,7 +45,8 @@
     wordsPerDay: 4,
     sentencesPerDay: 3,
     lessonMinutes: 10,
-    reviewCap: 12,
+    reviewCap: 12,          // review cards on a quiet day
+    reviewMax: 24,          // and when cards are overdue, up to this many (about 6 seconds each inside the 2½-minute segment)
     businessStartDay: 13,         // the Deal Desk joins the lesson once characters begin (Settings can turn it off)
     /* 10 minutes, in seconds */
     segments: [
@@ -220,13 +221,16 @@
       ? { kind: 'pron', tonePair: PINYIN.tonePairs[pairIdx], drills: d.pron.drills }
       : { kind: 'tones', tonePair: PINYIN.tonePairs[pairIdx], drills: pick(learnedBefore.filter(i => i.type === 'c'), 4, rand).map(i => i.ref) };
 
-    /* review: due first, then the newest unreviewed, then random old */
-    const due = learnedBefore.filter(i => srs[i.id] && srs[i.id].due <= now).sort((a, b) => srs[a.id].due - srs[b.id].due);
-    const fresh = learnedBefore.filter(i => !srs[i.id]).reverse();
-    let review = due.slice(0, CONFIG.reviewCap);
+    /* review: due first, then the newest unreviewed, then random old. Characters and words only: sentences are
+       practised by shadowing, and as flashcards they would double the load. The deck grows with the backlog. */
+    const cards = learnedBefore.filter(i => i.type !== 's');
+    const due = cards.filter(i => srs[i.id] && srs[i.id].due <= now).sort((a, b) => srs[a.id].due - srs[b.id].due);
+    const fresh = cards.filter(i => !srs[i.id]).reverse();
+    const cap = Math.min(CONFIG.reviewMax || CONFIG.reviewCap, Math.max(CONFIG.reviewCap, due.length));
+    let review = due.slice(0, cap);
     if (review.length < CONFIG.reviewCap) review = review.concat(fresh.slice(0, CONFIG.reviewCap - review.length));
     if (review.length < CONFIG.reviewCap) {
-      const rest = learnedBefore.filter(i => !review.includes(i));
+      const rest = cards.filter(i => !review.includes(i));
       review = review.concat(pick(rest, CONFIG.reviewCap - review.length, rand));
     }
 
@@ -255,7 +259,7 @@
         const same = Array.from(new Set(pool.filter(x => x.id !== t.id && x.type === t.type).map(x => isChar ? x.ref.h : x.ref.w)));
         let others = pick(same, 3, rand);
         if (others.length < 3) { const all = Array.from(new Set((isChar ? CHARACTERS : WORDS).map(x => isChar ? x.h : x.w))).filter(x => x !== prompt && !others.includes(x)); others = others.concat(pick(all, 3 - others.length, rand)); }
-        return { kind: 'listen', prompt, pinyin: t.ref.p, meaning: t.ref.m, question: 'Listen — which one did you hear?', options: pick([prompt].concat(others), 4, rand), correct: prompt };
+        return { id: t.id, kind: 'listen', prompt, pinyin: t.ref.p, meaning: t.ref.m, question: 'Listen — which one did you hear?', options: pick([prompt].concat(others), 4, rand), correct: prompt };
       }
       const askPinyin = i % 2 === 1;
       const correct = askPinyin ? t.ref.p : answer;
@@ -265,7 +269,7 @@
       let others = take(pool.filter(x => x.id !== t.id && x.type === t.type).map(x => x.ref), 3);
       if (others.length < 3) others = others.concat(take((isChar ? CHARACTERS : WORDS).filter(x => itemId(t.type, x) !== t.id), 3 - others.length));
       const options = pick([correct].concat(others), 4, rand);
-      return { prompt, question: askPinyin ? 'How is it pronounced?' : 'What does it mean?', options, correct };
+      return { id: t.id, prompt, question: askPinyin ? 'How is it pronounced?' : 'What does it mean?', options, correct };
     });
 
     const segments = review.length ? CONFIG.segments : CONFIG.segments.filter(s => s.id !== 'review');   // the first character day has nothing to recall yet

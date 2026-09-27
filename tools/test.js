@@ -56,7 +56,7 @@ test('review prefers due cards, then never-reviewed, capped', () => {
   const L = S.buildLesson(21, days, srs, null, now);
   assert.equal(L.review[0].id, items[0].id);
   assert.ok(!L.review.some(i => i.id === items[1].id) || L.review.length > items.length - 1);
-  assert.ok(L.review.length <= S.CONFIG.reviewCap);
+  assert.ok(L.review.length <= (S.CONFIG.reviewMax || S.CONFIG.reviewCap));
 });
 
 test('SM-2: intervals grow with good answers and reset on again', () => {
