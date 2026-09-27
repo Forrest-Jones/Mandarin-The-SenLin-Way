@@ -1,344 +1,35 @@
-/* Mandarin The SenLin Way — the app (no dependencies) */
-(function () {
-  'use strict';
-  const S = window.SenLin;
-  const $ = (sel, ctx = document) => ctx.querySelector(sel);
-  const app = $('#app');
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  /* ------------------------------------------------------------ storage */
-  const store = {
-    get(k, d) { try { const v = localStorage.getItem('senlin.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem('senlin.' + k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
-  };
-  const state = {
-    settings: Object.assign({ startDate: S.CONFIG.startDate, charsPerDay: 3, rate: 0.85, voice: '', showPinyin: true, theme: 'auto', business: true }, store.get('settings', {})),
-    cast: store.get('cast', { actors: {}, sets: {}, rooms: {}, props: {} }),
-    srs: store.get('srs', {}),
-    scenes: store.get('scenes', {}),
-    progress: Object.assign({ completed: {}, reviews: { total: 0, good: 0 }, quiz: { total: 0, right: 0 } }, store.get('progress', {})),
-    extra: store.get('extra', { words: [] }),
-    talks: store.get('talks', [])
-  };
-  /* first visit: Day 1 is today, not the curriculum's calendar date (otherwise a newcomer opens on 'Day 7, 6 missed') */
-  if (!(store.get('settings', {}) || {}).startDate) { state.settings.startDate = S.isoDate(new Date()); store.set('settings', state.settings); }
-  const save = () => { store.set('settings', state.settings); store.set('cast', state.cast); store.set('srs', state.srs); store.set('scenes', state.scenes); store.set('progress', state.progress); store.set('extra', state.extra); store.set('talks', state.talks); if (window.SenLinCloud) window.SenLinCloud.dirty(); };
-  const applyTheme = () => { if (state.settings.theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', state.settings.theme); };
-  applyTheme();
-
-  let DAYS = S.buildSchedule({ charsPerDay: state.settings.charsPerDay });
-  const rebuild = () => { DAYS = S.buildSchedule({ charsPerDay: state.settings.charsPerDay }); };
-  const todayDay = () => S.dayNumber(new Date(), state.settings.startDate);
-  const dayInfo = d => DAYS[Math.min(d, DAYS.length) - 1];
-
-  /* ------------------------------------------------------------ speech
-     Voice order: recorded audio (audio/index.json, a licensed studio voice) → the native app's voice →
-     the device's Web Speech voice → the cloud voice (our server, when signed in). No unofficial endpoints. */
-  const CFG = window.SENLIN_CONFIG || {};
-  const tts = {
-    voices: [],
-    load() { this.voices = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(v => /^zh([-_]|$)/i.test(v.lang) || /chinese|mandarin|putonghua/i.test(v.name)); },
-    best() {
-      if (state.settings.voice) { const v = this.voices.find(v => v.name === state.settings.voice); if (v) return v; }
-      const pref = ['Tingting', 'Xiaoxiao', 'Yunxi', 'Google 普通话', 'Huihui', 'Yaoyao', 'Kangkang', 'Lili', 'zh-CN'];
-      for (const p of pref) { const v = this.voices.find(v => (v.name + ' ' + v.lang).includes(p)); if (v) return v; }
-      return this.voices.find(v => /zh[-_]CN/i.test(v.lang)) || this.voices[0];
-    },
-    audio: null, playing: false, index: null, hashes: new Map(),
-    /* recorded audio: audio/<sha256(text).slice(0,16)>.mp3, listed in audio/index.json (see tools/audio.js) */
-    async loadIndex() {
-      if (this.index !== null) return this.index;
-      this.index = false;
-      try { const r = await fetch((CFG.audioBase || 'audio/') + 'index.json'); if (r.ok) { const j = await r.json(); if (j && j.items) this.index = j; } } catch (e) { /* no recorded audio */ }
-      return this.index;
-    },
-    async hash(text) {
-      if (this.hashes.has(text)) return this.hashes.get(text);
-      if (!(window.crypto && crypto.subtle)) return null;
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-      const id = Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
-      this.hashes.set(text, id); return id;
-    },
-    async recordedUrl(text, rate) {
-      const idx = await this.loadIndex(); if (!idx) return null;
-      const id = await this.hash(text); const it = id && idx.items[id]; if (!it) return null;
-      return (CFG.audioBase || 'audio/') + id + (rate < 0.75 && it.slow ? '-slow' : '') + '.mp3';
-    },
-    playUrl(url, rate) {
-      return new Promise((resolve, reject) => {
-        const a = new Audio(url); this.audio = a; this.playing = true;
-        if (rate && rate < 0.75 && !/-slow\.mp3$/.test(url)) a.playbackRate = Math.max(0.6, rate);
-        a.onended = () => { this.playing = false; resolve(true); };
-        a.onerror = () => { this.playing = false; reject(new Error('audio failed')); };
-        a.play().catch(err => { this.playing = false; reject(err); });
-      });
-    },
-    hasDeviceVoice() { if (!window.speechSynthesis) return false; if (!this.voices.length) this.load(); return !!this.best(); },
-    speakDevice(text, rate) {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'zh-CN'; u.rate = rate;
-      const v = this.best(); if (v) u.voice = v;
-      speechSynthesis.speak(u);
-    },
-    async speakCloud(text, rate) {
-      const C = window.SenLinCloud; if (!C || !C.signedIn()) return false;
-      try { const blob = await C.tts(text, rate); await this.playUrl(URL.createObjectURL(blob)); return true; } catch (e) { return false; }
-    },
-    stop() { try { if (this.audio) this.audio.pause(); } catch (e) { /* ignore */ } this.playing = false; if (window.speechSynthesis) speechSynthesis.cancel(); const N = window.SenLinNative; if (N && N.isNative) { try { N.tts.stop(); } catch (e) { /* ignore */ } } },
-    async speak(text, rate) {
-      rate = rate || state.settings.rate; const src = state.settings.voiceSource || 'auto';
-      this.stop();
-      if (src === 'auto' || src === 'recorded') { const url = await this.recordedUrl(text, rate); if (url) { try { await this.playUrl(url, rate); return; } catch (e) { /* fall through */ } } }
-      text = S.speakable(text);                       // pinyin drills are voiced through characters with that exact reading
-      const N = window.SenLinNative;
-      if (src !== 'cloud' && N && N.isNative && N.tts.available) { try { await N.tts.speak(text, rate); return; } catch (e) { /* fall through */ } }
-      if ((src === 'auto' || src === 'device' || src === 'recorded') && this.hasDeviceVoice()) return this.speakDevice(text, rate);
-      if (await this.speakCloud(text, rate)) return;
-      if (this.hasDeviceVoice()) return this.speakDevice(text, rate);
-      const C = window.SenLinCloud;
-      toast(C && C.available() && !C.signedIn() ? 'No Chinese voice on this device. Sign in (Settings) for the cloud voice, or open the site in Chrome.' : 'No Chinese voice on this device. Open the site in Chrome, or add a Chinese voice in your system settings.');
-    },
-    get speaking() { return this.playing || (!!window.speechSynthesis && speechSynthesis.speaking); }
-  };
-  if (window.speechSynthesis) { tts.load(); speechSynthesis.onvoiceschanged = () => tts.load(); }
-  const playBtn = (text, opts = {}) => `<button class="btn btn-icon${opts.cls ? ' ' + opts.cls : ''}" data-say="${esc(text)}"${opts.rate ? ` data-rate="${opts.rate}"` : ''} title="Listen" aria-label="Listen">${opts.slow ? '🐢' : '🔊'}</button>`;
-  document.addEventListener('click', e => {
-    const b = e.target.closest('[data-say]'); if (b) tts.speak(b.dataset.say, b.dataset.rate ? parseFloat(b.dataset.rate) : undefined);
-  });
-
-  /* ---- "Say it": speech recognition scores what you said against the target.
-     Engines, in order: the native app (iOS/Android), the browser (Chrome, Edge, Android), the cloud (our server, signed in). */
-  const ASR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const hanOnly = t => Array.from(t).filter(c => /\p{Script=Han}/u.test(c));
-  function matchScore(target, said) {
-    const t = hanOnly(target), sd = hanOnly(said);
-    if (!t.length) return 0;
-    /* longest common subsequence, character level */
-    const m = t.length, n = sd.length, dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) dp[i][j] = t[i - 1] === sd[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
-    return dp[m][n] / m;
-  }
-  const canRecord = () => !!(navigator.mediaDevices && window.MediaRecorder);
-  /** Which recogniser would run now: 'native' | 'browser' | 'cloud' | null */
-  function listenEngine() {
-    const N = window.SenLinNative, C = window.SenLinCloud;
-    if (N && N.isNative && N.stt.available) return 'native';
-    if (ASR) return 'browser';
-    if (C && C.signedIn() && canRecord()) return 'cloud';
-    return null;
-  }
-  /** Listen once for Mandarin. Calls onResult(alternatives[]) or onError(message); always onEnd(). Returns a stop() function. */
-  function listenOnce({ onResult, onError, onEnd, seconds = 6 }) {
-    const eng = listenEngine();
-    const done = () => { if (onEnd) onEnd(); };
-    if (eng === 'native') {
-      const N = window.SenLinNative;
-      N.stt.listen({ lang: 'zh-CN', onResult: alts => { onResult(alts); }, onError: m => onError(m), onEnd: done });
-      return () => N.stt.stop();
-    }
-    if (eng === 'browser') {
-      let r; try { r = new ASR(); } catch (err) { onError('speech recognition unavailable'); done(); return () => {}; }
-      r.lang = 'zh-CN'; r.interimResults = false; r.maxAlternatives = 5; let got = false;
-      r.onresult = ev => { got = true; onResult(Array.from(ev.results[0]).map(a => a.transcript)); };
-      r.onerror = ev => { onError(ev.error === 'not-allowed' ? 'microphone blocked — allow it in the browser' : ev.error === 'no-speech' ? 'no speech heard' : 'error: ' + ev.error); };
-      r.onend = () => { if (!got) onError('nothing heard'); done(); };
-      r.start();
-      return () => { try { r.stop(); } catch (e) { /* ignore */ } };
-    }
-    if (eng === 'cloud') {
-      let rec, timer;
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        const chunks = []; rec = new MediaRecorder(stream);
-        rec.ondataavailable = ev => chunks.push(ev.data);
-        rec.onstop = async () => {
-          stream.getTracks().forEach(t => t.stop());
-          try { const text = await window.SenLinCloud.stt(new Blob(chunks, { type: rec.mimeType })); if (text) onResult([text]); else onError('nothing heard'); }
-          catch (e) { onError(e && e.message ? e.message : 'cloud recognition failed'); }
-          done();
-        };
-        rec.start(); timer = setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, seconds * 1000);
-      }).catch(err => { onError('microphone unavailable: ' + (err.message || err.name)); done(); });
-      return () => { clearTimeout(timer); if (rec && rec.state === 'recording') rec.stop(); };
-    }
-    onError('no speech recognition here — use Chrome, the app, or sign in for the cloud recogniser'); done();
-    return () => {};
-  }
-  const sayBtn = target => `<button class="btn btn-icon" data-listen="${esc(target)}" title="Say it — I’ll check" aria-label="Say it">🎤</button>`;
-  document.addEventListener('click', e => {
-    const b = e.target.closest('[data-listen]'); if (!b) return;
-    const target = b.dataset.listen; const out = b.parentElement.querySelector('.asr') || b.parentElement.appendChild(Object.assign(document.createElement('span'), { className: 'asr small' }));
-    if (b.dataset.stop) { b.dataset.stop = ''; if (b._stop) b._stop(); return; }
-    out.textContent = listenEngine() === 'cloud' ? 'recording… (tap again to stop)' : 'listening…'; b.dataset.stop = '1';
-    b._stop = listenOnce({
-      onResult: alts => {
-        const best = alts.map(a => ({ a, s: matchScore(target, a) })).sort((x, y) => y.s - x.s)[0];
-        const pct = Math.round(best.s * 100);
-        state.progress.said = state.progress.said || { total: 0, good: 0 }; state.progress.said.total++; if (pct >= 80) state.progress.said.good++; save();
-        out.innerHTML = `${pct >= 80 ? '✅' : pct >= 50 ? '🟡' : '❌'} heard “<span class="hz">${esc(best.a)}</span>” · ${pct}% match`;
-        if (window.SenLinCloud) window.SenLinCloud.track('say', { pct });
-      },
-      onError: msg => { out.textContent = msg; },
-      onEnd: () => { b.dataset.stop = ''; }
-    });
-  });
-
-  /* ---- Record & compare: record yourself, then play it back next to the native voice */
-  const recBtn = () => (navigator.mediaDevices && window.MediaRecorder) ? `<button class="btn btn-icon" data-rec title="Record yourself" aria-label="Record yourself">⏺</button>` : '';
-  let recorder = null;
-  document.addEventListener('click', async e => {
-    const b = e.target.closest('[data-rec]'); if (!b) return;
-    if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const chunks = []; recorder = new MediaRecorder(stream);
-      recorder.ondataavailable = ev => chunks.push(ev.data);
-      recorder.onstop = () => {
-        stream.getTracks().forEach(t => t.stop());
-        const url = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType }));
-        let a = b.parentElement.querySelector('audio.mine'); if (!a) { a = document.createElement('audio'); a.className = 'mine'; a.controls = true; a.style.height = '32px'; b.parentElement.appendChild(a); }
-        a.src = url; a.play(); b.textContent = '⏺'; b.classList.remove('btn-primary');
-      };
-      recorder.start(); b.textContent = '⏹'; b.classList.add('btn-primary');
-      setTimeout(() => { if (recorder && recorder.state === 'recording') recorder.stop(); }, 12000);
-    } catch (err) { toast('Microphone unavailable: ' + (err.message || err.name)); }
-  });
-
-  /* ------------------------------------------------------------ helpers */
-  let toastTimer;
-  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
-  function openDialog(html) { const d = $('#dialog'); $('#dialog-inner').innerHTML = html; d.showModal(); }
-  $('#dialog').addEventListener('click', e => { if (e.target.id === 'dialog' || e.target.closest('[data-close]')) $('#dialog').close(); });
-  const toneClass = p => 't' + S.parsePinyin(p).tone;
-  /** colour every syllable of a pinyin string by tone */
-  function pinyinHTML(p) {
-    return p.split(/(\s+|['’])/).map(part => (/^\s+$/.test(part) || /^['’]$/.test(part) || !part) ? esc(part) : `<span class="${toneClass(part)}">${esc(part)}</span>`).join('');
-  }
-  const fmtDate = d => d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  const fmtDateY = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-  const seconds = s => `${Math.floor(Math.abs(s) / 60)}:${String(Math.abs(s) % 60).padStart(2, '0')}`;
-  function toneSVG(tone) {
-    const paths = { 1: 'M10 20 H90', 2: 'M10 50 L90 12', 3: 'M10 30 L45 58 L90 20', 4: 'M10 12 L90 58', 5: 'M45 40 h10' };
-    return `<svg viewBox="0 0 100 70" width="60" height="42" aria-hidden="true"><line x1="10" y1="10" x2="10" y2="60" stroke="currentColor" opacity=".2"/><path d="${paths[tone]}" fill="none" stroke="var(--tone${tone})" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  }
-  const streak = () => {
-    const done = state.progress.completed; let n = 0; let d = todayDay();
-    if (!done[d]) d--;
-    while (d >= 1 && done[d]) { n++; d--; }
-    return n;
-  };
-  const TREE_COLORS = ['#1ec27c', '#14a066', '#3ee39a', '#b8f23c', '#0f7a4f', '#ffb300'];
-  function forestSVG(n) {
-    let out = ''; for (let i = 0; i < Math.min(n, 60); i++) { const c = TREE_COLORS[i % TREE_COLORS.length]; out += `<svg viewBox="0 0 22 44" style="animation-delay:${Math.min(i, 30) * 25}ms"><rect x="9.5" y="30" width="3" height="14" rx="1" fill="#8a5a2b"/><path d="M11 2 L21 20 H1 Z" fill="${c}"/><path d="M11 10 L21 30 H1 Z" fill="${c}" opacity=".85"/></svg>`; }
-    if (n > 60) out += `<span class="small muted" style="align-self:center;margin-left:.4rem">+${n - 60}</span>`;
-    return out;
-  }
-  function confetti() {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const c = document.createElement('canvas'); c.className = 'confetti'; document.body.appendChild(c);
-    const ctx = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
-    const cols = ['#1ec27c', '#ffcf4d', '#ff7bd4', '#2f8bff', '#b8f23c', '#ff4d5a'];
-    const ps = Array.from({ length: 140 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * .5, r: 4 + Math.random() * 6, vx: -1.5 + Math.random() * 3, vy: 2 + Math.random() * 3, rot: Math.random() * 6, vr: -.2 + Math.random() * .4, col: cols[Math.floor(Math.random() * cols.length)] }));
-    let t = 0; (function frame() { ctx.clearRect(0, 0, c.width, c.height); ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.rot += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.col; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); ctx.restore(); }); if (++t < 220) requestAnimationFrame(frame); else c.remove(); })();
-  }
-  /** Where the learner stands on the HSK ladder, with dates at the current pace. */
-  function levelStatus() {
-    const st = S.curriculumStats(DAYS); const today = todayDay(); const done = state.progress.completed;
-    let prevEnd = 12;
-    return st.levels.map(l => {
-      const start = prevEnd + 1, end = l.lastDay; prevEnd = end;
-      const total = end - start + 1; let completed = 0; for (let d = start; d <= end; d++) if (done[d]) completed++;
-      const status = completed >= total ? 'done' : today >= start ? 'current' : 'locked';
-      return Object.assign({}, l, { start, end, total, completed, status, startDate: S.dateForDay(start, state.settings.startDate), endDate: S.dateForDay(end, state.settings.startDate) });
-    });
-  }
-  const currentLevelInfo = () => { const ls = levelStatus(); return ls.find(l => l.status === 'current') || ls.filter(l => l.status === 'done').pop() || ls[0]; };
-  const monthsBetween = (a, b) => Math.max(1, Math.round((b - a) / (30.44 * 86400000)));
-  /* characters from every finished lesson, including days done ahead of the calendar (learnedItems is a few ms for the whole course) */
-  const learnedChars = () => S.learnedItems(DAYS, DAYS.length).filter(i => i.type === 'c' && state.progress.completed[i.day]).length;
-  /* flashcards are characters and words; sentences are practised by shadowing, so their old cards never count as due */
-  const isCard = id => !id.startsWith('s:');
-  const dueCount = () => { const now = Date.now(); return Object.entries(state.srs).filter(([id, s]) => isCard(id) && s.due <= now).length; };
-
-  /* ------------------------------------------------------------ router */
-  const routes = {};
-  const LAZY = window.SENLIN_LAZY || { pending: false, load: () => Promise.resolve() };
-  /** Routes that show the whole curriculum wait for the remaining levels to arrive (a few hundred KB, once). */
-  function needsAllLevels(name, arg) {
-    if (!LAZY.pending) return false;
-    if (/^(library|levels|progress|plan)$/.test(name)) return true;
-    if (name === 'lesson' || name === 'review') { const d = parseInt(arg, 10) || todayDay(); return d > (LAZY.end3 || 0) - 3; }
-    return false;
-  }
-  /** Paywall (js/config.js → paywall:true): HSK 1 stays free, the rest needs a Pro plan. */
-  const locked = day => !!CFG.paywall && day > (CFG.freeDays || 45) && !(window.SenLinCloud && window.SenLinCloud.isPro());
-  const upsell = what => `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
-      <span class="eyebrow">SenLin Pro</span><h1 class="h2">${esc(what)} is part of Pro</h1>
+(function(){"use strict";const p=window.SenLin,u=(s,e=document)=>e.querySelector(s),W=u("#app"),i=s=>String(s).replace(/[&<>"']/g,e=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[e]),w={get(s,e){try{const t=localStorage.getItem("senlin."+s);return t?JSON.parse(t):e}catch{return e}},set(s,e){try{localStorage.setItem("senlin."+s,JSON.stringify(e))}catch{}}},l={settings:Object.assign({startDate:p.CONFIG.startDate,charsPerDay:3,rate:.85,voice:"",showPinyin:!0,theme:"auto",business:!0},w.get("settings",{})),cast:w.get("cast",{actors:{},sets:{},rooms:{},props:{}}),srs:w.get("srs",{}),scenes:w.get("scenes",{}),progress:Object.assign({completed:{},reviews:{total:0,good:0},quiz:{total:0,right:0}},w.get("progress",{})),extra:w.get("extra",{words:[]}),talks:w.get("talks",[])};(w.get("settings",{})||{}).startDate||(l.settings.startDate=p.isoDate(new Date),w.set("settings",l.settings));const b=()=>{w.set("settings",l.settings),w.set("cast",l.cast),w.set("srs",l.srs),w.set("scenes",l.scenes),w.set("progress",l.progress),w.set("extra",l.extra),w.set("talks",l.talks),window.SenLinCloud&&window.SenLinCloud.dirty()},P=()=>{l.settings.theme==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",l.settings.theme)};P();let y=p.buildSchedule({charsPerDay:l.settings.charsPerDay});const T=()=>{y=p.buildSchedule({charsPerDay:l.settings.charsPerDay})},S=()=>p.dayNumber(new Date,l.settings.startDate),j=s=>y[Math.min(s,y.length)-1],N=window.SENLIN_CONFIG||{},C={voices:[],load(){this.voices=(window.speechSynthesis?speechSynthesis.getVoices():[]).filter(s=>/^zh([-_]|$)/i.test(s.lang)||/chinese|mandarin|putonghua/i.test(s.name))},best(){if(l.settings.voice){const e=this.voices.find(t=>t.name===l.settings.voice);if(e)return e}const s=["Tingting","Xiaoxiao","Yunxi","Google 普通话","Huihui","Yaoyao","Kangkang","Lili","zh-CN"];for(const e of s){const t=this.voices.find(n=>(n.name+" "+n.lang).includes(e));if(t)return t}return this.voices.find(e=>/zh[-_]CN/i.test(e.lang))||this.voices[0]},audio:null,playing:!1,index:null,hashes:new Map,async loadIndex(){if(this.index!==null)return this.index;this.index=!1;try{const s=await fetch((N.audioBase||"audio/")+"index.json");if(s.ok){const e=await s.json();e&&e.items&&(this.index=e)}}catch{}return this.index},async hash(s){if(this.hashes.has(s))return this.hashes.get(s);if(!(window.crypto&&crypto.subtle))return null;const e=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)),t=Array.from(new Uint8Array(e)).slice(0,8).map(n=>n.toString(16).padStart(2,"0")).join("");return this.hashes.set(s,t),t},async recordedUrl(s,e){const t=await this.loadIndex();if(!t)return null;const n=await this.hash(s),r=n&&t.items[n];return r?(N.audioBase||"audio/")+n+(e<.75&&r.slow?"-slow":"")+".mp3":null},playUrl(s,e){return new Promise((t,n)=>{const r=new Audio(s);this.audio=r,this.playing=!0,e&&e<.75&&!/-slow\.mp3$/.test(s)&&(r.playbackRate=Math.max(.6,e)),r.onended=()=>{this.playing=!1,t(!0)},r.onerror=()=>{this.playing=!1,n(new Error("audio failed"))},r.play().catch(o=>{this.playing=!1,n(o)})})},hasDeviceVoice(){return window.speechSynthesis?(this.voices.length||this.load(),!!this.best()):!1},speakDevice(s,e){speechSynthesis.cancel();const t=new SpeechSynthesisUtterance(s);t.lang="zh-CN",t.rate=e;const n=this.best();n&&(t.voice=n),speechSynthesis.speak(t)},async speakCloud(s,e){const t=window.SenLinCloud;if(!t||!t.signedIn())return!1;try{const n=await t.tts(s,e);return await this.playUrl(URL.createObjectURL(n)),!0}catch{return!1}},stop(){try{this.audio&&this.audio.pause()}catch{}this.playing=!1,window.speechSynthesis&&speechSynthesis.cancel();const s=window.SenLinNative;if(s&&s.isNative)try{s.tts.stop()}catch{}},async speak(s,e){e=e||l.settings.rate;const t=l.settings.voiceSource||"auto";if(this.stop(),t==="auto"||t==="recorded"){const o=await this.recordedUrl(s,e);if(o)try{await this.playUrl(o,e);return}catch{}}s=p.speakable(s);const n=window.SenLinNative;if(t!=="cloud"&&n&&n.isNative&&n.tts.available)try{await n.tts.speak(s,e);return}catch{}if((t==="auto"||t==="device"||t==="recorded")&&this.hasDeviceVoice())return this.speakDevice(s,e);if(await this.speakCloud(s,e))return;if(this.hasDeviceVoice())return this.speakDevice(s,e);const r=window.SenLinCloud;z(r&&r.available()&&!r.signedIn()?"No Chinese voice on this device. Sign in (Settings) for the cloud voice, or open the site in Chrome.":"No Chinese voice on this device. Open the site in Chrome, or add a Chinese voice in your system settings.")},get speaking(){return this.playing||!!window.speechSynthesis&&speechSynthesis.speaking}};window.speechSynthesis&&(C.load(),speechSynthesis.onvoiceschanged=()=>C.load());const m=(s,e={})=>`<button class="btn btn-icon${e.cls?" "+e.cls:""}" data-say="${i(s)}"${e.rate?` data-rate="${e.rate}"`:""} title="Listen" aria-label="Listen">${e.slow?"🐢":"🔊"}</button>`;document.addEventListener("click",s=>{const e=s.target.closest("[data-say]");e&&C.speak(e.dataset.say,e.dataset.rate?parseFloat(e.dataset.rate):void 0)});const H=window.SpeechRecognition||window.webkitSpeechRecognition,V=s=>Array.from(s).filter(e=>/\p{Script=Han}/u.test(e));function J(s,e){const t=V(s),n=V(e);if(!t.length)return 0;const r=t.length,o=n.length,a=Array.from({length:r+1},()=>new Array(o+1).fill(0));for(let h=1;h<=r;h++)for(let c=1;c<=o;c++)a[h][c]=t[h-1]===n[c-1]?a[h-1][c-1]+1:Math.max(a[h-1][c],a[h][c-1]);return a[r][o]/r}const de=()=>!!(navigator.mediaDevices&&window.MediaRecorder);function _(){const s=window.SenLinNative,e=window.SenLinCloud;return s&&s.isNative&&s.stt.available?"native":H?"browser":e&&e.signedIn()&&de()?"cloud":null}function Z({onResult:s,onError:e,onEnd:t,seconds:n=6}){const r=_(),o=()=>{t&&t()};if(r==="native"){const a=window.SenLinNative;return a.stt.listen({lang:"zh-CN",onResult:h=>{s(h)},onError:h=>e(h),onEnd:o}),()=>a.stt.stop()}if(r==="browser"){let a;try{a=new H}catch{return e("speech recognition unavailable"),o(),()=>{}}a.lang="zh-CN",a.interimResults=!1,a.maxAlternatives=5;let h=!1;return a.onresult=c=>{h=!0,s(Array.from(c.results[0]).map(k=>k.transcript))},a.onerror=c=>{e(c.error==="not-allowed"?"microphone blocked — allow it in the browser":c.error==="no-speech"?"no speech heard":"error: "+c.error)},a.onend=()=>{h||e("nothing heard"),o()},a.start(),()=>{try{a.stop()}catch{}}}if(r==="cloud"){let a,h;return navigator.mediaDevices.getUserMedia({audio:!0}).then(c=>{const k=[];a=new MediaRecorder(c),a.ondataavailable=$=>k.push($.data),a.onstop=async()=>{c.getTracks().forEach($=>$.stop());try{const $=await window.SenLinCloud.stt(new Blob(k,{type:a.mimeType}));$?s([$]):e("nothing heard")}catch($){e($&&$.message?$.message:"cloud recognition failed")}o()},a.start(),h=setTimeout(()=>{a.state==="recording"&&a.stop()},n*1e3)}).catch(c=>{e("microphone unavailable: "+(c.message||c.name)),o()}),()=>{clearTimeout(h),a&&a.state==="recording"&&a.stop()}}return e("no speech recognition here — use Chrome, the app, or sign in for the cloud recogniser"),o(),()=>{}}const D=s=>`<button class="btn btn-icon" data-listen="${i(s)}" title="Say it — I’ll check" aria-label="Say it">🎤</button>`;document.addEventListener("click",s=>{const e=s.target.closest("[data-listen]");if(!e)return;const t=e.dataset.listen,n=e.parentElement.querySelector(".asr")||e.parentElement.appendChild(Object.assign(document.createElement("span"),{className:"asr small"}));if(e.dataset.stop){e.dataset.stop="",e._stop&&e._stop();return}n.textContent=_()==="cloud"?"recording… (tap again to stop)":"listening…",e.dataset.stop="1",e._stop=Z({onResult:r=>{const o=r.map(h=>({a:h,s:J(t,h)})).sort((h,c)=>c.s-h.s)[0],a=Math.round(o.s*100);l.progress.said=l.progress.said||{total:0,good:0},l.progress.said.total++,a>=80&&l.progress.said.good++,b(),n.innerHTML=`${a>=80?"✅":a>=50?"🟡":"❌"} heard “<span class="hz">${i(o.a)}</span>” · ${a}% match`,window.SenLinCloud&&window.SenLinCloud.track("say",{pct:a})},onError:r=>{n.textContent=r},onEnd:()=>{e.dataset.stop=""}})});const pe=()=>navigator.mediaDevices&&window.MediaRecorder?'<button class="btn btn-icon" data-rec title="Record yourself" aria-label="Record yourself">⏺</button>':"";let L=null;document.addEventListener("click",async s=>{const e=s.target.closest("[data-rec]");if(e){if(L&&L.state==="recording"){L.stop();return}try{const t=await navigator.mediaDevices.getUserMedia({audio:!0}),n=[];L=new MediaRecorder(t),L.ondataavailable=r=>n.push(r.data),L.onstop=()=>{t.getTracks().forEach(a=>a.stop());const r=URL.createObjectURL(new Blob(n,{type:L.mimeType}));let o=e.parentElement.querySelector("audio.mine");o||(o=document.createElement("audio"),o.className="mine",o.controls=!0,o.style.height="32px",e.parentElement.appendChild(o)),o.src=r,o.play(),e.textContent="⏺",e.classList.remove("btn-primary")},L.start(),e.textContent="⏹",e.classList.add("btn-primary"),setTimeout(()=>{L&&L.state==="recording"&&L.stop()},12e3)}catch(t){z("Microphone unavailable: "+(t.message||t.name))}}});let Q;function z(s){const e=u("#toast");e.textContent=s,e.classList.add("show"),clearTimeout(Q),Q=setTimeout(()=>e.classList.remove("show"),2400)}function he(s){const e=u("#dialog");u("#dialog-inner").innerHTML=s,e.showModal()}u("#dialog").addEventListener("click",s=>{(s.target.id==="dialog"||s.target.closest("[data-close]"))&&u("#dialog").close()});const q=s=>"t"+p.parsePinyin(s).tone;function f(s){return s.split(/(\s+|['’])/).map(e=>/^\s+$/.test(e)||/^['’]$/.test(e)||!e?i(e):`<span class="${q(e)}">${i(e)}</span>`).join("")}const R=s=>s.toLocaleDateString(void 0,{weekday:"short",month:"short",day:"numeric"}),F=s=>s.toLocaleDateString(void 0,{month:"short",day:"numeric",year:"numeric"}),X=s=>`${Math.floor(Math.abs(s)/60)}:${String(Math.abs(s)%60).padStart(2,"0")}`;function A(s){return`<svg viewBox="0 0 100 70" width="60" height="42" aria-hidden="true"><line x1="10" y1="10" x2="10" y2="60" stroke="currentColor" opacity=".2"/><path d="${{1:"M10 20 H90",2:"M10 50 L90 12",3:"M10 30 L45 58 L90 20",4:"M10 12 L90 58",5:"M45 40 h10"}[s]}" fill="none" stroke="var(--tone${s})" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`}const I=()=>{const s=l.progress.completed;let e=0,t=S();for(s[t]||t--;t>=1&&s[t];)e++,t--;return e},ee=["#1ec27c","#14a066","#3ee39a","#b8f23c","#0f7a4f","#ffb300"];function se(s){let e="";for(let t=0;t<Math.min(s,60);t++){const n=ee[t%ee.length];e+=`<svg viewBox="0 0 22 44" style="animation-delay:${Math.min(t,30)*25}ms"><rect x="9.5" y="30" width="3" height="14" rx="1" fill="#8a5a2b"/><path d="M11 2 L21 20 H1 Z" fill="${n}"/><path d="M11 10 L21 30 H1 Z" fill="${n}" opacity=".85"/></svg>`}return s>60&&(e+=`<span class="small muted" style="align-self:center;margin-left:.4rem">+${s-60}</span>`),e}function ue(){if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;const s=document.createElement("canvas");s.className="confetti",document.body.appendChild(s);const e=s.getContext("2d");s.width=innerWidth,s.height=innerHeight;const t=["#1ec27c","#ffcf4d","#ff7bd4","#2f8bff","#b8f23c","#ff4d5a"],n=Array.from({length:140},()=>({x:Math.random()*s.width,y:-20-Math.random()*s.height*.5,r:4+Math.random()*6,vx:-1.5+Math.random()*3,vy:2+Math.random()*3,rot:Math.random()*6,vr:-.2+Math.random()*.4,col:t[Math.floor(Math.random()*t.length)]}));let r=0;(function o(){e.clearRect(0,0,s.width,s.height),n.forEach(a=>{a.x+=a.vx,a.y+=a.vy,a.rot+=a.vr,e.save(),e.translate(a.x,a.y),e.rotate(a.rot),e.fillStyle=a.col,e.fillRect(-a.r/2,-a.r/2,a.r,a.r*.6),e.restore()}),++r<220?requestAnimationFrame(o):s.remove()})()}function G(){const s=p.curriculumStats(y),e=S(),t=l.progress.completed;let n=12;return s.levels.map(r=>{const o=n+1,a=r.lastDay;n=a;const h=a-o+1;let c=0;for(let $=o;$<=a;$++)t[$]&&c++;const k=c>=h?"done":e>=o?"current":"locked";return Object.assign({},r,{start:o,end:a,total:h,completed:c,status:k,startDate:p.dateForDay(o,l.settings.startDate),endDate:p.dateForDay(a,l.settings.startDate)})})}const te=()=>{const s=G();return s.find(e=>e.status==="current")||s.filter(e=>e.status==="done").pop()||s[0]},me=(s,e)=>Math.max(1,Math.round((e-s)/(30.44*864e5))),U=()=>p.learnedItems(y,y.length).filter(s=>s.type==="c"&&l.progress.completed[s.day]).length,ae=s=>!s.startsWith("s:"),E=()=>{const s=Date.now();return Object.entries(l.srs).filter(([e,t])=>ae(e)&&t.due<=s).length},g={},O=window.SENLIN_LAZY||{pending:!1,load:()=>Promise.resolve()};function ve(s,e){return O.pending?/^(library|levels|progress|plan)$/.test(s)?!0:s==="lesson"||s==="review"?(parseInt(e,10)||S())>(O.end3||0)-3:!1:!1}const ne=s=>!!N.paywall&&s>(N.freeDays||45)&&!(window.SenLinCloud&&window.SenLinCloud.isPro()),ye=s=>`<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
+      <span class="eyebrow">SenLin Pro</span><h1 class="h2">${i(s)} is part of Pro</h1>
       <p class="lead">HSK 1 is free forever. Pro unlocks the whole road to HSK 6, the Deal Desk, cloud sync and the cloud voice.</p>
       <div class="row"><a class="btn btn-primary" href="#/pro">See plans — from $5 a month</a><a class="btn" href="#/settings/signin" onclick="try{sessionStorage.setItem('senlin.after',location.hash)}catch(e){}">Sign in</a><a class="btn btn-ghost" href="#/">Back</a></div>
-    </section></div>`;
-  function navigate() {
-    const hash = location.hash.replace(/^#\/?/, '');
-    const [name, arg] = hash.split('/');
-    let view = routes[name || 'today'] || routes.today;
-    if (needsAllLevels(name, arg)) {
-      app.innerHTML = '<div class="card stack" style="max-width:520px"><p class="lead">Loading HSK 4–6…</p><p class="muted small">A few hundred kilobytes, once. The site keeps them for offline use.</p></div>';
-      LAZY.load().then(() => { rebuild(); navigate(); }).catch(() => { app.innerHTML = '<div class="card"><p>Could not load the remaining levels. Check your connection and reload.</p></div>'; });
-      return;
-    }
-    if ((name === 'lesson' && locked(parseInt(arg, 10) || todayDay())) || (name === 'business' && CFG.paywall && !(window.SenLinCloud && window.SenLinCloud.isPro()))) {
-      const what = name === 'business' ? 'The Deal Desk' : 'This lesson';
-      view = Object.assign(() => upsell(what), { after: () => { const b = $('#go-pro'); if (b) b.onclick = () => window.SenLinCloud && window.SenLinCloud.buy(); } });
-    }
-    document.querySelectorAll('.nav a').forEach(a => { if (a.dataset.route === (name || 'today')) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    if (lesson.timer) lesson.stop();
-    window.scrollTo(0, 0);
-    app.innerHTML = view(arg);
-    if (view.after) view.after(arg);
-  }
-  window.addEventListener('hashchange', navigate);
-
-  /* ------------------------------------------------------------ TODAY */
-  routes.today = function () {
-    const day = todayDay();
-    const done = !!state.progress.completed[day];
-    const missed = []; for (let d = 1; d < day; d++) if (!state.progress.completed[d] && d <= DAYS.length) missed.push(d);
-    const beyond = day > DAYS.length;
-    /* each lesson builds on the last, so with missed days behind you the next lesson is the oldest one, not the calendar's */
-    const catching = !done && !beyond && missed.length > 0;
-    const target = catching ? missed[0] : day;
-    const info = dayInfo(Math.min(target, DAYS.length));
-    const preview = info.type === 'pron'
-      ? `<p class="lead">${esc(info.pron.title)}</p><p class="muted">${esc(info.pron.brief)}</p>`
-      : `<div class="row">${info.chars.map(c => `<span class="chip chip-gold"><span class="hz">${c.h}</span> ${esc(c.p)} · ${esc(c.m)}</span>`).join('')}${info.words.map(w => `<span class="chip"><span class="hz">${w.w}</span> ${esc(w.m)}</span>`).join('')}</div>
-         ${info.sentences.length || (info.grammar || []).length ? `<p class="muted small" style="margin-top:.6rem">${info.sentences.length ? `${info.sentences.length} new sentence${info.sentences.length > 1 ? 's' : ''} to shadow.` : ''}${(info.grammar || []).length ? ` Pattern: ${esc(info.grammar[0].name)}.` : ''}</p>` : ''}`;
-    return `
+    </section></div>`;function x(){const s=location.hash.replace(/^#\/?/,""),[e,t]=s.split("/");let n=g[e||"today"]||g.today;if(ve(e,t)){W.innerHTML='<div class="card stack" style="max-width:520px"><p class="lead">Loading HSK 4–6…</p><p class="muted small">A few hundred kilobytes, once. The site keeps them for offline use.</p></div>',O.load().then(()=>{T(),x()}).catch(()=>{W.innerHTML='<div class="card"><p>Could not load the remaining levels. Check your connection and reload.</p></div>'});return}if(e==="lesson"&&ne(parseInt(t,10)||S())||e==="business"&&N.paywall&&!(window.SenLinCloud&&window.SenLinCloud.isPro())){const r=e==="business"?"The Deal Desk":"This lesson";n=Object.assign(()=>ye(r),{after:()=>{const o=u("#go-pro");o&&(o.onclick=()=>window.SenLinCloud&&window.SenLinCloud.buy())}})}document.querySelectorAll(".nav a").forEach(r=>{r.dataset.route===(e||"today")?r.setAttribute("aria-current","page"):r.removeAttribute("aria-current")}),d.timer&&d.stop(),window.scrollTo(0,0),W.innerHTML=n(t),n.after&&n.after(t)}window.addEventListener("hashchange",x),g.today=function(){const s=S(),e=!!l.progress.completed[s],t=[];for(let c=1;c<s;c++)!l.progress.completed[c]&&c<=y.length&&t.push(c);const n=s>y.length,r=!e&&!n&&t.length>0,o=r?t[0]:s,a=j(Math.min(o,y.length)),h=a.type==="pron"?`<p class="lead">${i(a.pron.title)}</p><p class="muted">${i(a.pron.brief)}</p>`:`<div class="row">${a.chars.map(c=>`<span class="chip chip-gold"><span class="hz">${c.h}</span> ${i(c.p)} · ${i(c.m)}</span>`).join("")}${a.words.map(c=>`<span class="chip"><span class="hz">${c.w}</span> ${i(c.m)}</span>`).join("")}</div>
+         ${a.sentences.length||(a.grammar||[]).length?`<p class="muted small" style="margin-top:.6rem">${a.sentences.length?`${a.sentences.length} new sentence${a.sentences.length>1?"s":""} to shadow.`:""}${(a.grammar||[]).length?` Pattern: ${i(a.grammar[0].name)}.`:""}</p>`:""}`;return`
       <div class="stack-lg">
         <section class="card card-accent stack">
-          <span class="eyebrow">${fmtDate(new Date())} · Day ${day}${beyond ? ' · beyond the scheduled curriculum' : catching ? ` · next up: Day ${target}` : ''}</span>
-          ${(() => { const L = currentLevelInfo(); if (!L) return ''; const info = (S.LEVELINFO && S.LEVELINFO.levels.find(x => x.level === L.level)) || {}; return `<div class="row"><a class="chip chip-gold" href="#/levels"><b>${esc(L.name)}</b> · ${esc(info.cefr || '')} · ${L.completed}/${L.total} days</a><span class="muted small">${L.status === 'done' ? 'level complete' : `on track to finish ${esc(L.name)} by ${esc(fmtDateY(L.endDate))}`}</span></div>`; })()}
-          <h1 class="h1">${done ? 'Today’s tree is planted. 🌳' : beyond ? 'Consolidation day' : esc(info.phase)}</h1>
+          <span class="eyebrow">${R(new Date)} · Day ${s}${n?" · beyond the scheduled curriculum":r?` · next up: Day ${o}`:""}</span>
+          ${(()=>{const c=te();if(!c)return"";const k=p.LEVELINFO&&p.LEVELINFO.levels.find($=>$.level===c.level)||{};return`<div class="row"><a class="chip chip-gold" href="#/levels"><b>${i(c.name)}</b> · ${i(k.cefr||"")} · ${c.completed}/${c.total} days</a><span class="muted small">${c.status==="done"?"level complete":`on track to finish ${i(c.name)} by ${i(F(c.endDate))}`}</span></div>`})()}
+          <h1 class="h1">${e?"Today’s tree is planted. 🌳":n?"Consolidation day":i(a.phase)}</h1>
           <p class="muted" style="font-weight:700">Building your Mandarin Word Forest, one tree at a time.</p>
-          <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
+          <div>${n?'<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>':h}</div>
           <div class="row">
-            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(target, DAYS.length)}">${done ? 'Do it again' : lesson.saved(target) ? `Resume Day ${target} · step ${lesson.saved(target).seg + 1}` : catching ? `Continue with Day ${target}` : 'Start the 10-minute lesson'}</a>
-            ${catching ? `<a class="btn btn-ghost" href="#/lesson/${Math.min(day, DAYS.length)}" style="color:#fff;border-color:rgba(255,255,255,.4)">Today’s lesson (Day ${day}) instead</a>` : ''}
-            ${dueCount() ? `<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${dueCount()} due cards</a>` : ''}
-            <span class="streak"><span class="fire">🔥</span> ${streak()}-day streak</span>
+            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(o,y.length)}">${e?"Do it again":d.saved(o)?`Resume Day ${o} · step ${d.saved(o).seg+1}`:r?`Continue with Day ${o}`:"Start the 10-minute lesson"}</a>
+            ${r?`<a class="btn btn-ghost" href="#/lesson/${Math.min(s,y.length)}" style="color:#fff;border-color:rgba(255,255,255,.4)">Today’s lesson (Day ${s}) instead</a>`:""}
+            ${E()?`<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${E()} due cards</a>`:""}
+            <span class="streak"><span class="fire">🔥</span> ${I()}-day streak</span>
           </div>
         </section>
-        ${Object.keys(state.progress.completed).length ? `<section class="card stack" style="padding-bottom:.6rem"><div class="row between"><span class="eyebrow">Your forest · ${Object.keys(state.progress.completed).length} trees</span><a class="small muted" href="#/progress">see progress →</a></div><div class="forest">${forestSVG(Object.keys(state.progress.completed).length)}</div></section>` : ''}
+        ${Object.keys(l.progress.completed).length?`<section class="card stack" style="padding-bottom:.6rem"><div class="row between"><span class="eyebrow">Your forest · ${Object.keys(l.progress.completed).length} trees</span><a class="small muted" href="#/progress">see progress →</a></div><div class="forest">${se(Object.keys(l.progress.completed).length)}</div></section>`:""}
         <section class="grid grid-3">
-          <div class="card stat"><b>${streak()}</b><span>day streak</span></div>
-          <div class="card stat"><b>${learnedChars()}</b><span>characters planted</span></div>
-          <div class="card stat"><b>${Object.keys(state.progress.completed).length}</b><span>lessons completed</span></div>
+          <div class="card stat"><b>${I()}</b><span>day streak</span></div>
+          <div class="card stat"><b>${U()}</b><span>characters planted</span></div>
+          <div class="card stat"><b>${Object.keys(l.progress.completed).length}</b><span>lessons completed</span></div>
         </section>
-        ${missed.length ? `<section class="card stack">
-          <h2 class="h3">Catch-up (${missed.length} missed)</h2>
+        ${t.length?`<section class="card stack">
+          <h2 class="h3">Catch-up (${t.length} missed)</h2>
           <p class="muted small">Missed days never expire. Do the oldest first — each lesson builds on the last.</p>
-          <div class="row">${missed.slice(0, 14).map(d => `<a class="chip" href="#/lesson/${d}">Day ${d}</a>`).join('')}${missed.length > 14 ? `<span class="chip">+${missed.length - 14} more</span>` : ''}</div>
-          ${missed.length >= 3 ? `<div class="row between" style="margin-top:.4rem"><span class="faint small">Life happened? Restart the calendar so today is Day ${target}: nothing you finished is lost, and the missed list clears.</span><button class="btn btn-sm" id="reschedule" data-day="${target}">Make today Day ${target}</button></div>` : ''}
-        </section>` : ''}
+          <div class="row">${t.slice(0,14).map(c=>`<a class="chip" href="#/lesson/${c}">Day ${c}</a>`).join("")}${t.length>14?`<span class="chip">+${t.length-14} more</span>`:""}</div>
+          ${t.length>=3?`<div class="row between" style="margin-top:.4rem"><span class="faint small">Life happened? Restart the calendar so today is Day ${o}: nothing you finished is lost, and the missed list clears.</span><button class="btn btn-sm" id="reschedule" data-day="${o}">Make today Day ${o}</button></div>`:""}
+        </section>`:""}
         <section class="card stack" style="border-left:4px solid var(--gold)">
           <div class="row between"><div><h2 class="h3">Talk with 森林老师 — live 1-on-1</h2><p class="muted small">Role-play a café order, a taxi ride, a job interview. Speak or type; get corrected in real time.</p></div><a class="btn btn-primary" href="#/talk">Start a conversation</a></div>
         </section>
@@ -355,518 +46,182 @@
           </div>
           <div class="card stack">
             <h2 class="h3">Your curriculum</h2>
-            ${(() => { const st = S.curriculumStats(DAYS); return `<p class="muted small">${st.pronDays} days of Pronunciation Mastery, then ${st.characters} characters, ${st.words} words and ${st.sentences} sentences over ${st.days} days. Every word appears only after all its characters; every sentence only after all its words.</p>`; })()}
+            ${(()=>{const c=p.curriculumStats(y);return`<p class="muted small">${c.pronDays} days of Pronunciation Mastery, then ${c.characters} characters, ${c.words} words and ${c.sentences} sentences over ${c.days} days. Every word appears only after all its characters; every sentence only after all its words.</p>`})()}
             <div class="row"><a class="btn btn-sm" href="#/library">Browse the library</a><a class="btn btn-sm" href="#/plan">See all days</a><a class="btn btn-sm" href="#/tones">Tone gym</a></div>
           </div>
         </section>
-      </div>`;
-  };
-
-  /* ------------------------------------------------------------ PLAN (all days) */
-  routes.plan = function () {
-    const today = todayDay();
-    return `<div class="stack"><span class="eyebrow">Curriculum</span><h1 class="h2">Every day, at a glance</h1>
+      </div>`},g.plan=function(){const s=S();return`<div class="stack"><span class="eyebrow">Curriculum</span><h1 class="h2">Every day, at a glance</h1>
       <table class="table"><thead><tr><th>Day</th><th>Date</th><th>Phase</th><th>New</th><th></th></tr></thead><tbody>
-      ${DAYS.map(d => `<tr${d.day === today ? ' style="background:var(--accent-soft)"' : ''}><td>${d.day}</td><td class="small muted" style="white-space:nowrap">${fmtDate(S.dateForDay(d.day, state.settings.startDate)).replace(/^(\w+), /, '<span class="hide-sm">$1, </span>')}</td><td class="small">${d.type === 'pron' ? esc(d.pron.title) : esc(d.phase)}</td>
-        <td class="hz">${d.chars.map(c => c.h).join(' ')} <span class="small muted">${d.words.map(w => w.w).join(' · ')}</span></td>
-        <td><a class="btn btn-sm${state.progress.completed[d.day] ? '' : ' btn-ghost'}" href="#/lesson/${d.day}">${state.progress.completed[d.day] ? '✓ done' : 'open'}</a></td></tr>`).join('')}
-      </tbody></table></div>`;
-  };
-
-  /* ------------------------------------------------------------ LESSON */
-  const lesson = { day: 0, data: null, seg: 0, elapsed: 0, timer: null, review: { i: 0, shown: false }, quiz: { i: 0, right: 0, answered: false }, shadow: {} };
-  lesson.stop = function () { clearInterval(lesson.timer); lesson.timer = null; };
-  /* a lesson in progress survives a reload, an app switch or a closed tab: the position is kept for three hours */
-  const RESUME_MS = 3 * 3600e3;
-  lesson.persist = function () { if (!lesson.data || state.progress.completed[lesson.day]) return; store.set('lesson', { day: lesson.day, seg: lesson.seg, elapsed: lesson.elapsed, review: lesson.review.i, quiz: { i: lesson.quiz.i, right: lesson.quiz.right }, at: Date.now() }); };
-  lesson.saved = function (day) { const r = store.get('lesson', null); return r && r.day === day && Date.now() - r.at < RESUME_MS && !state.progress.completed[day] && r.seg > 0 ? r : null; };
-  lesson.start = function (day) {
-    lesson.stop();
-    lesson.day = day; lesson.seg = 0; lesson.elapsed = 0;
-    lesson.review = { i: 0, shown: false }; lesson.quiz = { i: 0, right: 0, answered: false }; lesson.shadow = {};
-    lesson.data = S.buildLesson(day, DAYS, state.srs, state.cast, Date.now());
-    if (window.SenLinCloud) window.SenLinCloud.track('lesson_start', { day });
-    const extraDue = window.SenLinApp.extraReviewItems().filter(i => state.srs[i.id] && state.srs[i.id].due <= Date.now());
-    if (extraDue.length) lesson.data.review = extraDue.concat(lesson.data.review).slice(0, (S.CONFIG.reviewMax || S.CONFIG.reviewCap) + 4);
-    const r = lesson.saved(day);
-    if (r) {
-      const segs = lesson.data.segments || S.CONFIG.segments;
-      lesson.seg = Math.min(r.seg, segs.length); lesson.elapsed = r.elapsed | 0;
-      lesson.review.i = Math.min(r.review | 0, lesson.data.review.length);
-      lesson.quiz.i = Math.min((r.quiz && r.quiz.i) | 0, lesson.data.quiz.length); lesson.quiz.right = Math.min((r.quiz && r.quiz.right) | 0, lesson.quiz.i);
-      toast(`Resumed Day ${day} where you left off.`);
-    }
-    lesson.timer = setInterval(() => { lesson.elapsed++; if (lesson.elapsed % 15 === 0) lesson.persist(); const c = $('#clock'); if (c) { const left = S.CONFIG.lessonMinutes * 60 - lesson.elapsed; c.textContent = (left < 0 ? '+' : '') + seconds(left); c.classList.toggle('over', left < 0); } }, 1000);
-  };
-  routes.lesson = function (arg) {
-    const day = Math.max(1, Math.min(parseInt(arg, 10) || todayDay(), DAYS.length));
-    if (lesson.day !== day || !lesson.data) lesson.start(day);
-    return `<div class="lesson-top"><div class="container timer">
-        <span class="clock" id="clock">${seconds(S.CONFIG.lessonMinutes * 60 - lesson.elapsed)}</span>
+      ${y.map(e=>`<tr${e.day===s?' style="background:var(--accent-soft)"':""}><td>${e.day}</td><td class="small muted" style="white-space:nowrap">${R(p.dateForDay(e.day,l.settings.startDate)).replace(/^(\w+), /,'<span class="hide-sm">$1, </span>')}</td><td class="small">${e.type==="pron"?i(e.pron.title):i(e.phase)}</td>
+        <td class="hz">${e.chars.map(t=>t.h).join(" ")} <span class="small muted">${e.words.map(t=>t.w).join(" · ")}</span></td>
+        <td><a class="btn btn-sm${l.progress.completed[e.day]?"":" btn-ghost"}" href="#/lesson/${e.day}">${l.progress.completed[e.day]?"✓ done":"open"}</a></td></tr>`).join("")}
+      </tbody></table></div>`};const d={day:0,data:null,seg:0,elapsed:0,timer:null,review:{i:0,shown:!1},quiz:{i:0,right:0,answered:!1},shadow:{}};d.stop=function(){clearInterval(d.timer),d.timer=null};const we=3*36e5;d.persist=function(){!d.data||l.progress.completed[d.day]||w.set("lesson",{day:d.day,seg:d.seg,elapsed:d.elapsed,review:d.review.i,quiz:{i:d.quiz.i,right:d.quiz.right},at:Date.now()})},d.saved=function(s){const e=w.get("lesson",null);return e&&e.day===s&&Date.now()-e.at<we&&!l.progress.completed[s]&&e.seg>0?e:null},d.start=function(s){d.stop(),d.day=s,d.seg=0,d.elapsed=0,d.review={i:0,shown:!1},d.quiz={i:0,right:0,answered:!1},d.shadow={},d.data=p.buildLesson(s,y,l.srs,l.cast,Date.now()),window.SenLinCloud&&window.SenLinCloud.track("lesson_start",{day:s});const e=window.SenLinApp.extraReviewItems().filter(n=>l.srs[n.id]&&l.srs[n.id].due<=Date.now());e.length&&(d.data.review=e.concat(d.data.review).slice(0,(p.CONFIG.reviewMax||p.CONFIG.reviewCap)+4));const t=d.saved(s);if(t){const n=d.data.segments||p.CONFIG.segments;d.seg=Math.min(t.seg,n.length),d.elapsed=t.elapsed|0,d.review.i=Math.min(t.review|0,d.data.review.length),d.quiz.i=Math.min((t.quiz&&t.quiz.i)|0,d.data.quiz.length),d.quiz.right=Math.min((t.quiz&&t.quiz.right)|0,d.quiz.i),z(`Resumed Day ${s} where you left off.`)}d.timer=setInterval(()=>{d.elapsed++,d.elapsed%15===0&&d.persist();const n=u("#clock");if(n){const r=p.CONFIG.lessonMinutes*60-d.elapsed;n.textContent=(r<0?"+":"")+X(r),n.classList.toggle("over",r<0)}},1e3)},g.lesson=function(s){const e=Math.max(1,Math.min(parseInt(s,10)||S(),y.length));return(d.day!==e||!d.data)&&d.start(e),`<div class="lesson-top"><div class="container timer">
+        <span class="clock" id="clock">${X(p.CONFIG.lessonMinutes*60-d.elapsed)}</span>
         <div class="segments" id="segments"></div>
         <a class="btn btn-sm btn-ghost" href="#/">Exit</a>
       </div></div>
-      <div id="segment"></div>`;
-  };
-  routes.today.after = () => {
-    const b = $('#reschedule'); if (!b) return;
-    b.onclick = () => {
-      const day = Number(b.dataset.day) || 1; const d = new Date(); d.setDate(d.getDate() - (day - 1));
-      state.settings.startDate = S.isoDate(d); save(); toast(`Today is Day ${day}. Day 1 moved to ${S.isoDate(d)} (Settings).`);
-      if (window.SenLinCloud) window.SenLinCloud.track('visit', { route: 'reschedule' });
-      navigate();
-    };
-  };
-  routes.lesson.after = () => renderSegment();
-
-  function renderSegment() {
-    const L = lesson.data; const segs = L.segments || S.CONFIG.segments;
-    $('#segments').innerHTML = segs.map((s, i) => `<button class="${i < lesson.seg ? 'done' : i === lesson.seg ? 'active' : ''}" data-seg="${i}" title="${esc(s.title)}"><span>${esc(s.title.split(':')[0])}</span></button>`).join('')
-      + `<button class="${lesson.seg >= segs.length ? 'active' : ''}" data-seg="${segs.length}" title="Done"><span>Done</span></button>`;
-    $('#segments').querySelectorAll('button').forEach(b => b.onclick = () => { lesson.seg = +b.dataset.seg; renderSegment(); });
-    const seg = segs[lesson.seg];
-    const el = $('#segment');
-    lesson.persist();
-    const head = (title, secs, note) => `<div class="seg-head"><div><span class="eyebrow">Day ${L.day} · ${lesson.seg + 1} of ${segs.length}</span><h2 class="h2">${esc(title)}</h2></div><span class="muted small">${Math.round(secs / 60 * 10) / 10} min${note ? ' · ' + esc(note) : ''}</span></div>`;
-    const next = (label = 'Next →') => `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${label}</button></div>`;
-    if (!seg) { el.innerHTML = renderDone(); wireDone(); return; }
-    let html = head(seg.title, seg.seconds, seg.id === 'review' ? `${L.review.length} cards` : seg.id === 'sentences' ? (L.sentences.length ? `${L.sentences.length} sentences` : `${L.chars.length + L.words.length} to say`) : '');
-    if (seg.id === 'warmup') html += renderWarmup(L) + next();
-    if (seg.id === 'review') html += renderReview(L);
-    if (seg.id === 'new') html += renderNew(L) + next();
-    if (seg.id === 'sentences') html += renderSentences(L) + next();
-    if (seg.id === 'shadow') html += renderShadow(L) + next();
-    if (seg.id === 'quiz') html += renderQuiz(L);
-    el.innerHTML = html;
-    wireSegment(seg.id);
-    const n = $('#next'); if (n) n.onclick = () => { lesson.seg++; window.scrollTo(0, 0); renderSegment(); };
-  }
-
-  function renderWarmup(L) {
-    const tp = L.warmup.tonePair; const [a, b] = tp.pair.split('-').map(Number);
-    const ex = tp.ex.split(' — ')[0];
-    const hz = ex.split(' ')[0];
-    return `<div class="stack" style="margin-top:1rem">
+      <div id="segment"></div>`},g.today.after=()=>{const s=u("#reschedule");s&&(s.onclick=()=>{const e=Number(s.dataset.day)||1,t=new Date;t.setDate(t.getDate()-(e-1)),l.settings.startDate=p.isoDate(t),b(),z(`Today is Day ${e}. Day 1 moved to ${p.isoDate(t)} (Settings).`),window.SenLinCloud&&window.SenLinCloud.track("visit",{route:"reschedule"}),x()})},g.lesson.after=()=>M();function M(){const s=d.data,e=s.segments||p.CONFIG.segments;u("#segments").innerHTML=e.map((c,k)=>`<button class="${k<d.seg?"done":k===d.seg?"active":""}" data-seg="${k}" title="${i(c.title)}"><span>${i(c.title.split(":")[0])}</span></button>`).join("")+`<button class="${d.seg>=e.length?"active":""}" data-seg="${e.length}" title="Done"><span>Done</span></button>`,u("#segments").querySelectorAll("button").forEach(c=>c.onclick=()=>{d.seg=+c.dataset.seg,M()});const t=e[d.seg],n=u("#segment");d.persist();const r=(c,k,$)=>`<div class="seg-head"><div><span class="eyebrow">Day ${s.day} · ${d.seg+1} of ${e.length}</span><h2 class="h2">${i(c)}</h2></div><span class="muted small">${Math.round(k/60*10)/10} min${$?" · "+i($):""}</span></div>`,o=(c="Next →")=>`<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${c}</button></div>`;if(!t){n.innerHTML=De(),Te();return}let a=r(t.title,t.seconds,t.id==="review"?`${s.review.length} cards`:t.id==="sentences"?s.sentences.length?`${s.sentences.length} sentences`:`${s.chars.length+s.words.length} to say`:"");t.id==="warmup"&&(a+=ge(s)+o()),t.id==="review"&&(a+=ie(s)),t.id==="new"&&(a+=be(s)+o()),t.id==="sentences"&&(a+=ke(s)+o()),t.id==="shadow"&&(a+=fe(s)+o()),t.id==="quiz"&&(a+=Se(s)),n.innerHTML=a,Ne(t.id);const h=u("#next");h&&(h.onclick=()=>{d.seg++,window.scrollTo(0,0),M()})}function ge(s){const e=s.warmup.tonePair,[t,n]=e.pair.split("-").map(Number),r=e.ex.split(" — ")[0],o=r.split(" ")[0];return`<div class="stack" style="margin-top:1rem">
       <div class="card stack">
-        <span class="eyebrow">Tone pair of the day · ${tp.pair}</span>
+        <span class="eyebrow">Tone pair of the day · ${e.pair}</span>
         <div class="row" style="gap:1.2rem;align-items:center">
-          <div class="row" style="gap:.2rem">${toneSVG(a)}${toneSVG(b)}</div>
-          <div><div class="mid-hz">${esc(hz)}</div><div class="py">${pinyinHTML(ex.replace(hz, '').trim())}</div><div class="muted small">${esc(tp.en)}</div></div>
-          <div class="row">${playBtn(hz)}${playBtn(hz, { slow: true, rate: 0.6 })}</div>
+          <div class="row" style="gap:.2rem">${A(t)}${A(n)}</div>
+          <div><div class="mid-hz">${i(o)}</div><div class="py">${f(r.replace(o,"").trim())}</div><div class="muted small">${i(e.en)}</div></div>
+          <div class="row">${m(o)}${m(o,{slow:!0,rate:.6})}</div>
         </div>
         <p class="muted small">Listen, then say it five times. Exaggerate the contours: high-flat, rising, low-dip, falling.</p>
       </div>
-      ${L.warmup.kind === 'pron' ? `<div class="card stack"><span class="eyebrow">Sound drills</span>${L.warmup.drills.map(d => `<div class="row between"><span class="py" style="font-size:1.2rem">${pinyinHTML(d.replace(/\(.*\)/, ''))} <span class="muted small">${esc((d.match(/\(.*\)/) || [''])[0])}</span></span>${playBtn(d.replace(/\(.*\)|[→]/g, ''))}</div>`).join('')}</div>`
-        : !L.warmup.drills.length ? `<div class="card stack"><span class="eyebrow">Your first tree day</span><p class="muted small">Nothing to recall yet: today you plant the first three characters. From tomorrow this card holds yesterday's characters to say aloud from memory.</p></div>`
-        : `<div class="card stack"><span class="eyebrow">Say these aloud from memory</span><div class="grid grid-tiles">${L.warmup.drills.map(c => `<div class="tile"><span class="hz">${c.h}</span><span class="py">${pinyinHTML(c.p)}</span><span class="muted small">${esc(c.m)}</span><span>${playBtn(c.h)}</span></div>`).join('')}</div></div>`}
-    </div>`;
-  }
-
-  /** Pronunciation days: say every drill row three times, slow then normal; a tap marks the row done. */
-  function renderShadow(L) {
-    const rows = L.shadow || [];
-    const done = rows.filter((r, i) => lesson.shadow['drill' + i]).length;
-    return `<div class="stack" style="margin-top:1rem">
-      <div class="card stack"><span class="eyebrow">Say each row three times · ${done} of ${rows.length} done</span>
+      ${s.warmup.kind==="pron"?`<div class="card stack"><span class="eyebrow">Sound drills</span>${s.warmup.drills.map(a=>`<div class="row between"><span class="py" style="font-size:1.2rem">${f(a.replace(/\(.*\)/,""))} <span class="muted small">${i((a.match(/\(.*\)/)||[""])[0])}</span></span>${m(a.replace(/\(.*\)|[→]/g,""))}</div>`).join("")}</div>`:s.warmup.drills.length?`<div class="card stack"><span class="eyebrow">Say these aloud from memory</span><div class="grid grid-tiles">${s.warmup.drills.map(a=>`<div class="tile"><span class="hz">${a.h}</span><span class="py">${f(a.p)}</span><span class="muted small">${i(a.m)}</span><span>${m(a.h)}</span></div>`).join("")}</div></div>`:`<div class="card stack"><span class="eyebrow">Your first tree day</span><p class="muted small">Nothing to recall yet: today you plant the first three characters. From tomorrow this card holds yesterday's characters to say aloud from memory.</p></div>`}
+    </div>`}function fe(s){const e=s.shadow||[];return`<div class="stack" style="margin-top:1rem">
+      <div class="card stack"><span class="eyebrow">Say each row three times · ${e.filter((n,r)=>d.shadow["drill"+r]).length} of ${e.length} done</span>
         <p class="muted small">Play it, copy the pitch with your voice, then play it again and match it. Slow first (🐢), then normal speed. Exaggerate: high-flat, rising, low-dip, falling.</p>
-        ${rows.map((r, i) => `<div class="row between" style="gap:.6rem;padding:.35rem 0;border-top:1px solid var(--line)"><span>${r.hz ? `<span class="mid-hz">${esc(r.hz)}</span> ` : ''}<span class="py" style="font-size:1.25rem">${pinyinHTML(r.show)}</span>${r.note ? ` <span class="muted small">${esc(r.note)}</span>` : ''}</span><span class="row" style="gap:.3rem">${playBtn(r.say)}${playBtn(r.say, { slow: true, rate: 0.6 })}<button class="btn btn-sm${lesson.shadow['drill' + i] ? ' btn-primary' : ' btn-ghost'}" data-shadow="drill${i}" data-n="${lesson.shadow['drill' + i] ? 0 : 1}" aria-pressed="${lesson.shadow['drill' + i] ? 'true' : 'false'}">${lesson.shadow['drill' + i] ? '✓ said it' : 'Said it ×3'}</button></span></div>`).join('')}
+        ${e.map((n,r)=>`<div class="row between" style="gap:.6rem;padding:.35rem 0;border-top:1px solid var(--line)"><span>${n.hz?`<span class="mid-hz">${i(n.hz)}</span> `:""}<span class="py" style="font-size:1.25rem">${f(n.show)}</span>${n.note?` <span class="muted small">${i(n.note)}</span>`:""}</span><span class="row" style="gap:.3rem">${m(n.say)}${m(n.say,{slow:!0,rate:.6})}<button class="btn btn-sm${d.shadow["drill"+r]?" btn-primary":" btn-ghost"}" data-shadow="drill${r}" data-n="${d.shadow["drill"+r]?0:1}" aria-pressed="${d.shadow["drill"+r]?"true":"false"}">${d.shadow["drill"+r]?"✓ said it":"Said it ×3"}</button></span></div>`).join("")}
       </div>
-      ${L.pron.task ? `<div class="card stack" style="background:var(--accent-soft)"><p><b>Task:</b> ${esc(L.pron.task)}</p></div>` : ''}
-    </div>`;
-  }
-
-  function renderReview(L, r) {
-    r = r || lesson.review; const card = L.review[r.i];
-    if (!card) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${L.review.length ? 'Review complete.' : 'Nothing to review yet — new items start appearing tomorrow.'}</p>${L.review.length ? `<p class="muted small">${L.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>` : ''}</div>` + `<div class="row" style="margin-top:1.2rem;justify-content:flex-end">${r.standalone && dueCount() ? `<button class="btn" id="review-more">Continue · ${dueCount()} more due</button>` : ''}<button class="btn btn-primary" id="next">${r.standalone ? 'Done' : 'Next →'}</button></div>`;
-    const x = card.ref;
-    const front = card.type === 'c' ? `<div class="big-hz">${x.h}</div>` : card.type === 'w' ? `<div class="mid-hz" style="font-size:3rem">${x.w}</div>` : `<div class="mid-hz">${esc(x.zh)}</div>`;
-    const back = card.type === 's' ? `<div class="py" style="font-size:1.2rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.en)}</div>` : `<div class="py" style="font-size:1.4rem">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.m)}</div>`;
-    const say = card.type === 'c' ? x.h : card.type === 'w' ? x.w : x.zh;
-    return `<div class="stack" style="margin-top:1rem">
-      <p class="muted small">Card ${r.i + 1} of ${L.review.length} · say the pronunciation and meaning out loud, then reveal.</p>
-      <div class="card flash" id="flash">${front}${r.shown ? `<div class="answer">${back}<div>${playBtn(say)}</div></div>` : '<span class="faint small">tap to reveal</span>'}</div>
-      ${r.shown ? `<div class="grades">
-        <button class="btn g-again" data-grade="0">Again</button><button class="btn g-hard" data-grade="1">Hard</button><button class="btn g-good" data-grade="2">Good</button><button class="btn g-easy" data-grade="3">Easy</button></div>`
-        : `<button class="btn btn-block" id="reveal">Reveal</button>`}
-      ${card.type === 'c' ? `<details class="small muted"><summary>Scene reminder</summary>${esc(state.scenes[x.h] || S.scene(x, state.cast).text)}</details>` : ''}
-    </div>`;
-  }
-
-  function renderNew(L) {
-    if (L.type === 'pron') return renderPron(L.pron);
-    if (!L.chars.length) return `<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>` + (L.words.length ? renderWords(L.words) : '') + renderGrammar(L.grammar) + renderDealDesk(L.business);
-    return `<div class="stack" style="margin-top:1rem">
+      ${s.pron.task?`<div class="card stack" style="background:var(--accent-soft)"><p><b>Task:</b> ${i(s.pron.task)}</p></div>`:""}
+    </div>`}function ie(s,e){e=e||d.review;const t=s.review[e.i];if(!t)return`<div class="card stack" style="margin-top:1rem"><p class="lead">${s.review.length?"Review complete.":"Nothing to review yet — new items start appearing tomorrow."}</p>${s.review.length?`<p class="muted small">${s.review.length} cards graded. The engine schedules each one again when you are about to forget it.</p>`:""}</div><div class="row" style="margin-top:1.2rem;justify-content:flex-end">${e.standalone&&E()?`<button class="btn" id="review-more">Continue · ${E()} more due</button>`:""}<button class="btn btn-primary" id="next">${e.standalone?"Done":"Next →"}</button></div>`;const n=t.ref,r=t.type==="c"?`<div class="big-hz">${n.h}</div>`:t.type==="w"?`<div class="mid-hz" style="font-size:3rem">${n.w}</div>`:`<div class="mid-hz">${i(n.zh)}</div>`,o=t.type==="s"?`<div class="py" style="font-size:1.2rem">${f(n.p)}</div><div class="muted">${i(n.en)}</div>`:`<div class="py" style="font-size:1.4rem">${f(n.p)}</div><div class="muted">${i(n.m)}</div>`,a=t.type==="c"?n.h:t.type==="w"?n.w:n.zh;return`<div class="stack" style="margin-top:1rem">
+      <p class="muted small">Card ${e.i+1} of ${s.review.length} · say the pronunciation and meaning out loud, then reveal.</p>
+      <div class="card flash" id="flash">${r}${e.shown?`<div class="answer">${o}<div>${m(a)}</div></div>`:'<span class="faint small">tap to reveal</span>'}</div>
+      ${e.shown?`<div class="grades">
+        <button class="btn g-again" data-grade="0">Again</button><button class="btn g-hard" data-grade="1">Hard</button><button class="btn g-good" data-grade="2">Good</button><button class="btn g-easy" data-grade="3">Easy</button></div>`:'<button class="btn btn-block" id="reveal">Reveal</button>'}
+      ${t.type==="c"?`<details class="small muted"><summary>Scene reminder</summary>${i(l.scenes[n.h]||p.scene(n,l.cast).text)}</details>`:""}
+    </div>`}function be(s){return s.type==="pron"?$e(s.pron):s.chars.length?`<div class="stack" style="margin-top:1rem">
       <p class="muted small">For each character: look, listen, then close your eyes and <b>see the scene</b> for ten seconds. The actor gives you the initial, the set gives the final, the room gives the tone, the props give the shape.</p>
-      ${L.chars.map(({ ch, scene: sc }) => `<div class="card stack" data-char="${ch.h}">
-        <div class="row between"><span class="eyebrow">${esc(sc.initial || 'no initial')}- + -${esc(sc.final)} + tone ${sc.tone}</span><span class="chip">${esc(sc.actor)} · ${esc(sc.set)} · ${esc(sc.room)}</span></div>
+      ${s.chars.map(({ch:e,scene:t})=>`<div class="card stack" data-char="${e.h}">
+        <div class="row between"><span class="eyebrow">${i(t.initial||"no initial")}- + -${i(t.final)} + tone ${t.tone}</span><span class="chip">${i(t.actor)} · ${i(t.set)} · ${i(t.room)}</span></div>
         <div class="grid" style="grid-template-columns:auto 1fr;gap:1.2rem;align-items:center">
-          <div class="big-hz">${ch.h}</div>
+          <div class="big-hz">${e.h}</div>
           <div class="stack" style="gap:.4rem">
-            <div class="py ${toneClass(ch.p)}" style="font-size:1.8rem">${esc(ch.p)} ${toneSVG(sc.tone)}</div>
-            <div style="font-size:1.15rem;font-weight:700">${esc(ch.m)}</div>
-            <div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}<button class="btn btn-sm" data-write="${ch.h}" title="Stroke order">✍️ Write</button></div>
+            <div class="py ${q(e.p)}" style="font-size:1.8rem">${i(e.p)} ${A(t.tone)}</div>
+            <div style="font-size:1.15rem;font-weight:700">${i(e.m)}</div>
+            <div class="row">${m(e.h)}${m(e.h,{slow:!0,rate:.6})}${D(e.h)}<button class="btn btn-sm" data-write="${e.h}" title="Stroke order">✍️ Write</button></div>
           </div>
         </div>
-        <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
-        <div class="scene">${esc(state.scenes[ch.h] || sc.text)}</div>
+        <div class="props">${t.props.map(n=>`<span class="chip"><span class="hz">${n.c}</span> ${i(n.keyword)} → ${i(n.prop)}</span>`).join("")}</div>
+        <div class="scene">${i(l.scenes[e.h]||t.text)}</div>
         <details class="small"><summary class="muted">Make it mine (edit the scene)</summary>
-          <textarea class="input" data-scene="${ch.h}" placeholder="Rewrite the scene in your own words — the weirder and more vivid, the stickier.">${esc(state.scenes[ch.h] || sc.text)}</textarea></details>
-      </div>`).join('')}
-      ${L.words.length ? renderWords(L.words) : ''}
-      ${renderGrammar(L.grammar)}
-      ${renderDealDesk(L.business)}
-    </div>`;
-  }
-  const renderDealDesk = b => !b || !state.settings.business ? '' : `<div class="card stack" style="border-left:4px solid var(--sky-500)"><div class="row between"><span class="eyebrow">Deal desk · business Mandarin · ${esc(b.terms[0].unitTitle)}</span><a class="small muted" href="#/business">all units →</a></div>
-    ${b.terms.map(t => `<div class="row between"><div><span class="mid-hz">${esc(t.w)}</span> <span class="py">${pinyinHTML(t.p)}</span> <span class="muted">${esc(t.m)}</span>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ''}</div><span class="row">${playBtn(t.w)}${sayBtn(t.w)}<button class="btn btn-sm" data-addword="${esc(JSON.stringify({ w: t.w, p: t.p, m: t.m }))}">＋ deck</button></span></div>`).join('')}
-    <div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.25rem">${esc(b.phrase.zh)}</span><span class="row">${playBtn(b.phrase.zh)}${sayBtn(b.phrase.zh)}</span></div><div class="py small">${pinyinHTML(b.phrase.p)}</div><div class="muted small">${esc(b.phrase.en)}${b.phrase.note ? ' · ' + esc(b.phrase.note) : ''}</div></div></div>`;
-  const renderGrammar = list => list.map(g => `<div class="card stack" style="border-left:4px solid var(--accent)"><span class="eyebrow">Pattern of the day · ${esc(g.name)}</span>
-    <div class="mid-hz" style="font-size:1.3rem;font-family:var(--font-body)">${esc(g.pattern)}</div>
-    <div class="row between"><div><span class="mid-hz">${esc(g.zh)}</span> <span class="py">${pinyinHTML(g.p)}</span><div class="muted">${esc(g.en)}</div></div><span class="row">${playBtn(g.zh)}${sayBtn(g.zh)}</span></div>
-    <p class="small muted">${esc(g.note)}</p></div>`).join('');
-  const renderWords = words => `<div class="card stack"><span class="eyebrow">New words — built from characters you already own</span>
-    ${words.map(w => `<div class="row between"><div><span class="mid-hz">${w.w}</span> <span class="py">${pinyinHTML(w.p)}</span> <span class="muted">${esc(w.m)}</span></div>${playBtn(w.w)}</div>`).join('')}</div>`;
-
-  function renderPron(p) {
-    const c = S.resolveCast(state.cast);
-    const castRow = (kind, key, label, ex, hint) => `<tr><td><b class="py">${esc(label)}</b><br><span class="small muted">${esc(ex)}</span></td><td class="small muted">${esc(hint)}</td><td><div class="row" style="flex-wrap:nowrap"><input class="input" data-cast="${kind}" data-key="${esc(key)}" aria-label="${kind === 'actors' ? 'Your actor for ' : 'Your place for '}${esc(label)}" value="${esc(kind === 'actors' ? c.actor(key) : c.set(key))}">${playBtn(ex.split(' ')[1] || ex.split(' ')[0])}</div></td></tr>`;
-    return `<div class="stack" style="margin-top:1rem">
-      <div class="card stack"><h3 class="h3">${esc(p.title)}</h3><p>${esc(p.brief)}</p></div>
-      ${p.tones ? `<div class="card stack"><span class="eyebrow">The tones = rooms in every set</span>${p.tones.map(n => { const t = S.TONE_MAP[n]; return `<div class="row" style="gap:1rem">${toneSVG(n)}<div><b>${esc(t.name)}</b> <span class="muted">${esc(t.contour)}</span><br><span class="small muted">${esc(t.hint)} · room: <b>${esc(c.room(n))}</b></span></div></div>`; }).join('')}
-        <div class="row">${['mā 妈', 'má 麻', 'mǎ 马', 'mà 骂', 'ma 吗'].map(x => `<span class="chip chip-gold"><span class="py ${toneClass(x)}">${esc(x)}</span>${playBtn(x.split(' ')[1])}</span>`).join('')}</div></div>` : ''}
-      ${p.initials ? `<div class="card stack"><span class="eyebrow">Cast these actors (people you can picture instantly)</span><table class="table"><thead><tr><th>Sound</th><th>How</th><th>Your actor</th></tr></thead><tbody>
-        ${p.initials.map(k => { const i = S.INITIAL_MAP[k]; return castRow('actors', k, k + '-', i.ex, i.hint); }).join('')}</tbody></table></div>` : ''}
-      ${p.finalsIntro ? `<div class="card stack"><span class="eyebrow">Assign these sets (real places you know by heart)</span><table class="table"><thead><tr><th>Final</th><th>How</th><th>Your place</th></tr></thead><tbody>
-        ${p.finalsIntro.map(k => { const f = S.FINAL_MAP[k]; return castRow('sets', k, '-' + k, f.ex, f.hint); }).join('')}</tbody></table></div>` : ''}
-      ${p.pairs ? `<div class="card stack"><span class="eyebrow">Tone pairs</span>${p.pairs.map(pr => { const tp = S.PINYIN.tonePairs.find(t => t.pair === pr); const [a, b] = pr.split('-').map(Number); const hz = tp.ex.split(' ')[0]; return `<div class="row between"><div class="row" style="gap:.8rem"><span class="row" style="gap:0">${toneSVG(a)}${toneSVG(b)}</span><span><b>${pr}</b> <span class="hz">${esc(hz)}</span> <span class="py">${pinyinHTML(tp.ex.replace(hz, '').split('—')[0].trim())}</span> <span class="muted small">${esc(tp.en)}</span></span></div>${playBtn(hz)}</div>`; }).join('')}</div>` : ''}
-      ${p.props ? `<div class="card stack"><span class="eyebrow">Your first ten props</span><div class="grid grid-tiles">${p.props.map(k => { const cp = S.COMP_MAP[k]; return `<div class="tile"><span class="hz">${k}</span><b>${esc(cp.k)}</b><input class="input" data-cast="props" data-key="${k}" aria-label="Your prop for ${k}" value="${esc(c.prop(k))}"></div>`; }).join('')}</div></div>` : ''}
-      ${p.drills.length ? `<div class="card stack"><span class="eyebrow">Drills</span>${p.drills.map(d => `<div class="row between"><span class="py" style="font-size:1.2rem">${pinyinHTML(d.replace(/\(.*\)/, ''))} <span class="muted small">${esc((d.match(/\(.*\)/) || [''])[0])}</span></span>${playBtn(d.replace(/\(.*\)|[→]/g, ''))}</div>`).join('')}</div>` : ''}
-      <div class="card card-soft"><b>Task:</b> ${esc(p.task)}</div>
-    </div>`;
-  }
-
-  function renderSentences(L) {
-    if (!L.sentences.length) {
-      /* the first character days have no sentence yet: shadow today's characters and words instead, so the segment still trains the mouth */
-      const items = L.chars.map(x => ({ key: 'c' + x.ch.h, hz: x.ch.h, p: x.ch.p, m: x.ch.m })).concat(L.words.map(w => ({ key: 'w' + w.w, hz: w.w, p: w.p, m: w.m })));
-      if (!items.length) return `<div class="card" style="margin-top:1rem"><p class="lead">Sentences begin once you own a few characters. Use the time to replay today’s scenes with your eyes closed.</p></div>`;
-      return `<div class="stack" style="margin-top:1rem">
-        <p class="muted small">No full sentence yet: today’s trees are single characters. Shadow each one three times — play, then say it <b>with</b> the voice, matching the tone.${ASR ? ' Tap 🎤 to say it and get checked.' : ''} Sentences start as soon as you own enough characters to build one.</p>
-        ${items.map(it => `<div class="sentence">
-          <div class="row between"><span><span class="mid-hz">${esc(it.hz)}</span> <span class="py">${pinyinHTML(it.p)}</span> <span class="muted small">${esc(it.m)}</span></span><span class="row">${playBtn(it.hz)}${playBtn(it.hz, { slow: true, rate: 0.6 })}${sayBtn(it.hz)}</span></div>
-          <div class="row"><span class="small muted">Passes:</span>${[1, 2, 3].map(n => `<button class="btn btn-sm${(lesson.shadow[it.key] || 0) >= n ? ' btn-primary' : ''}" data-shadow="${esc(it.key)}" data-n="${n}">${n}</button>`).join('')}</div>
-        </div>`).join('')}
-      </div>`;
-    }
-    return `<div class="stack" style="margin-top:1rem">
-      <p class="muted small">Shadowing: play, then speak <b>with</b> the voice, matching rhythm and tones. Three passes each — first with pinyin, then with the English hidden, then eyes closed.${ASR ? ' Tap 🎤 to say it and get checked.' : ''}${(navigator.mediaDevices && window.MediaRecorder) ? ' Tap ⏺ to record yourself and compare.' : ''}</p>
-      ${L.sentences.map((s, i) => `<div class="sentence">
-        <div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row">${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}${sayBtn(s.zh)}${recBtn()}</span></div>
-        <div class="py">${pinyinHTML(s.p)}</div>
-        <div class="en hidden" data-reveal>${esc(s.en)}</div>
-        <div class="row"><span class="small muted">Passes:</span>${[1, 2, 3].map(n => `<button class="btn btn-sm${(lesson.shadow[i] || 0) >= n ? ' btn-primary' : ''}" data-shadow="${i}" data-n="${n}">${n}</button>`).join('')}</div>
-      </div>`).join('')}
-    </div>`;
-  }
-
-  function renderQuiz(L) {
-    const q = lesson.quiz; const item = L.quiz[q.i];
-    if (!item) return `<div class="card stack" style="margin-top:1rem"><p class="lead">${q.right} / ${L.quiz.length} correct.</p><p class="muted small">${q.right === L.quiz.length ? 'Perfect. ' : ''}Anything you missed will come back in tomorrow’s review.</p></div><div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">Finish →</button></div>`;
-    return `<div class="stack" style="margin-top:1rem">
-      <p class="muted small">Question ${q.i + 1} of ${L.quiz.length}</p>
-      <div class="card stack">${item.kind === 'listen'
-        ? `<div class="row" style="justify-content:center"><button class="btn btn-lg btn-primary" data-say="${esc(item.prompt)}">🔊 Play</button><button class="btn" data-say="${esc(item.prompt)}" data-rate="0.6">🐢</button></div><p style="text-align:center" class="muted">${esc(item.question)}${window.speechSynthesis ? '' : ` (${esc(item.pinyin)})`}</p>`
-        : item.pinyinPrompt || item.small ? `<div class="py" style="font-size:${item.small ? '1.6rem' : '3rem'};text-align:center;font-weight:800">${pinyinHTML(item.prompt)}</div><p style="text-align:center" class="muted">${esc(item.question)}</p>`
-        : `<div class="big-hz" style="font-size:4rem">${esc(item.prompt)}</div><p style="text-align:center" class="muted">${esc(item.question)}</p>`}
-        <div class="stack" style="gap:.5rem">${item.options.map(o => `<button class="quiz-opt${item.kind === 'listen' && !item.pinyinOptions ? ' hz' : ''}" data-opt="${esc(o)}" style="${item.kind === 'listen' ? 'font-size:1.4rem' : ''}">${item.pinyinOptions || (item.kind !== 'listen' && item.question.includes('pronounced')) ? pinyinHTML(o) : esc(o)}</button>`).join('')}</div>
-        <div id="quiz-next"></div>${item.kind === 'listen' ? `<p class="small muted" style="text-align:center;margin:0"><button class="btn btn-sm btn-ghost" data-opt="__skip__">Can’t hear it? Skip this one</button></p>` : ''}</div></div>`;
-  }
-
-  function renderDone() {
-    const L = lesson.data; const wasDone = !!state.progress.completed[L.day];
-    store.set('lesson', null);
-    if (!wasDone) {
-      state.progress.completed[L.day] = S.isoDate(new Date());
-      if (window.SenLinCloud) window.SenLinCloud.track('lesson_done', { day: L.day, quiz: lesson.quiz.right });
-      /* enter today's new items into spaced repetition */
-      const now = Date.now();
-      S.learnedItems(DAYS, L.day).filter(i => i.day === L.day && i.type !== 's').forEach(i => { if (!state.srs[i.id]) { const s = S.srsInit(); s.due = now + 86400000; state.srs[i.id] = s; } });
-      save();
-    }
-    const stats = S.curriculumStats(DAYS); const pct = Math.round(Object.keys(state.progress.completed).length / stats.days * 100);
-    const nextDay = L.day + 1;
-    return `<div class="card done-banner" style="margin-top:1rem">
-      <div class="big-hz">${L.chars.length ? L.chars.map(c => c.ch.h).join('') : '森'}</div>
-      <h2 class="h2">Day ${L.day} complete</h2>
+          <textarea class="input" data-scene="${e.h}" placeholder="Rewrite the scene in your own words — the weirder and more vivid, the stickier.">${i(l.scenes[e.h]||t.text)}</textarea></details>
+      </div>`).join("")}
+      ${s.words.length?le(s.words):""}
+      ${oe(s.grammar)}
+      ${re(s.business)}
+    </div>`:'<div class="card stack" style="margin-top:1rem"><p class="lead">No new characters today — consolidation.</p><p class="muted">Pick three characters from the Library and re-tell their scenes out loud, from memory, before looking.</p><a class="btn" href="#/library">Open the library</a></div>'+(s.words.length?le(s.words):"")+oe(s.grammar)+re(s.business)}const re=s=>!s||!l.settings.business?"":`<div class="card stack" style="border-left:4px solid var(--sky-500)"><div class="row between"><span class="eyebrow">Deal desk · business Mandarin · ${i(s.terms[0].unitTitle)}</span><a class="small muted" href="#/business">all units →</a></div>
+    ${s.terms.map(e=>`<div class="row between"><div><span class="mid-hz">${i(e.w)}</span> <span class="py">${f(e.p)}</span> <span class="muted">${i(e.m)}</span>${e.note?`<div class="small muted">${i(e.note)}</div>`:""}</div><span class="row">${m(e.w)}${D(e.w)}<button class="btn btn-sm" data-addword="${i(JSON.stringify({w:e.w,p:e.p,m:e.m}))}">＋ deck</button></span></div>`).join("")}
+    <div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.25rem">${i(s.phrase.zh)}</span><span class="row">${m(s.phrase.zh)}${D(s.phrase.zh)}</span></div><div class="py small">${f(s.phrase.p)}</div><div class="muted small">${i(s.phrase.en)}${s.phrase.note?" · "+i(s.phrase.note):""}</div></div></div>`,oe=s=>s.map(e=>`<div class="card stack" style="border-left:4px solid var(--accent)"><span class="eyebrow">Pattern of the day · ${i(e.name)}</span>
+    <div class="mid-hz" style="font-size:1.3rem;font-family:var(--font-body)">${i(e.pattern)}</div>
+    <div class="row between"><div><span class="mid-hz">${i(e.zh)}</span> <span class="py">${f(e.p)}</span><div class="muted">${i(e.en)}</div></div><span class="row">${m(e.zh)}${D(e.zh)}</span></div>
+    <p class="small muted">${i(e.note)}</p></div>`).join(""),le=s=>`<div class="card stack"><span class="eyebrow">New words — built from characters you already own</span>
+    ${s.map(e=>`<div class="row between"><div><span class="mid-hz">${e.w}</span> <span class="py">${f(e.p)}</span> <span class="muted">${i(e.m)}</span></div>${m(e.w)}</div>`).join("")}</div>`;function $e(s){const e=p.resolveCast(l.cast),t=(n,r,o,a,h)=>`<tr><td><b class="py">${i(o)}</b><br><span class="small muted">${i(a)}</span></td><td class="small muted">${i(h)}</td><td><div class="row" style="flex-wrap:nowrap"><input class="input" data-cast="${n}" data-key="${i(r)}" aria-label="${n==="actors"?"Your actor for ":"Your place for "}${i(o)}" value="${i(n==="actors"?e.actor(r):e.set(r))}">${m(a.split(" ")[1]||a.split(" ")[0])}</div></td></tr>`;return`<div class="stack" style="margin-top:1rem">
+      <div class="card stack"><h3 class="h3">${i(s.title)}</h3><p>${i(s.brief)}</p></div>
+      ${s.tones?`<div class="card stack"><span class="eyebrow">The tones = rooms in every set</span>${s.tones.map(n=>{const r=p.TONE_MAP[n];return`<div class="row" style="gap:1rem">${A(n)}<div><b>${i(r.name)}</b> <span class="muted">${i(r.contour)}</span><br><span class="small muted">${i(r.hint)} · room: <b>${i(e.room(n))}</b></span></div></div>`}).join("")}
+        <div class="row">${["mā 妈","má 麻","mǎ 马","mà 骂","ma 吗"].map(n=>`<span class="chip chip-gold"><span class="py ${q(n)}">${i(n)}</span>${m(n.split(" ")[1])}</span>`).join("")}</div></div>`:""}
+      ${s.initials?`<div class="card stack"><span class="eyebrow">Cast these actors (people you can picture instantly)</span><table class="table"><thead><tr><th>Sound</th><th>How</th><th>Your actor</th></tr></thead><tbody>
+        ${s.initials.map(n=>{const r=p.INITIAL_MAP[n];return t("actors",n,n+"-",r.ex,r.hint)}).join("")}</tbody></table></div>`:""}
+      ${s.finalsIntro?`<div class="card stack"><span class="eyebrow">Assign these sets (real places you know by heart)</span><table class="table"><thead><tr><th>Final</th><th>How</th><th>Your place</th></tr></thead><tbody>
+        ${s.finalsIntro.map(n=>{const r=p.FINAL_MAP[n];return t("sets",n,"-"+n,r.ex,r.hint)}).join("")}</tbody></table></div>`:""}
+      ${s.pairs?`<div class="card stack"><span class="eyebrow">Tone pairs</span>${s.pairs.map(n=>{const r=p.PINYIN.tonePairs.find(c=>c.pair===n),[o,a]=n.split("-").map(Number),h=r.ex.split(" ")[0];return`<div class="row between"><div class="row" style="gap:.8rem"><span class="row" style="gap:0">${A(o)}${A(a)}</span><span><b>${n}</b> <span class="hz">${i(h)}</span> <span class="py">${f(r.ex.replace(h,"").split("—")[0].trim())}</span> <span class="muted small">${i(r.en)}</span></span></div>${m(h)}</div>`}).join("")}</div>`:""}
+      ${s.props?`<div class="card stack"><span class="eyebrow">Your first ten props</span><div class="grid grid-tiles">${s.props.map(n=>{const r=p.COMP_MAP[n];return`<div class="tile"><span class="hz">${n}</span><b>${i(r.k)}</b><input class="input" data-cast="props" data-key="${n}" aria-label="Your prop for ${n}" value="${i(e.prop(n))}"></div>`}).join("")}</div></div>`:""}
+      ${s.drills.length?`<div class="card stack"><span class="eyebrow">Drills</span>${s.drills.map(n=>`<div class="row between"><span class="py" style="font-size:1.2rem">${f(n.replace(/\(.*\)/,""))} <span class="muted small">${i((n.match(/\(.*\)/)||[""])[0])}</span></span>${m(n.replace(/\(.*\)|[→]/g,""))}</div>`).join("")}</div>`:""}
+      <div class="card card-soft"><b>Task:</b> ${i(s.task)}</div>
+    </div>`}function ke(s){if(!s.sentences.length){const e=s.chars.map(t=>({key:"c"+t.ch.h,hz:t.ch.h,p:t.ch.p,m:t.ch.m})).concat(s.words.map(t=>({key:"w"+t.w,hz:t.w,p:t.p,m:t.m})));return e.length?`<div class="stack" style="margin-top:1rem">
+        <p class="muted small">No full sentence yet: today’s trees are single characters. Shadow each one three times — play, then say it <b>with</b> the voice, matching the tone.${H?" Tap 🎤 to say it and get checked.":""} Sentences start as soon as you own enough characters to build one.</p>
+        ${e.map(t=>`<div class="sentence">
+          <div class="row between"><span><span class="mid-hz">${i(t.hz)}</span> <span class="py">${f(t.p)}</span> <span class="muted small">${i(t.m)}</span></span><span class="row">${m(t.hz)}${m(t.hz,{slow:!0,rate:.6})}${D(t.hz)}</span></div>
+          <div class="row"><span class="small muted">Passes:</span>${[1,2,3].map(n=>`<button class="btn btn-sm${(d.shadow[t.key]||0)>=n?" btn-primary":""}" data-shadow="${i(t.key)}" data-n="${n}">${n}</button>`).join("")}</div>
+        </div>`).join("")}
+      </div>`:'<div class="card" style="margin-top:1rem"><p class="lead">Sentences begin once you own a few characters. Use the time to replay today’s scenes with your eyes closed.</p></div>'}return`<div class="stack" style="margin-top:1rem">
+      <p class="muted small">Shadowing: play, then speak <b>with</b> the voice, matching rhythm and tones. Three passes each — first with pinyin, then with the English hidden, then eyes closed.${H?" Tap 🎤 to say it and get checked.":""}${navigator.mediaDevices&&window.MediaRecorder?" Tap ⏺ to record yourself and compare.":""}</p>
+      ${s.sentences.map((e,t)=>`<div class="sentence">
+        <div class="row between"><span class="mid-hz">${i(e.zh)}</span><span class="row">${m(e.zh)}${m(e.zh,{slow:!0,rate:.6})}${D(e.zh)}${pe()}</span></div>
+        <div class="py">${f(e.p)}</div>
+        <div class="en hidden" data-reveal>${i(e.en)}</div>
+        <div class="row"><span class="small muted">Passes:</span>${[1,2,3].map(n=>`<button class="btn btn-sm${(d.shadow[t]||0)>=n?" btn-primary":""}" data-shadow="${t}" data-n="${n}">${n}</button>`).join("")}</div>
+      </div>`).join("")}
+    </div>`}function Se(s){const e=d.quiz,t=s.quiz[e.i];return t?`<div class="stack" style="margin-top:1rem">
+      <p class="muted small">Question ${e.i+1} of ${s.quiz.length}</p>
+      <div class="card stack">${t.kind==="listen"?`<div class="row" style="justify-content:center"><button class="btn btn-lg btn-primary" data-say="${i(t.prompt)}">🔊 Play</button><button class="btn" data-say="${i(t.prompt)}" data-rate="0.6">🐢</button></div><p style="text-align:center" class="muted">${i(t.question)}${window.speechSynthesis?"":` (${i(t.pinyin)})`}</p>`:t.pinyinPrompt||t.small?`<div class="py" style="font-size:${t.small?"1.6rem":"3rem"};text-align:center;font-weight:800">${f(t.prompt)}</div><p style="text-align:center" class="muted">${i(t.question)}</p>`:`<div class="big-hz" style="font-size:4rem">${i(t.prompt)}</div><p style="text-align:center" class="muted">${i(t.question)}</p>`}
+        <div class="stack" style="gap:.5rem">${t.options.map(n=>`<button class="quiz-opt${t.kind==="listen"&&!t.pinyinOptions?" hz":""}" data-opt="${i(n)}" style="${t.kind==="listen"?"font-size:1.4rem":""}">${t.pinyinOptions||t.kind!=="listen"&&t.question.includes("pronounced")?f(n):i(n)}</button>`).join("")}</div>
+        <div id="quiz-next"></div>${t.kind==="listen"?'<p class="small muted" style="text-align:center;margin:0"><button class="btn btn-sm btn-ghost" data-opt="__skip__">Can’t hear it? Skip this one</button></p>':""}</div></div>`:`<div class="card stack" style="margin-top:1rem"><p class="lead">${e.right} / ${s.quiz.length} correct.</p><p class="muted small">${e.right===s.quiz.length?"Perfect. ":""}Anything you missed will come back in tomorrow’s review.</p></div><div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">Finish →</button></div>`}function De(){const s=d.data,e=!!l.progress.completed[s.day];if(w.set("lesson",null),!e){l.progress.completed[s.day]=p.isoDate(new Date),window.SenLinCloud&&window.SenLinCloud.track("lesson_done",{day:s.day,quiz:d.quiz.right});const o=Date.now();p.learnedItems(y,s.day).filter(a=>a.day===s.day&&a.type!=="s").forEach(a=>{if(!l.srs[a.id]){const h=p.srsInit();h.due=o+864e5,l.srs[a.id]=h}}),b()}const t=p.curriculumStats(y),n=Math.round(Object.keys(l.progress.completed).length/t.days*100),r=s.day+1;return`<div class="card done-banner" style="margin-top:1rem">
+      <div class="big-hz">${s.chars.length?s.chars.map(o=>o.ch.h).join(""):"森"}</div>
+      <h2 class="h2">Day ${s.day} complete</h2>
       <p style="font-weight:800;color:var(--lime-400)">Building your Mandarin Word Forest, one tree at a time. 🌲</p>
-      <p class="muted">${Math.round(lesson.elapsed / 60)} min ${lesson.elapsed % 60} s · ${streak()}-day streak · ${learnedChars()} characters planted</p>
-      <div class="progress-ring" style="--p:${pct}" title="${Object.keys(state.progress.completed).length} of ${stats.days} lessons"><div>${pct}%</div></div>
-      <p class="muted small">${Object.keys(state.progress.completed).length} of ${stats.days} lessons in the whole course${L.quiz.length ? ` · quiz ${lesson.quiz.right}/${L.quiz.length}` : ''}</p>
-      <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
-      <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a>${navigator.share || (navigator.clipboard && navigator.clipboard.writeText) ? '<button class="btn btn-ghost" id="share" style="color:#fff;border-color:rgba(255,255,255,.4)">Share</button>' : ''}</div>
-    </div>${dueCount() > 12 ? `<div class="card stack" style="margin-top:1rem"><span class="eyebrow">Still waiting</span><p><b>${dueCount()} cards are due.</b> Today’s lesson reviewed what fitted in ten minutes; a few spare minutes on the deck keeps the forest from thinning.</p><div class="row"><a class="btn btn-primary" href="#/review">Review now</a></div></div>` : ''}${reminderNudge()}${installNudge()}${reviewPrompt()}`;
-  }
-  /* the browser's install prompt (Chrome / Edge on Android and desktop) is deferred until the learner has a reason to want the app */
-  let installEvt = null;
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
-  const isStandalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true || !!(window.SenLinNative && window.SenLinNative.isNative);
-  const isIosSafari = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && /safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
-  /** From the second lesson on: install the app (full screen, offline, reminders). Shown once a month at most, never inside the app itself. */
-  function installNudge() {
-    const n = Object.keys(state.progress.completed).length;
-    if (n < 2 || isStandalone()) return '';
-    const last = store.get('nudge-install', null); if (last && Date.now() - last < 30 * 86400000) return '';
-    if (installEvt) return `<div class="card stack" id="nudge-install" style="margin-top:1rem"><span class="eyebrow">One tap away</span><p><b>Install SenLin on this device.</b> Opens full screen from your home screen, works offline, and your reminder lands as a real notification.</p>
-      <div class="row"><button class="btn btn-primary" id="nudge-install-go">Install</button><button class="btn btn-ghost" id="nudge-install-later">Not now</button></div></div>`;
-    if (isIosSafari()) return `<div class="card stack" id="nudge-install" style="margin-top:1rem"><span class="eyebrow">One tap away</span><p><b>Add SenLin to your home screen.</b> Tap Share <span aria-hidden="true">⎋</span> below, then <b>Add to Home Screen</b>: it opens full screen and works offline.</p>
-      <div class="row"><button class="btn btn-ghost" id="nudge-install-later">Got it</button></div></div>`;
-    return '';
-  }
-  /** After the first lessons, one card that points at the daily reminder (the single biggest day-7 retention lever). */
-  function reminderNudge() {
-    const n = Object.keys(state.progress.completed).length;
-    if (n < 1 || n > 3 || (state.settings.reminder && state.settings.reminder.on) || store.get('nudge-reminder', null)) return '';
-    return `<div class="card stack" id="nudge-reminder" style="margin-top:1rem"><span class="eyebrow">Keep the streak</span><p><b>Same time tomorrow?</b> A daily reminder is the difference between a streak and a good intention.</p>
-      <div class="row"><a class="btn btn-primary" href="#/settings" id="nudge-reminder-go">Set a daily reminder</a><button class="btn btn-ghost" id="nudge-reminder-later">Not now</button></div></div>`;
-  }
-  /** Rating prompt at a good moment only: a finished lesson on a 3-day streak, at most once per 90 days, only where a store listing exists. */
-  function storeLink() { const st = CFG.store || {}; const N = window.SenLinNative; const ua = navigator.userAgent || ''; if (N && N.isNative && N.platform === 'ios') return st.ios; if (/android/i.test(ua) || (N && N.isNative)) return st.android; return ''; }
-  function reviewPrompt() {
-    const link = storeLink(); if (!link) return '';
-    const r = store.get('review', {}); if (r.done || (r.askedAt && Date.now() - r.askedAt < 90 * 86400000)) return '';
-    if (streak() < 3 || Object.keys(state.progress.completed).length < 3) return '';
-    return `<div class="card stack" id="review-card" style="margin-top:1rem"><span class="eyebrow">A small favour</span><p><b>Enjoying SenLin?</b> A rating helps other learners find it, and takes a few seconds.</p>
-      <div class="row"><a class="btn btn-primary" id="review-yes" href="${esc(link)}" target="_blank" rel="noopener">Rate SenLin</a><button class="btn btn-ghost" id="review-later">Not now</button></div></div>`;
-  }
-  async function shareForest() {
-    const trees = Object.keys(state.progress.completed).length; const chars = learnedChars();
-    const url = (S.CONFIG.siteUrl || location.href.split('#')[0]);
-    const text = `Day ${lesson.day} of Mandarin done: ${trees} lesson${trees === 1 ? '' : 's'}, ${chars} characters planted. Ten minutes a day, HSK 1 to 6 — Mandarin The SenLin Way.`;
-    if (window.SenLinCloud) window.SenLinCloud.track('share', { day: lesson.day });
-    try {
-      if (navigator.share) { await navigator.share({ title: 'Mandarin The SenLin Way', text, url }); return; }
-      await navigator.clipboard.writeText(`${text} ${url}`); toast('Copied — paste it anywhere.');
-    } catch (e) { /* the learner cancelled the share sheet */ }
-  }
-  function wireDone() {
-    lesson.stop(); confetti();
-    const sh = $('#share'); if (sh) sh.onclick = shareForest;
-    const inst = $('#nudge-install');
-    if (inst) {
-      const off = () => { store.set('nudge-install', Date.now()); inst.remove(); };
-      $('#nudge-install-later').onclick = off;
-      const go = $('#nudge-install-go'); if (go) go.onclick = async () => { const ev = installEvt; installEvt = null; off(); if (!ev) return; try { ev.prompt(); const c = await ev.userChoice; if (window.SenLinCloud) window.SenLinCloud.track('install', { prompt: true, outcome: c && c.outcome }); } catch (e) { /* ignore */ } };
-    }
-    const nudge = $('#nudge-reminder');
-    if (nudge) { const off = () => { store.set('nudge-reminder', Date.now()); nudge.remove(); }; $('#nudge-reminder-later').onclick = off; $('#nudge-reminder-go').onclick = () => store.set('nudge-reminder', Date.now()); }
-    const card = $('#review-card'); if (!card) return;
-    const seen = (done) => { store.set('review', { askedAt: Date.now(), done: !!done }); card.remove(); if (window.SenLinCloud) window.SenLinCloud.track('review_prompt', { done: !!done }); };
-    $('#review-yes').onclick = () => { const N = window.SenLinNative; if (N && N.isNative && N.review) { try { N.review(); } catch (e) { /* fall back to the link */ } } seen(true); };
-    $('#review-later').onclick = () => seen(false);
-  }
-
-  function wireSegment(id) {
-    const L = lesson.data;
-    if (id === 'review') { wireReview(L, lesson.review, renderSegment); document.addEventListener('keydown', reviewKeys); }
-    else document.removeEventListener('keydown', reviewKeys);
-    document.querySelectorAll('[data-scene]').forEach(t => t.oninput = () => { state.scenes[t.dataset.scene] = t.value.trim(); save(); });
-    document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
-    document.querySelectorAll('[data-reveal]').forEach(e => e.onclick = () => e.classList.remove('hidden'));
-    document.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { if (window.SenLinApp.addWord) { window.SenLinApp.addWord(JSON.parse(b.dataset.addword)); b.textContent = '✓ in deck'; } });
-    document.querySelectorAll('[data-shadow]').forEach(b => b.onclick = () => {
-      lesson.shadow[b.dataset.shadow] = +b.dataset.n;
-      const sn = /^\d+$/.test(b.dataset.shadow) && L.sentences[+b.dataset.shadow];
-      if (sn && +b.dataset.n === 3) shadowCredit(sn.zh);
-      renderSegment();
-    });
-    if (id === 'quiz') { const q = L.quiz[lesson.quiz.i]; if (q && q.kind === 'listen' && !lesson.quiz.answered) setTimeout(() => tts.speak(q.prompt), 300); }
-    if (id === 'quiz') document.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => {
-      const q = lesson.quiz; if (q.answered) return; q.answered = true;
-      const item = L.quiz[q.i]; const ok = b.dataset.opt === item.correct;
-      if (b.dataset.opt === '__skip__') { L.quiz.splice(q.i, 1); q.answered = false; renderSegment(); return; }   // no voice on this device: drop the question, no penalty
-      state.progress.quiz.total++; if (ok) { q.right++; state.progress.quiz.right++; }
-      /* a quiz answer is a retrieval: it counts as a spaced-repetition review (right = good, wrong = again) */
-      if (item.id && state.srs[item.id]) state.srs[item.id] = S.srsReview(state.srs[item.id], ok ? S.GRADE.good : S.GRADE.again, Date.now());
-      save();
-      document.querySelectorAll('[data-opt]').forEach(o => { if (o.dataset.opt === item.correct) o.classList.add('right'); else if (o === b) o.classList.add('wrong'); });
-      $('#quiz-next').innerHTML = `<div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="qn">${ok ? 'Correct →' : 'Next →'}</button></div>`;
-      $('#qn').onclick = () => { q.i++; q.answered = false; renderSegment(); };
-    });
-  }
-  /** Saying a whole sentence three times is a retrieval of every due character and word in it. */
-  function shadowCredit(zh) {
-    const now = Date.now(); let n = 0;
-    const credit = id => { const st = state.srs[id]; if (st && st.due <= now) { state.srs[id] = S.srsReview(st, S.GRADE.good, now); n++; } };
-    for (const ch of zh) credit('c:' + ch);
-    for (const w of S.WORDS) if (w.w.length > 1 && zh.includes(w.w)) credit('w:' + w.w);
-    if (n) { state.progress.reviews.total += n; state.progress.reviews.good += n; save(); }
-  }
-
-  function wireReview(L, r, rerender) {
-    const reveal = () => { r.shown = true; rerender(); };
-    const f = $('#flash'); if (f && !r.shown) f.onclick = reveal;
-    const rb = $('#reveal'); if (rb) rb.onclick = reveal;
-    document.querySelectorAll('[data-grade]').forEach(b => b.onclick = () => {
-      const card = L.review[r.i]; const g = +b.dataset.grade;
-      state.srs[card.id] = S.srsReview(state.srs[card.id], g, Date.now());
-      state.progress.reviews.total++; if (g >= 2) state.progress.reviews.good++;
-      save(); r.i++; r.shown = false; rerender();
-    });
-  }
-  /* ---- Review anytime: every due card, outside the daily lesson */
-  routes.review = function () {
-    const now = Date.now();
-    const learned = S.learnedItems(DAYS, Math.min(todayDay(), DAYS.length)).filter(i => state.progress.completed[i.day]).concat(window.SenLinApp.extraReviewItems());
-    const due = learned.filter(i => i.type !== 's' && state.srs[i.id] && state.srs[i.id].due <= now).sort((a, b) => state.srs[a.id].due - state.srs[b.id].due).slice(0, 40);
-    routes.review.L = { review: due }; routes.review.r = { i: 0, shown: false, standalone: true };
-    return `<div class="stack"><div class="row between"><div><span class="eyebrow">Review anytime</span><h1 class="h2">${due.length} card${due.length === 1 ? '' : 's'} due</h1></div><a class="btn btn-sm btn-ghost" href="#/">Exit</a></div><div id="review-body"></div></div>`;
-  };
-  routes.review.after = () => {
-    const L = routes.review.L, r = routes.review.r;
-    const draw = () => { $('#review-body').innerHTML = renderReview(L, r); wireReview(L, r, draw); const n = $('#next'); if (n) n.onclick = () => { location.hash = '#/'; }; const more = $('#review-more'); if (more) more.onclick = () => { window.scrollTo(0, 0); navigate(); }; };
-    draw(); document.addEventListener('keydown', reviewKeys);
-  };
-  function reviewKeys(e) {
-    if (e.target.matches('input,textarea')) return;
-    if (e.key === ' ' || e.key === 'Enter') { const b = $('#reveal'); if (b) { e.preventDefault(); b.click(); } }
-    const g = { '1': 0, '2': 1, '3': 2, '4': 3 }[e.key]; if (g !== undefined) { const b = $(`[data-grade="${g}"]`); if (b) b.click(); }
-  }
-
-  /* ------------------------------------------------------------ LIBRARY */
-  routes.library = function (arg) {
-    const tab = arg || 'characters';
-    const today = todayDay();
-    const charDay = {}; DAYS.forEach(d => d.chars.forEach(c => { charDay[c.h] = d.day; }));
-    const wordDay = {}; DAYS.forEach(d => d.words.forEach(w => { wordDay[w.w] = d.day; }));
-    const sentDay = {}; DAYS.forEach(d => d.sentences.forEach(s => { sentDay[s.zh] = d.day; }));
-    return `<div class="stack">
+      <p class="muted">${Math.round(d.elapsed/60)} min ${d.elapsed%60} s · ${I()}-day streak · ${U()} characters planted</p>
+      <div class="progress-ring" style="--p:${n}" title="${Object.keys(l.progress.completed).length} of ${t.days} lessons"><div>${n}%</div></div>
+      <p class="muted small">${Object.keys(l.progress.completed).length} of ${t.days} lessons in the whole course${s.quiz.length?` · quiz ${d.quiz.right}/${s.quiz.length}`:""}</p>
+      <p class="muted small">${r<=y.length?`Tomorrow (Day ${r}): ${j(r).type==="pron"?i(j(r).pron.title):j(r).chars.map(o=>o.h).join(" ")+" + "+j(r).words.length+" words"}`:"The scheduled curriculum is complete — keep reviewing daily."}</p>
+      <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a>${navigator.share||navigator.clipboard&&navigator.clipboard.writeText?'<button class="btn btn-ghost" id="share" style="color:#fff;border-color:rgba(255,255,255,.4)">Share</button>':""}</div>
+    </div>${E()>12?`<div class="card stack" style="margin-top:1rem"><span class="eyebrow">Still waiting</span><p><b>${E()} cards are due.</b> Today’s lesson reviewed what fitted in ten minutes; a few spare minutes on the deck keeps the forest from thinning.</p><div class="row"><a class="btn btn-primary" href="#/review">Review now</a></div></div>`:""}${Ce()}${xe()}${Ee()}`}let Y=null;window.addEventListener("beforeinstallprompt",s=>{s.preventDefault(),Y=s});const ze=()=>window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===!0||!!(window.SenLinNative&&window.SenLinNative.isNative),Le=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)&&/safari/i.test(navigator.userAgent)&&!/crios|fxios/i.test(navigator.userAgent);function xe(){if(Object.keys(l.progress.completed).length<2||ze())return"";const e=w.get("nudge-install",null);return e&&Date.now()-e<30*864e5?"":Y?`<div class="card stack" id="nudge-install" style="margin-top:1rem"><span class="eyebrow">One tap away</span><p><b>Install SenLin on this device.</b> Opens full screen from your home screen, works offline, and your reminder lands as a real notification.</p>
+      <div class="row"><button class="btn btn-primary" id="nudge-install-go">Install</button><button class="btn btn-ghost" id="nudge-install-later">Not now</button></div></div>`:Le()?`<div class="card stack" id="nudge-install" style="margin-top:1rem"><span class="eyebrow">One tap away</span><p><b>Add SenLin to your home screen.</b> Tap Share <span aria-hidden="true">⎋</span> below, then <b>Add to Home Screen</b>: it opens full screen and works offline.</p>
+      <div class="row"><button class="btn btn-ghost" id="nudge-install-later">Got it</button></div></div>`:""}function Ce(){const s=Object.keys(l.progress.completed).length;return s<1||s>3||l.settings.reminder&&l.settings.reminder.on||w.get("nudge-reminder",null)?"":`<div class="card stack" id="nudge-reminder" style="margin-top:1rem"><span class="eyebrow">Keep the streak</span><p><b>Same time tomorrow?</b> A daily reminder is the difference between a streak and a good intention.</p>
+      <div class="row"><a class="btn btn-primary" href="#/settings" id="nudge-reminder-go">Set a daily reminder</a><button class="btn btn-ghost" id="nudge-reminder-later">Not now</button></div></div>`}function Ae(){const s=N.store||{},e=window.SenLinNative,t=navigator.userAgent||"";return e&&e.isNative&&e.platform==="ios"?s.ios:/android/i.test(t)||e&&e.isNative?s.android:""}function Ee(){const s=Ae();if(!s)return"";const e=w.get("review",{});return e.done||e.askedAt&&Date.now()-e.askedAt<90*864e5||I()<3||Object.keys(l.progress.completed).length<3?"":`<div class="card stack" id="review-card" style="margin-top:1rem"><span class="eyebrow">A small favour</span><p><b>Enjoying SenLin?</b> A rating helps other learners find it, and takes a few seconds.</p>
+      <div class="row"><a class="btn btn-primary" id="review-yes" href="${i(s)}" target="_blank" rel="noopener">Rate SenLin</a><button class="btn btn-ghost" id="review-later">Not now</button></div></div>`}async function Me(){const s=Object.keys(l.progress.completed).length,e=U(),t=p.CONFIG.siteUrl||location.href.split("#")[0],n=`Day ${d.day} of Mandarin done: ${s} lesson${s===1?"":"s"}, ${e} characters planted. Ten minutes a day, HSK 1 to 6 — Mandarin The SenLin Way.`;window.SenLinCloud&&window.SenLinCloud.track("share",{day:d.day});try{if(navigator.share){await navigator.share({title:"Mandarin The SenLin Way",text:n,url:t});return}await navigator.clipboard.writeText(`${n} ${t}`),z("Copied — paste it anywhere.")}catch{}}function Te(){d.stop(),ue();const s=u("#share");s&&(s.onclick=Me);const e=u("#nudge-install");if(e){const o=()=>{w.set("nudge-install",Date.now()),e.remove()};u("#nudge-install-later").onclick=o;const a=u("#nudge-install-go");a&&(a.onclick=async()=>{const h=Y;if(Y=null,o(),!!h)try{h.prompt();const c=await h.userChoice;window.SenLinCloud&&window.SenLinCloud.track("install",{prompt:!0,outcome:c&&c.outcome})}catch{}})}const t=u("#nudge-reminder");if(t){const o=()=>{w.set("nudge-reminder",Date.now()),t.remove()};u("#nudge-reminder-later").onclick=o,u("#nudge-reminder-go").onclick=()=>w.set("nudge-reminder",Date.now())}const n=u("#review-card");if(!n)return;const r=o=>{w.set("review",{askedAt:Date.now(),done:!!o}),n.remove(),window.SenLinCloud&&window.SenLinCloud.track("review_prompt",{done:!!o})};u("#review-yes").onclick=()=>{const o=window.SenLinNative;if(o&&o.isNative&&o.review)try{o.review()}catch{}r(!0)},u("#review-later").onclick=()=>r(!1)}function Ne(s){const e=d.data;if(s==="review"?(ce(e,d.review,M),document.addEventListener("keydown",B)):document.removeEventListener("keydown",B),document.querySelectorAll("[data-scene]").forEach(t=>t.oninput=()=>{l.scenes[t.dataset.scene]=t.value.trim(),b()}),document.querySelectorAll("[data-cast]").forEach(t=>t.oninput=()=>{l.cast[t.dataset.cast][t.dataset.key]=t.value.trim(),b()}),document.querySelectorAll("[data-reveal]").forEach(t=>t.onclick=()=>t.classList.remove("hidden")),document.querySelectorAll("[data-addword]").forEach(t=>t.onclick=()=>{window.SenLinApp.addWord&&(window.SenLinApp.addWord(JSON.parse(t.dataset.addword)),t.textContent="✓ in deck")}),document.querySelectorAll("[data-shadow]").forEach(t=>t.onclick=()=>{d.shadow[t.dataset.shadow]=+t.dataset.n;const n=/^\d+$/.test(t.dataset.shadow)&&e.sentences[+t.dataset.shadow];n&&+t.dataset.n==3&&je(n.zh),M()}),s==="quiz"){const t=e.quiz[d.quiz.i];t&&t.kind==="listen"&&!d.quiz.answered&&setTimeout(()=>C.speak(t.prompt),300)}s==="quiz"&&document.querySelectorAll("[data-opt]").forEach(t=>t.onclick=()=>{const n=d.quiz;if(n.answered)return;n.answered=!0;const r=e.quiz[n.i],o=t.dataset.opt===r.correct;if(t.dataset.opt==="__skip__"){e.quiz.splice(n.i,1),n.answered=!1,M();return}l.progress.quiz.total++,o&&(n.right++,l.progress.quiz.right++),r.id&&l.srs[r.id]&&(l.srs[r.id]=p.srsReview(l.srs[r.id],o?p.GRADE.good:p.GRADE.again,Date.now())),b(),document.querySelectorAll("[data-opt]").forEach(a=>{a.dataset.opt===r.correct?a.classList.add("right"):a===t&&a.classList.add("wrong")}),u("#quiz-next").innerHTML=`<div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="qn">${o?"Correct →":"Next →"}</button></div>`,u("#qn").onclick=()=>{n.i++,n.answered=!1,M()}})}function je(s){const e=Date.now();let t=0;const n=r=>{const o=l.srs[r];o&&o.due<=e&&(l.srs[r]=p.srsReview(o,p.GRADE.good,e),t++)};for(const r of s)n("c:"+r);for(const r of p.WORDS)r.w.length>1&&s.includes(r.w)&&n("w:"+r.w);t&&(l.progress.reviews.total+=t,l.progress.reviews.good+=t,b())}function ce(s,e,t){const n=()=>{e.shown=!0,t()},r=u("#flash");r&&!e.shown&&(r.onclick=n);const o=u("#reveal");o&&(o.onclick=n),document.querySelectorAll("[data-grade]").forEach(a=>a.onclick=()=>{const h=s.review[e.i],c=+a.dataset.grade;l.srs[h.id]=p.srsReview(l.srs[h.id],c,Date.now()),l.progress.reviews.total++,c>=2&&l.progress.reviews.good++,b(),e.i++,e.shown=!1,t()})}g.review=function(){const s=Date.now(),t=p.learnedItems(y,Math.min(S(),y.length)).filter(n=>l.progress.completed[n.day]).concat(window.SenLinApp.extraReviewItems()).filter(n=>n.type!=="s"&&l.srs[n.id]&&l.srs[n.id].due<=s).sort((n,r)=>l.srs[n.id].due-l.srs[r.id].due).slice(0,40);return g.review.L={review:t},g.review.r={i:0,shown:!1,standalone:!0},`<div class="stack"><div class="row between"><div><span class="eyebrow">Review anytime</span><h1 class="h2">${t.length} card${t.length===1?"":"s"} due</h1></div><a class="btn btn-sm btn-ghost" href="#/">Exit</a></div><div id="review-body"></div></div>`},g.review.after=()=>{const s=g.review.L,e=g.review.r,t=()=>{u("#review-body").innerHTML=ie(s,e),ce(s,e,t);const n=u("#next");n&&(n.onclick=()=>{location.hash="#/"});const r=u("#review-more");r&&(r.onclick=()=>{window.scrollTo(0,0),x()})};t(),document.addEventListener("keydown",B)};function B(s){if(s.target.matches("input,textarea"))return;if(s.key===" "||s.key==="Enter"){const t=u("#reveal");t&&(s.preventDefault(),t.click())}const e={1:0,2:1,3:2,4:3}[s.key];if(e!==void 0){const t=u(`[data-grade="${e}"]`);t&&t.click()}}g.library=function(s){const e=s||"characters",t=S(),n={};y.forEach(a=>a.chars.forEach(h=>{n[h.h]=a.day}));const r={};y.forEach(a=>a.words.forEach(h=>{r[h.w]=a.day}));const o={};return y.forEach(a=>a.sentences.forEach(h=>{o[h.zh]=a.day})),`<div class="stack">
       <div class="row between"><div><span class="eyebrow">Library</span><h1 class="h2">Everything in the forest</h1></div>
-        <div class="row">${['characters', 'words', 'sentences', 'grammar', 'props'].map(t => `<a class="btn btn-sm${t === tab ? ' btn-primary' : ''}" href="#/library/${t}">${t}</a>`).join('')}</div></div>
+        <div class="row">${["characters","words","sentences","grammar","props"].map(a=>`<a class="btn btn-sm${a===e?" btn-primary":""}" href="#/library/${a}">${a}</a>`).join("")}</div></div>
       <input class="input" id="search" placeholder="Search hanzi, pinyin or English…" autocomplete="off">
       <div id="lib">
-      ${tab === 'characters' ? `<div class="grid grid-tiles">${S.CHARACTERS.map(c => `<button class="tile${charDay[c.h] > today ? ' future' : ''}" data-open="${c.h}" data-q="${esc((c.h + ' ' + c.p + ' ' + c.m + ' ' + S.parsePinyin(c.p).base).toLowerCase())}"><span class="hz">${c.h}</span><span class="py ${toneClass(c.p)}">${esc(c.p)}</span><span class="small muted">${esc(c.m)}</span><span class="faint small">HSK ${c.level} · day ${charDay[c.h]}</span></button>`).join('')}</div>` : ''}
-      ${tab === 'words' ? `<table class="table"><tbody>${S.WORDS.map(w => `<tr data-q="${esc((w.w + ' ' + w.p + ' ' + w.m).toLowerCase())}"><td class="mid-hz">${w.w}</td><td class="py">${pinyinHTML(w.p)}</td><td>${esc(w.m)}</td><td class="faint small">day ${wordDay[w.w] || '—'}</td><td>${playBtn(w.w)}</td></tr>`).join('')}</tbody></table>` : ''}
-      ${tab === 'sentences' ? `<div class="stack">${S.SENTENCES.map(s => `<div class="sentence" data-q="${esc((s.zh + ' ' + s.p + ' ' + s.en).toLowerCase())}"><div class="row between"><span class="mid-hz">${esc(s.zh)}</span><span class="row"><span class="faint small">day ${sentDay[s.zh] || '—'}</span>${playBtn(s.zh)}${playBtn(s.zh, { slow: true, rate: 0.6 })}${sayBtn(s.zh)}</span></div><div class="py">${pinyinHTML(s.p)}</div><div class="en">${esc(s.en)}</div></div>`).join('')}</div>` : ''}
-      ${tab === 'grammar' ? `<div class="stack">${S.GRAMMAR.map(g => `<div class="sentence" data-q="${esc((g.name + ' ' + g.pattern + ' ' + g.zh + ' ' + g.en).toLowerCase())}"><div class="row between"><b>${esc(g.name)} <span class="muted">· HSK ${g.level}</span></b><span class="row">${playBtn(g.zh)}</span></div><div>${esc(g.pattern)}</div><div><span class="hz" style="font-size:1.2rem">${esc(g.zh)}</span> <span class="py">${pinyinHTML(g.p)}</span> <span class="muted small">${esc(g.en)}</span></div><div class="small muted">${esc(g.note)}</div></div>`).join('')}</div>` : ''}
-      ${tab === 'props' ? `<div class="grid grid-tiles">${S.COMPONENTS.map(c => `<div class="tile" data-q="${esc((c.c + ' ' + c.k + ' ' + c.prop).toLowerCase())}"><span class="hz">${c.c}</span><b>${esc(c.k)}</b><span class="small muted">${esc(S.resolveCast(state.cast).prop(c.c))}</span></div>`).join('')}</div>` : ''}
-      </div></div>`;
-  };
-  routes.library.after = () => {
-    $('#search').oninput = e => { const q = e.target.value.trim().toLowerCase(); document.querySelectorAll('#lib [data-q]').forEach(el => { el.style.display = !q || el.dataset.q.includes(q) ? '' : 'none'; }); };
-    document.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openChar(b.dataset.open));
-  };
-  function openChar(h) {
-    const ch = S.CHARACTERS.find(c => c.h === h); if (!ch) return;
-    const sc = S.scene(ch, state.cast);
-    const words = S.WORDS.filter(w => w.w.includes(h)).slice(0, 8);
-    const sents = S.SENTENCES.filter(s => s.zh.includes(h)).slice(0, 4);
-    const srs = state.srs['c:' + h];
-    openDialog(`<div class="row between"><span class="eyebrow">${esc(sc.actor)} · ${esc(sc.set)} · ${esc(sc.room)}</span><button class="btn btn-sm btn-ghost" data-close>✕</button></div>
-      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${ch.h}</div><div><div class="py ${toneClass(ch.p)}" style="font-size:1.6rem">${esc(ch.p)}</div><div style="font-weight:700">${esc(ch.m)}</div><div class="row">${playBtn(ch.h)}${playBtn(ch.h, { slow: true, rate: 0.6 })}${sayBtn(ch.h)}<button class="btn btn-sm" data-write="${ch.h}" title="Stroke order">✍️ Write</button></div></div></div>
-      <div class="props">${sc.props.map(p => `<span class="chip"><span class="hz">${p.c}</span> ${esc(p.keyword)} → ${esc(p.prop)}</span>`).join('')}</div>
-      <div class="scene">${esc(state.scenes[h] || sc.text)}</div>
-      <textarea class="input" data-scene="${h}" placeholder="Rewrite this scene in your own words">${esc(state.scenes[h] || '')}</textarea>
-      ${words.length ? `<div><span class="eyebrow">Words</span>${words.map(w => `<div class="row between"><span><span class="hz" style="font-size:1.3rem">${w.w}</span> <span class="py">${pinyinHTML(w.p)}</span> <span class="muted small">${esc(w.m)}</span></span>${playBtn(w.w)}</div>`).join('')}</div>` : ''}
-      ${sents.length ? `<div><span class="eyebrow">Sentences</span>${sents.map(s => `<div class="row between"><span><span class="hz">${esc(s.zh)}</span> <span class="muted small">${esc(s.en)}</span></span>${playBtn(s.zh)}</div>`).join('')}</div>` : ''}
-      <p class="faint small">${srs ? `Reviewed ${srs.reps} time${srs.reps === 1 ? '' : 's'} · next due ${new Date(srs.due).toLocaleDateString()} · interval ${srs.ivl} d` : 'Not yet in your review deck.'}</p>`);
-    $('#dialog [data-scene]').oninput = e => { state.scenes[h] = e.target.value.trim(); save(); };
-  }
-
-  /* ------------------------------------------------------------ CAST */
-  routes.cast = function () {
-    const c = S.resolveCast(state.cast);
-    return `<div class="stack-lg">
+      ${e==="characters"?`<div class="grid grid-tiles">${p.CHARACTERS.map(a=>`<button class="tile${n[a.h]>t?" future":""}" data-open="${a.h}" data-q="${i((a.h+" "+a.p+" "+a.m+" "+p.parsePinyin(a.p).base).toLowerCase())}"><span class="hz">${a.h}</span><span class="py ${q(a.p)}">${i(a.p)}</span><span class="small muted">${i(a.m)}</span><span class="faint small">HSK ${a.level} · day ${n[a.h]}</span></button>`).join("")}</div>`:""}
+      ${e==="words"?`<table class="table"><tbody>${p.WORDS.map(a=>`<tr data-q="${i((a.w+" "+a.p+" "+a.m).toLowerCase())}"><td class="mid-hz">${a.w}</td><td class="py">${f(a.p)}</td><td>${i(a.m)}</td><td class="faint small">day ${r[a.w]||"—"}</td><td>${m(a.w)}</td></tr>`).join("")}</tbody></table>`:""}
+      ${e==="sentences"?`<div class="stack">${p.SENTENCES.map(a=>`<div class="sentence" data-q="${i((a.zh+" "+a.p+" "+a.en).toLowerCase())}"><div class="row between"><span class="mid-hz">${i(a.zh)}</span><span class="row"><span class="faint small">day ${o[a.zh]||"—"}</span>${m(a.zh)}${m(a.zh,{slow:!0,rate:.6})}${D(a.zh)}</span></div><div class="py">${f(a.p)}</div><div class="en">${i(a.en)}</div></div>`).join("")}</div>`:""}
+      ${e==="grammar"?`<div class="stack">${p.GRAMMAR.map(a=>`<div class="sentence" data-q="${i((a.name+" "+a.pattern+" "+a.zh+" "+a.en).toLowerCase())}"><div class="row between"><b>${i(a.name)} <span class="muted">· HSK ${a.level}</span></b><span class="row">${m(a.zh)}</span></div><div>${i(a.pattern)}</div><div><span class="hz" style="font-size:1.2rem">${i(a.zh)}</span> <span class="py">${f(a.p)}</span> <span class="muted small">${i(a.en)}</span></div><div class="small muted">${i(a.note)}</div></div>`).join("")}</div>`:""}
+      ${e==="props"?`<div class="grid grid-tiles">${p.COMPONENTS.map(a=>`<div class="tile" data-q="${i((a.c+" "+a.k+" "+a.prop).toLowerCase())}"><span class="hz">${a.c}</span><b>${i(a.k)}</b><span class="small muted">${i(p.resolveCast(l.cast).prop(a.c))}</span></div>`).join("")}</div>`:""}
+      </div></div>`},g.library.after=()=>{u("#search").oninput=s=>{const e=s.target.value.trim().toLowerCase();document.querySelectorAll("#lib [data-q]").forEach(t=>{t.style.display=!e||t.dataset.q.includes(e)?"":"none"})},document.querySelectorAll("[data-open]").forEach(s=>s.onclick=()=>qe(s.dataset.open))};function qe(s){const e=p.CHARACTERS.find(a=>a.h===s);if(!e)return;const t=p.scene(e,l.cast),n=p.WORDS.filter(a=>a.w.includes(s)).slice(0,8),r=p.SENTENCES.filter(a=>a.zh.includes(s)).slice(0,4),o=l.srs["c:"+s];he(`<div class="row between"><span class="eyebrow">${i(t.actor)} · ${i(t.set)} · ${i(t.room)}</span><button class="btn btn-sm btn-ghost" data-close>✕</button></div>
+      <div class="grid" style="grid-template-columns:auto 1fr;gap:1rem;align-items:center"><div class="big-hz" style="font-size:5rem">${e.h}</div><div><div class="py ${q(e.p)}" style="font-size:1.6rem">${i(e.p)}</div><div style="font-weight:700">${i(e.m)}</div><div class="row">${m(e.h)}${m(e.h,{slow:!0,rate:.6})}${D(e.h)}<button class="btn btn-sm" data-write="${e.h}" title="Stroke order">✍️ Write</button></div></div></div>
+      <div class="props">${t.props.map(a=>`<span class="chip"><span class="hz">${a.c}</span> ${i(a.keyword)} → ${i(a.prop)}</span>`).join("")}</div>
+      <div class="scene">${i(l.scenes[s]||t.text)}</div>
+      <textarea class="input" data-scene="${s}" placeholder="Rewrite this scene in your own words">${i(l.scenes[s]||"")}</textarea>
+      ${n.length?`<div><span class="eyebrow">Words</span>${n.map(a=>`<div class="row between"><span><span class="hz" style="font-size:1.3rem">${a.w}</span> <span class="py">${f(a.p)}</span> <span class="muted small">${i(a.m)}</span></span>${m(a.w)}</div>`).join("")}</div>`:""}
+      ${r.length?`<div><span class="eyebrow">Sentences</span>${r.map(a=>`<div class="row between"><span><span class="hz">${i(a.zh)}</span> <span class="muted small">${i(a.en)}</span></span>${m(a.zh)}</div>`).join("")}</div>`:""}
+      <p class="faint small">${o?`Reviewed ${o.reps} time${o.reps===1?"":"s"} · next due ${new Date(o.due).toLocaleDateString()} · interval ${o.ivl} d`:"Not yet in your review deck."}</p>`),u("#dialog [data-scene]").oninput=a=>{l.scenes[s]=a.target.value.trim(),b()}}g.cast=function(){const s=p.resolveCast(l.cast);return`<div class="stack-lg">
       <div><span class="eyebrow">Cast</span><h1 class="h2">Your actors, sets, rooms and props</h1><p class="lead">Every Mandarin syllable is an actor (initial) in a set (final), standing in a room (tone). Use people and places you can picture instantly — the memory does the rest. Changes save automatically.</p></div>
       <section class="card stack"><h2 class="h3">Actors — initials</h2><table class="table"><thead><tr><th>Initial</th><th>Example</th><th>Your actor</th></tr></thead><tbody>
-        ${S.PINYIN.initials.map(i => `<tr><td><b class="py">${esc(i.key)}-</b><br><span class="small muted">${esc(i.hint)}</span></td><td class="small">${esc(i.ex)} ${playBtn(i.ex.split(' ')[1] || '')}</td><td><input class="input" data-cast="actors" data-key="${esc(i.key)}" aria-label="Your actor for ${esc(i.key)}-" value="${esc(c.actor(i.key))}"></td></tr>`).join('')}</tbody></table></section>
+        ${p.PINYIN.initials.map(e=>`<tr><td><b class="py">${i(e.key)}-</b><br><span class="small muted">${i(e.hint)}</span></td><td class="small">${i(e.ex)} ${m(e.ex.split(" ")[1]||"")}</td><td><input class="input" data-cast="actors" data-key="${i(e.key)}" aria-label="Your actor for ${i(e.key)}-" value="${i(s.actor(e.key))}"></td></tr>`).join("")}</tbody></table></section>
       <section class="card stack"><h2 class="h3">Sets — finals</h2><table class="table"><thead><tr><th>Final</th><th>Example</th><th>Your place</th></tr></thead><tbody>
-        ${S.PINYIN.finals.map(f => `<tr><td><b class="py">-${esc(f.key)}</b><br><span class="small muted">${esc(f.hint)}</span></td><td class="small">${esc(f.ex)} ${playBtn(f.ex.split(' ')[1] || '')}</td><td><input class="input" data-cast="sets" data-key="${esc(f.key)}" aria-label="Your place for -${esc(f.key)}" value="${esc(c.set(f.key))}"></td></tr>`).join('')}</tbody></table></section>
+        ${p.PINYIN.finals.map(e=>`<tr><td><b class="py">-${i(e.key)}</b><br><span class="small muted">${i(e.hint)}</span></td><td class="small">${i(e.ex)} ${m(e.ex.split(" ")[1]||"")}</td><td><input class="input" data-cast="sets" data-key="${i(e.key)}" aria-label="Your place for -${i(e.key)}" value="${i(s.set(e.key))}"></td></tr>`).join("")}</tbody></table></section>
       <section class="card stack"><h2 class="h3">Rooms — tones</h2><p class="muted small">The same five rooms exist in every set. Pick rooms every one of your places has.</p><table class="table"><tbody>
-        ${S.PINYIN.tones.map(t => `<tr><td>${toneSVG(t.n)}</td><td><b>${esc(t.name)}</b><br><span class="small muted">${esc(t.hint)}</span></td><td><input class="input" data-cast="rooms" data-key="${t.n}" aria-label="Your room for the ${esc(t.name)}" value="${esc(c.room(t.n))}"></td></tr>`).join('')}</tbody></table></section>
+        ${p.PINYIN.tones.map(e=>`<tr><td>${A(e.n)}</td><td><b>${i(e.name)}</b><br><span class="small muted">${i(e.hint)}</span></td><td><input class="input" data-cast="rooms" data-key="${e.n}" aria-label="Your room for the ${i(e.name)}" value="${i(s.room(e.n))}"></td></tr>`).join("")}</tbody></table></section>
       <section class="card stack"><h2 class="h3">Props — components</h2><input class="input" id="propsearch" placeholder="Filter props…"><div class="grid grid-tiles" id="props">
-        ${S.COMPONENTS.map(p => `<div class="tile" data-q="${esc((p.c + ' ' + p.k + ' ' + c.prop(p.c)).toLowerCase())}"><span class="hz">${p.c}</span><b class="small">${esc(p.k)}</b><input class="input" data-cast="props" data-key="${p.c}" aria-label="Your prop for ${p.c} (${esc(p.k)})" value="${esc(c.prop(p.c))}"></div>`).join('')}</div></section>
+        ${p.COMPONENTS.map(e=>`<div class="tile" data-q="${i((e.c+" "+e.k+" "+s.prop(e.c)).toLowerCase())}"><span class="hz">${e.c}</span><b class="small">${i(e.k)}</b><input class="input" data-cast="props" data-key="${e.c}" aria-label="Your prop for ${e.c} (${i(e.k)})" value="${i(s.prop(e.c))}"></div>`).join("")}</div></section>
       <div class="row"><button class="btn btn-ghost" id="resetcast">Reset to defaults</button></div>
-    </div>`;
-  };
-  routes.cast.after = () => {
-    document.querySelectorAll('[data-cast]').forEach(i => i.oninput = () => { state.cast[i.dataset.cast][i.dataset.key] = i.value.trim(); save(); });
-    $('#propsearch').oninput = e => { const q = e.target.value.trim().toLowerCase(); document.querySelectorAll('#props [data-q]').forEach(el => el.style.display = !q || el.dataset.q.includes(q) ? '' : 'none'); };
-    $('#resetcast').onclick = () => { if (confirm('Reset all actors, sets, rooms and props to the defaults?')) { state.cast = { actors: {}, sets: {}, rooms: {}, props: {} }; save(); navigate(); } };
-  };
-
-  /* ------------------------------------------------------------ PROGRESS */
-  routes.progress = function () {
-    const today = todayDay(); const done = state.progress.completed;
-    const total = Object.keys(done).length; const st = S.curriculumStats(DAYS);
-    const rv = state.progress.reviews, qz = state.progress.quiz;
-    const cells = []; const start = Math.max(1, today - 90);
-    for (let d = start; d <= today + 6; d++) cells.push(`<i class="${done[d] ? 'on' : d < today ? 'missed' : d > today ? 'future' : ''}${d === today ? ' today' : ''}" title="Day ${d} · ${fmtDate(S.dateForDay(d, state.settings.startDate))}${done[d] ? ' · done' : ''}"></i>`);
-    const learned = S.learnedItems(DAYS, Math.min(today, DAYS.length)).filter(i => done[i.day]);
-    const due = dueCount();
-    const mature = Object.entries(state.srs).filter(([id, s]) => isCard(id) && s.ivl >= 21).length;
-    return `<div class="stack-lg">
+    </div>`},g.cast.after=()=>{document.querySelectorAll("[data-cast]").forEach(s=>s.oninput=()=>{l.cast[s.dataset.cast][s.dataset.key]=s.value.trim(),b()}),u("#propsearch").oninput=s=>{const e=s.target.value.trim().toLowerCase();document.querySelectorAll("#props [data-q]").forEach(t=>t.style.display=!e||t.dataset.q.includes(e)?"":"none")},u("#resetcast").onclick=()=>{confirm("Reset all actors, sets, rooms and props to the defaults?")&&(l.cast={actors:{},sets:{},rooms:{},props:{}},b(),x())}},g.progress=function(){const s=S(),e=l.progress.completed,t=Object.keys(e).length,n=p.curriculumStats(y),r=l.progress.reviews,o=l.progress.quiz,a=[],h=Math.max(1,s-90);for(let v=h;v<=s+6;v++)a.push(`<i class="${e[v]?"on":v<s?"missed":v>s?"future":""}${v===s?" today":""}" title="Day ${v} · ${R(p.dateForDay(v,l.settings.startDate))}${e[v]?" · done":""}"></i>`);const c=p.learnedItems(y,Math.min(s,y.length)).filter(v=>e[v.day]),k=E(),$=Object.entries(l.srs).filter(([v,K])=>ae(v)&&K.ivl>=21).length;return`<div class="stack-lg">
       <div><span class="eyebrow">Progress</span><h1 class="h2">Your forest</h1></div>
       <section class="grid grid-3">
-        <div class="card stat"><b>${streak()}</b><span>day streak</span></div>
-        <div class="card stat"><b>${total}</b><span>lessons completed · ${(() => { const L = currentLevelInfo(); return L ? `${L.completed} of ${L.total} in ${esc(L.name)}` : ''; })()} · ${st.days} on the whole road</span></div>
-        <div class="card stat"><b>${learned.filter(i => i.type === 'c').length}</b><span>characters · ${learned.filter(i => i.type === 'w').length} words · ${learned.filter(i => i.type === 's').length} sentences</span></div>
-        <div class="card stat"><b>${due}</b><span>reviews due now · ${mature} mature (21 d+)</span></div>
-        <div class="card stat"><b>${rv.total ? Math.round(rv.good / rv.total * 100) : 0}%</b><span>recall rate (${rv.total} reviews)</span></div>
-        <div class="card stat"><b>${qz.total ? Math.round(qz.right / qz.total * 100) : 0}%</b><span>quiz accuracy (${qz.total} questions)</span></div>
-        <div class="card stat"><b>${(state.progress.tones || { total: 0 }).total ? Math.round(state.progress.tones.right / state.progress.tones.total * 100) : 0}%</b><span>tone gym (${(state.progress.tones || { total: 0 }).total} reps) · <a href="#/tones" style="text-decoration:underline">train</a></span></div>
-        <div class="card stat"><b>${(state.progress.writes || { total: 0 }).total}</b><span>characters written by hand · ${(state.talks || []).length} tutor sessions</span></div>
+        <div class="card stat"><b>${I()}</b><span>day streak</span></div>
+        <div class="card stat"><b>${t}</b><span>lessons completed · ${(()=>{const v=te();return v?`${v.completed} of ${v.total} in ${i(v.name)}`:""})()} · ${n.days} on the whole road</span></div>
+        <div class="card stat"><b>${c.filter(v=>v.type==="c").length}</b><span>characters · ${c.filter(v=>v.type==="w").length} words · ${c.filter(v=>v.type==="s").length} sentences</span></div>
+        <div class="card stat"><b>${k}</b><span>reviews due now · ${$} mature (21 d+)</span></div>
+        <div class="card stat"><b>${r.total?Math.round(r.good/r.total*100):0}%</b><span>recall rate (${r.total} reviews)</span></div>
+        <div class="card stat"><b>${o.total?Math.round(o.right/o.total*100):0}%</b><span>quiz accuracy (${o.total} questions)</span></div>
+        <div class="card stat"><b>${(l.progress.tones||{total:0}).total?Math.round(l.progress.tones.right/l.progress.tones.total*100):0}%</b><span>tone gym (${(l.progress.tones||{total:0}).total} reps) · <a href="#/tones" style="text-decoration:underline">train</a></span></div>
+        <div class="card stat"><b>${(l.progress.writes||{total:0}).total}</b><span>characters written by hand · ${(l.talks||[]).length} tutor sessions</span></div>
       </section>
-      <section class="card stack"><h2 class="h3">Your forest</h2><div class="forest">${forestSVG(total) || '<span class="small muted">Plant your first tree today.</span>'}</div></section>
-      <section class="card stack"><h2 class="h3">Last 90 days</h2><div class="heatmap">${cells.join('')}</div><p class="faint small">Green = done · red = missed · gold ring = today. Missed days stay open under Today → Catch-up.</p></section>
+      <section class="card stack"><h2 class="h3">Your forest</h2><div class="forest">${se(t)||'<span class="small muted">Plant your first tree today.</span>'}</div></section>
+      <section class="card stack"><h2 class="h3">Last 90 days</h2><div class="heatmap">${a.join("")}</div><p class="faint small">Green = done · red = missed · gold ring = today. Missed days stay open under Today → Catch-up.</p></section>
       <section class="card stack"><h2 class="h3">Milestones</h2><ul class="stack small" style="gap:.4rem">
-        ${[[12, 'Pronunciation Mastery complete — every sound has an actor and a set'], [13, 'First tree planted: 木 林 森']].concat(st.levels.map(l => [l.lastDay, `${l.name} complete: ${l.characters} characters, ${l.words} words, ${l.sentences} sentences`])).map(([d, t]) => `<li>${done[d] ? '✅' : d <= today ? '⬜' : '🔒'} <b>Day ${d}</b> — ${esc(t)}</li>`).join('')}</ul></section>
-    </div>`;
-  };
-
-  /* ------------------------------------------------------------ LEVELS */
-  routes.levels = function () {
-    const info = S.LEVELINFO; const ls = levelStatus(); const start = S.parseISO(state.settings.startDate);
-    const perDay = state.settings.charsPerDay;
-    return `<div class="stack-lg">
-      <div><span class="eyebrow">The ladder</span><h1 class="h2">What each HSK level means, and when you reach it</h1><p class="lead">${esc(info.about)}</p></div>
-      <div class="card stack"><div class="row between"><b>Your road at ${perDay} characters a day, starting ${esc(fmtDate(start))}</b><a class="btn btn-sm" href="#/settings">change pace</a></div>
+        ${[[12,"Pronunciation Mastery complete — every sound has an actor and a set"],[13,"First tree planted: 木 林 森"]].concat(n.levels.map(v=>[v.lastDay,`${v.name} complete: ${v.characters} characters, ${v.words} words, ${v.sentences} sentences`])).map(([v,K])=>`<li>${e[v]?"✅":v<=s?"⬜":"🔒"} <b>Day ${v}</b> — ${i(K)}</li>`).join("")}</ul></section>
+    </div>`},g.levels=function(){const s=p.LEVELINFO,e=G(),t=p.parseISO(l.settings.startDate),n=l.settings.charsPerDay;return`<div class="stack-lg">
+      <div><span class="eyebrow">The ladder</span><h1 class="h2">What each HSK level means, and when you reach it</h1><p class="lead">${i(s.about)}</p></div>
+      <div class="card stack"><div class="row between"><b>Your road at ${n} characters a day, starting ${i(R(t))}</b><a class="btn btn-sm" href="#/settings">change pace</a></div>
         <div class="table-scroll"><table class="table"><thead><tr><th>Level</th><th class="hide-sm">CEFR</th><th>Words</th><th class="hide-sm">Typical study hours</th><th>SenLin days</th><th>Target date</th><th>Status</th></tr></thead><tbody>
-        ${ls.map(l => { const i = info.levels.find(x => x.level === l.level); return `<tr${l.status === 'current' ? ' style="background:var(--accent-soft)"' : ''}><td><b>${esc(l.name)}</b><span class="muted small show-sm"> · ${esc(i.cefr)}</span></td><td class="hide-sm">${esc(i.cefr)}</td><td>${i.cumWords.toLocaleString()}<span class="hide-sm"> total</span></td><td class="hide-sm">${i.hours[0]}–${i.hours[1]} h</td><td>Day ${l.start}–${l.end} <span class="muted small">(${monthsBetween(S.dateForDay(1, state.settings.startDate), l.endDate)} mo)</span></td><td>${esc(fmtDateY(l.endDate))}</td><td>${l.status === 'done' ? '✅ done' : l.status === 'current' ? `🟢 ${l.completed}/${l.total}` : '🔒'}</td></tr>`; }).join('')}
+        ${e.map(r=>{const o=s.levels.find(a=>a.level===r.level);return`<tr${r.status==="current"?' style="background:var(--accent-soft)"':""}><td><b>${i(r.name)}</b><span class="muted small show-sm"> · ${i(o.cefr)}</span></td><td class="hide-sm">${i(o.cefr)}</td><td>${o.cumWords.toLocaleString()}<span class="hide-sm"> total</span></td><td class="hide-sm">${o.hours[0]}–${o.hours[1]} h</td><td>Day ${r.start}–${r.end} <span class="muted small">(${me(p.dateForDay(1,l.settings.startDate),r.endDate)} mo)</span></td><td>${i(F(r.endDate))}</td><td>${r.status==="done"?"✅ done":r.status==="current"?`🟢 ${r.completed}/${r.total}`:"🔒"}</td></tr>`}).join("")}
         </tbody></table></div>
         <p class="small muted">“Typical study hours” are the ranges Hanban and university programmes cite for classroom learners. SenLin’s ten-minute lessons cover the vocabulary and grammar on the dates above; the Talk, Tone gym, Write and Deal Desk sessions on top of them are what turn that into the hours of real practice each level needs.</p></div>
-      ${info.levels.map(i => { const l = ls.find(x => x.level === i.level); return `<section class="card stack">
-        <div class="row between"><div><span class="eyebrow">${esc(i.name)} · ${esc(i.cefr)} · ${i.words} new words (${i.cumWords.toLocaleString()} cumulative)</span><h2 class="h3">${esc(i.canDo.split('.')[0])}.</h2></div><span class="chip${l.status === 'done' ? ' chip-accent' : l.status === 'current' ? ' chip-gold' : ''}">${l.status === 'done' ? 'complete' : l.status === 'current' ? 'in progress' : 'from ' + esc(fmtDate(l.startDate))}</span></div>
-        <p class="muted">${esc(i.canDo)}</p>
-        <div class="grid grid-2"><div><b>The exam</b><p class="small muted">${esc(i.exam)}</p></div><div><b>Official textbook</b><p class="small muted">${esc(i.book)}. Study hours: ${i.hours[0]}–${i.hours[1]}. In SenLin: days ${l.start}–${l.end} (${l.total} lessons, ${esc(fmtDateY(l.startDate))} → ${esc(fmtDateY(l.endDate))}).</p></div></div>
-        <details class="small"><summary class="muted">Units and topics this level covers</summary><ul class="stack" style="gap:.25rem;margin-top:.5rem">${i.topics.map(t => `<li>· ${esc(t)}</li>`).join('')}</ul></details>
-      </section>`; }).join('')}
-      <p class="small muted">${esc(info.note30)}</p>
-    </div>`;
-  };
-
-  /* ------------------------------------------------------------ DEAL DESK */
-  routes.business = function (arg) {
-    const B = S.BUSINESS; const unit = B.units.find(u => u.id === arg);
-    if (unit) return `<div class="stack-lg">
-      <div class="row between"><div><span class="eyebrow">Deal Desk · ${esc(unit.en)}</span><h1 class="h2"><span class="hz">${esc(unit.title)}</span></h1><p class="lead">${esc(unit.brief)}</p></div><a class="btn btn-sm btn-ghost" href="#/business">← all units</a></div>
-      <section class="card stack"><h2 class="h3">Terms</h2>${unit.terms.map(t => `<div class="row between"><div><span class="mid-hz">${esc(t.w)}</span> <span class="py">${pinyinHTML(t.p)}</span> <span class="muted">${esc(t.m)}</span>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ''}</div><span class="row">${playBtn(t.w)}${sayBtn(t.w)}<button class="btn btn-sm" data-addword="${esc(JSON.stringify({ w: t.w, p: t.p, m: t.m }))}">＋ deck</button></span></div>`).join('')}</section>
-      <section class="card stack"><h2 class="h3">Phrases that move a deal</h2>${unit.phrases.map(x => `<div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.3rem">${esc(x.zh)}</span><span class="row">${playBtn(x.zh)}${playBtn(x.zh, { slow: true, rate: 0.6 })}${sayBtn(x.zh)}</span></div><div class="py">${pinyinHTML(x.p)}</div><div class="muted">${esc(x.en)}</div>${x.note ? `<div class="small faint">${esc(x.note)}</div>` : ''}</div>`).join('')}</section>
-      <div class="row"><a class="btn btn-primary" href="#/talk/biz-${unit.id === 'terms' ? 'terms' : unit.id === 'dd' ? 'dd' : unit.id === 'closing' || unit.id === 'legal' ? 'closing' : unit.id === 'banquet' ? 'banquet' : unit.id === 'fund' ? 'lp' : 'intro'}">Practise this live with the tutor</a></div>
-    </div>`;
-    const today = todayDay(); const desk = S.dealDesk(today, S.CONFIG.businessStartDay);
-    return `<div class="stack-lg">
-      <div><span class="eyebrow">Deal Desk · 交易台</span><h1 class="h2">Mandarin for cross-border private equity and venture deals</h1><p class="lead">${esc(B.intro)}</p></div>
-      ${desk ? `<section class="card card-accent stack"><span class="eyebrow">Today’s deal desk · cycle ${desk.cycle}</span><div class="row">${desk.terms.map(t => `<span class="chip chip-gold"><span class="hz">${esc(t.w)}</span> ${esc(t.p)} · ${esc(t.m)}</span>`).join('')}</div><div class="hz" style="font-size:1.3rem">${esc(desk.phrase.zh)}</div><div class="muted">${esc(desk.phrase.p)} — ${esc(desk.phrase.en)}</div></section>` : ''}
-      <div class="grid grid-3">${B.units.map((u, i) => `<a class="tile" href="#/business/${u.id}"><span class="faint small">Unit ${i + 1}</span><span class="hz" style="font-size:1.5rem">${esc(u.title)}</span><b>${esc(u.en)}</b><span class="small muted">${u.terms.length} terms · ${u.phrases.length} phrases</span></a>`).join('')}</div>
-      <section class="card stack"><h2 class="h3">Worked dialogues</h2>${B.dialogues.map(d => `<details><summary><b>${esc(d.en)}</b> <span class="hz muted">${esc(d.title)}</span></summary><div class="stack" style="margin-top:.6rem">${d.lines.map(l => `<div class="sentence" style="border-left-color:var(--grape-500)"><div class="row between"><span><span class="faint small">${esc(l.who)}</span><br><span class="hz" style="font-size:1.2rem">${esc(l.zh)}</span></span><span class="row">${playBtn(l.zh)}${sayBtn(l.zh)}</span></div><div class="py small">${pinyinHTML(l.p)}</div><div class="muted small">${esc(l.en)}</div></div>`).join('')}</div></details>`).join('')}</section>
-      <section class="card stack"><h2 class="h3">Live deal-room practice</h2><p class="muted small">Six role-plays with the AI tutor: first meeting, LP pitch, term-sheet negotiation, diligence call, closing call and the banquet. The tutor uses real deal vocabulary at your level and corrects every turn.</p><div class="row">${(window.SENLIN_SCENARIOS || []).filter(x => x.track === 'business').map(x => `<a class="btn btn-sm" href="#/talk/${x.id}">${esc(x.en)}</a>`).join('')}</div></section>
-    </div>`;
-  };
-  routes.business.after = () => { document.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { if (window.SenLinApp.addWord) { window.SenLinApp.addWord(JSON.parse(b.dataset.addword)); b.textContent = '✓ in deck'; } }); };
-
-  /* ------------------------------------------------------------ METHOD */
-  routes.method = function () {
-    return `<div class="prose stack">
+      ${s.levels.map(r=>{const o=e.find(a=>a.level===r.level);return`<section class="card stack">
+        <div class="row between"><div><span class="eyebrow">${i(r.name)} · ${i(r.cefr)} · ${r.words} new words (${r.cumWords.toLocaleString()} cumulative)</span><h2 class="h3">${i(r.canDo.split(".")[0])}.</h2></div><span class="chip${o.status==="done"?" chip-accent":o.status==="current"?" chip-gold":""}">${o.status==="done"?"complete":o.status==="current"?"in progress":"from "+i(R(o.startDate))}</span></div>
+        <p class="muted">${i(r.canDo)}</p>
+        <div class="grid grid-2"><div><b>The exam</b><p class="small muted">${i(r.exam)}</p></div><div><b>Official textbook</b><p class="small muted">${i(r.book)}. Study hours: ${r.hours[0]}–${r.hours[1]}. In SenLin: days ${o.start}–${o.end} (${o.total} lessons, ${i(F(o.startDate))} → ${i(F(o.endDate))}).</p></div></div>
+        <details class="small"><summary class="muted">Units and topics this level covers</summary><ul class="stack" style="gap:.25rem;margin-top:.5rem">${r.topics.map(a=>`<li>· ${i(a)}</li>`).join("")}</ul></details>
+      </section>`}).join("")}
+      <p class="small muted">${i(s.note30)}</p>
+    </div>`},g.business=function(s){const e=p.BUSINESS,t=e.units.find(o=>o.id===s);if(t)return`<div class="stack-lg">
+      <div class="row between"><div><span class="eyebrow">Deal Desk · ${i(t.en)}</span><h1 class="h2"><span class="hz">${i(t.title)}</span></h1><p class="lead">${i(t.brief)}</p></div><a class="btn btn-sm btn-ghost" href="#/business">← all units</a></div>
+      <section class="card stack"><h2 class="h3">Terms</h2>${t.terms.map(o=>`<div class="row between"><div><span class="mid-hz">${i(o.w)}</span> <span class="py">${f(o.p)}</span> <span class="muted">${i(o.m)}</span>${o.note?`<div class="small muted">${i(o.note)}</div>`:""}</div><span class="row">${m(o.w)}${D(o.w)}<button class="btn btn-sm" data-addword="${i(JSON.stringify({w:o.w,p:o.p,m:o.m}))}">＋ deck</button></span></div>`).join("")}</section>
+      <section class="card stack"><h2 class="h3">Phrases that move a deal</h2>${t.phrases.map(o=>`<div class="sentence" style="border-left-color:var(--sky-500)"><div class="row between"><span class="hz" style="font-size:1.3rem">${i(o.zh)}</span><span class="row">${m(o.zh)}${m(o.zh,{slow:!0,rate:.6})}${D(o.zh)}</span></div><div class="py">${f(o.p)}</div><div class="muted">${i(o.en)}</div>${o.note?`<div class="small faint">${i(o.note)}</div>`:""}</div>`).join("")}</section>
+      <div class="row"><a class="btn btn-primary" href="#/talk/biz-${t.id==="terms"?"terms":t.id==="dd"?"dd":t.id==="closing"||t.id==="legal"?"closing":t.id==="banquet"?"banquet":t.id==="fund"?"lp":"intro"}">Practise this live with the tutor</a></div>
+    </div>`;const n=S(),r=p.dealDesk(n,p.CONFIG.businessStartDay);return`<div class="stack-lg">
+      <div><span class="eyebrow">Deal Desk · 交易台</span><h1 class="h2">Mandarin for cross-border private equity and venture deals</h1><p class="lead">${i(e.intro)}</p></div>
+      ${r?`<section class="card card-accent stack"><span class="eyebrow">Today’s deal desk · cycle ${r.cycle}</span><div class="row">${r.terms.map(o=>`<span class="chip chip-gold"><span class="hz">${i(o.w)}</span> ${i(o.p)} · ${i(o.m)}</span>`).join("")}</div><div class="hz" style="font-size:1.3rem">${i(r.phrase.zh)}</div><div class="muted">${i(r.phrase.p)} — ${i(r.phrase.en)}</div></section>`:""}
+      <div class="grid grid-3">${e.units.map((o,a)=>`<a class="tile" href="#/business/${o.id}"><span class="faint small">Unit ${a+1}</span><span class="hz" style="font-size:1.5rem">${i(o.title)}</span><b>${i(o.en)}</b><span class="small muted">${o.terms.length} terms · ${o.phrases.length} phrases</span></a>`).join("")}</div>
+      <section class="card stack"><h2 class="h3">Worked dialogues</h2>${e.dialogues.map(o=>`<details><summary><b>${i(o.en)}</b> <span class="hz muted">${i(o.title)}</span></summary><div class="stack" style="margin-top:.6rem">${o.lines.map(a=>`<div class="sentence" style="border-left-color:var(--grape-500)"><div class="row between"><span><span class="faint small">${i(a.who)}</span><br><span class="hz" style="font-size:1.2rem">${i(a.zh)}</span></span><span class="row">${m(a.zh)}${D(a.zh)}</span></div><div class="py small">${f(a.p)}</div><div class="muted small">${i(a.en)}</div></div>`).join("")}</div></details>`).join("")}</section>
+      <section class="card stack"><h2 class="h3">Live deal-room practice</h2><p class="muted small">Six role-plays with the AI tutor: first meeting, LP pitch, term-sheet negotiation, diligence call, closing call and the banquet. The tutor uses real deal vocabulary at your level and corrects every turn.</p><div class="row">${(window.SENLIN_SCENARIOS||[]).filter(o=>o.track==="business").map(o=>`<a class="btn btn-sm" href="#/talk/${o.id}">${i(o.en)}</a>`).join("")}</div></section>
+    </div>`},g.business.after=()=>{document.querySelectorAll("[data-addword]").forEach(s=>s.onclick=()=>{window.SenLinApp.addWord&&(window.SenLinApp.addWord(JSON.parse(s.dataset.addword)),s.textContent="✓ in deck")})},g.method=function(){return`<div class="prose stack">
       <div><span class="eyebrow">The method</span><h1 class="h2">The SenLin Way</h1><p class="lead">森林 sēnlín means forest. 木 is a tree; two make woods (林); three make a forest (森). That is the whole philosophy: one small tree, every single day, compounding.</p></div>
       <h2 class="h3">Seven pillars, borrowed from the best</h2>
       <p><b>1 · Pronunciation before everything.</b> The first twelve days teach nothing but sound: every initial, every final, the four tones and the neutral tone, then all twenty tone pairs and the sandhi rules. A bad accent fossilises if you start with vocabulary, so the ear and mouth come first.</p>
@@ -879,37 +234,29 @@
       <h2 class="h3">The road</h2>
       <ul>
         <li><b>Days 1–12 · Pronunciation Mastery.</b> Sounds, tones, tone pairs, and casting your actors, sets and props.</li>
-        ${(() => { const st = S.curriculumStats(DAYS); let start = 13; return st.levels.map(l => { const li = `<li><b>Days ${start}–${l.lastDay} · Phase ${l.level}, ${esc(l.name)}.</b> ${l.characters} characters, ${l.words} words and ${l.sentences} sentences, each unlocking exactly when you are ready for it.</li>`; start = l.lastDay + 1; return li; }).join(''); })()}
-        <li><b>After the last level · Consolidation.</b> Daily review keeps the forest alive. HSK 6 is the ceiling of the standard test: at three characters a day the full road is about ${Math.round((S.CHARACTERS.length / 3 + 12) / 30)} months of ten-minute lessons, and you can raise the pace in Settings.</li>
+        ${(()=>{const s=p.curriculumStats(y);let e=13;return s.levels.map(t=>{const n=`<li><b>Days ${e}–${t.lastDay} · Phase ${t.level}, ${i(t.name)}.</b> ${t.characters} characters, ${t.words} words and ${t.sentences} sentences, each unlocking exactly when you are ready for it.</li>`;return e=t.lastDay+1,n}).join("")})()}
+        <li><b>After the last level · Consolidation.</b> Daily review keeps the forest alive. HSK 6 is the ceiling of the standard test: at three characters a day the full road is about ${Math.round((p.CHARACTERS.length/3+12)/30)} months of ten-minute lessons, and you can raise the pace in Settings.</li>
       </ul>
       <h2 class="h3">Levels and the Deal Desk</h2>
       <p>The six phases are aligned with the published HSK 2.0 vocabulary lists (every listed word is taught, at its listed level) and mirror the unit structure of the <i>HSK Standard Course</i> textbooks. The <a href="#/levels" style="text-decoration:underline">Levels</a> page defines each level, its exam and the date you reach it at your pace. The <a href="#/business" style="text-decoration:underline">Deal Desk</a> is a parallel track for cross-border private-equity and venture work: two terms and one closing phrase join every lesson, and six deal-room role-plays live in Talk.</p>
       <h2 class="h3">Credits</h2>
       <p class="small muted">The SenLin Way is an original curriculum. It stands on the shoulders of James Heisig (component mnemonics), Paul Pimsleur (graduated recall), Piotr Woźniak (SM-2 spaced repetition), Stephen Krashen (comprehensible input) and Alexander Argüelles (shadowing), and on the published HSK vocabulary lists. Character decompositions are mnemonic-level approximations chosen for memorability. Stroke-order animations use the open-source <a href="https://hanziwriter.org" rel="noopener" target="_blank" style="text-decoration:underline">Hanzi Writer</a> library and Make Me a Hanzi data. HSK is a trademark of its owners; this course is HSK-aligned and is not affiliated with or endorsed by them. <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>.</p>
-    </div>`;
-  };
-
-  /* ------------------------------------------------------------ SETTINGS */
-  routes.settings = function (arg) {
-    const s = state.settings;
-    if (arg === 'dev') { s.developer = !s.developer; save(); toast(s.developer ? 'Developer options on' : 'Developer options off'); location.hash = '#/settings'; return ''; }
-    const voices = tts.voices;
-    return `<div class="stack-lg" style="max-width:640px">
-      ${window.SenLinApp && window.SenLinApp.accountExtra ? window.SenLinApp.accountExtra() : ''}
+    </div>`},g.settings=function(s){const e=l.settings;if(s==="dev")return e.developer=!e.developer,b(),z(e.developer?"Developer options on":"Developer options off"),location.hash="#/settings","";const t=C.voices;return`<div class="stack-lg" style="max-width:640px">
+      ${window.SenLinApp&&window.SenLinApp.accountExtra?window.SenLinApp.accountExtra():""}
       <div><span class="eyebrow">Settings</span><h1 class="h2">Make it yours</h1></div>
       <section class="card stack">
-        <div class="field"><label for="start">Day 1 date</label><input class="input" type="date" id="start" value="${esc(s.startDate)}"><span class="faint small">Today is Day ${todayDay()}. Change this to restart or to shift the calendar.</span></div>
-        <div class="field"><label for="pace">New characters per day</label><select class="input" id="pace">${[2, 3, 4, 5].map(n => `<option value="${n}"${s.charsPerDay === n ? ' selected' : ''}>${n} per day (${Math.ceil(S.CHARACTERS.length / n) + S.PINYIN.pronunciationDays.length} days for Phase 1)</option>`).join('')}</select></div>
-        <div class="field"><label><input type="checkbox" id="biztoggle"${s.business ? ' checked' : ''}> Business track (Deal Desk) in every lesson</label><span class="faint small">Two PE/VC terms and one closing phrase a day, from Day 13. The full track lives under Deal Desk.</span></div>
-        <div class="field"><label for="theme">Theme</label><select class="input" id="theme">${['auto', 'light', 'dark'].map(t => `<option value="${t}"${s.theme === t ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
+        <div class="field"><label for="start">Day 1 date</label><input class="input" type="date" id="start" value="${i(e.startDate)}"><span class="faint small">Today is Day ${S()}. Change this to restart or to shift the calendar.</span></div>
+        <div class="field"><label for="pace">New characters per day</label><select class="input" id="pace">${[2,3,4,5].map(n=>`<option value="${n}"${e.charsPerDay===n?" selected":""}>${n} per day (${Math.ceil(p.CHARACTERS.length/n)+p.PINYIN.pronunciationDays.length} days for Phase 1)</option>`).join("")}</select></div>
+        <div class="field"><label><input type="checkbox" id="biztoggle"${e.business?" checked":""}> Business track (Deal Desk) in every lesson</label><span class="faint small">Two PE/VC terms and one closing phrase a day, from Day 13. The full track lives under Deal Desk.</span></div>
+        <div class="field"><label for="theme">Theme</label><select class="input" id="theme">${["auto","light","dark"].map(n=>`<option value="${n}"${e.theme===n?" selected":""}>${n}</option>`).join("")}</select></div>
       </section>
       <section class="card stack">
         <h2 class="h3">Voice</h2>
-        <div class="field"><label for="voicesource">Voice source</label><select class="input" id="voicesource">${[['auto', 'Best available: recorded audio, then device voice, then cloud voice'], ['recorded', 'Recorded audio first, device voice as backup'], ['device', 'Device voice only'], ['cloud', 'Cloud voice (needs an account)']].map(([v, l]) => `<option value="${v}"${(s.voiceSource || 'auto') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+        <div class="field"><label for="voicesource">Voice source</label><select class="input" id="voicesource">${[["auto","Best available: recorded audio, then device voice, then cloud voice"],["recorded","Recorded audio first, device voice as backup"],["device","Device voice only"],["cloud","Cloud voice (needs an account)"]].map(([n,r])=>`<option value="${n}"${(e.voiceSource||"auto")===n?" selected":""}>${r}</option>`).join("")}</select>
           <span class="faint small">Best browsers: Chrome (desktop and Android) for both speaking and the microphone; Safari for speaking. The preview inside the Claude app has no speech engine, so it uses the online voice; the microphone needs Chrome.</span></div>
-        <div class="field"><label for="voice">Mandarin voice</label><select class="input" id="voice"><option value="">Automatic${voices.length ? '' : ' (no Chinese voice found yet)'}</option>${voices.map(v => `<option value="${esc(v.name)}"${s.voice === v.name ? ' selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>
+        <div class="field"><label for="voice">Mandarin voice</label><select class="input" id="voice"><option value="">Automatic${t.length?"":" (no Chinese voice found yet)"}</option>${t.map(n=>`<option value="${i(n.name)}"${e.voice===n.name?" selected":""}>${i(n.name)} (${i(n.lang)})</option>`).join("")}</select>
           <span class="faint small">No Chinese voice? macOS: System Settings → Accessibility → Spoken Content → add Tingting. Windows: Settings → Time & Language → add Chinese (Simplified) speech. Chrome also ships a Google 普通话 voice online.</span></div>
-        <div class="field"><label for="rate">Speed: <span id="rateval">${s.rate}</span></label><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${s.rate}"></div>
+        <div class="field"><label for="rate">Speed: <span id="rateval">${e.rate}</span></label><input type="range" id="rate" min="0.5" max="1.2" step="0.05" value="${e.rate}"></div>
         <button class="btn" id="testvoice">Test: 你好，我是森林。</button>
       </section>
       <section class="card stack">
@@ -917,47 +264,11 @@
         <p class="muted small">Your progress lives in this browser. Sign in above to sync it across devices with automatic backups, or export a file here.</p>
         <div class="row"><button class="btn" id="export">Export backup</button><label class="btn">Import backup<input type="file" id="import" accept="application/json" class="sr-only"></label><button class="btn btn-ghost" id="reset" style="color:var(--vermilion)">Reset everything</button></div>
       </section>
-      ${window.SenLinApp && window.SenLinApp.placementExtra ? window.SenLinApp.placementExtra() : ''}
-      ${window.SenLinApp && window.SenLinApp.settingsExtra ? window.SenLinApp.settingsExtra() : ''}
+      ${window.SenLinApp&&window.SenLinApp.placementExtra?window.SenLinApp.placementExtra():""}
+      ${window.SenLinApp&&window.SenLinApp.settingsExtra?window.SenLinApp.settingsExtra():""}
       <section class="card card-soft stack">
         <h2 class="h3">Daily reminder</h2>
-        ${window.SenLinApp && window.SenLinApp.reminderExtra ? window.SenLinApp.reminderExtra() : ''}
+        ${window.SenLinApp&&window.SenLinApp.reminderExtra?window.SenLinApp.reminderExtra():""}
         <p class="small muted">Prefer a calendar? Add the 10-minute slot: <a href="daily.ics" download>daily.ics</a> (7:00 every day, with a link straight to that day’s lesson).</p>
       </section>
-    </div>`;
-  };
-  routes.settings.after = () => {
-    const s = state.settings;
-    $('#start').onchange = e => { if (e.target.value) { s.startDate = e.target.value; save(); toast('Day 1 set to ' + s.startDate); } };
-    $('#pace').onchange = e => { s.charsPerDay = +e.target.value; save(); rebuild(); toast('Pace updated'); };
-    $('#theme').onchange = e => { s.theme = e.target.value; save(); applyTheme(); };
-    $('#biztoggle').onchange = e => { s.business = e.target.checked; save(); toast(s.business ? 'Deal Desk on' : 'Deal Desk off'); };
-    $('#voice').onchange = e => { s.voice = e.target.value; save(); };
-    $('#voicesource').onchange = e => { s.voiceSource = e.target.value; save(); };
-    $('#rate').oninput = e => { s.rate = +e.target.value; $('#rateval').textContent = s.rate; save(); };
-    $('#testvoice').onclick = () => tts.speak('你好，我是森林。');
-    $('#export').onclick = () => { const blob = new Blob([JSON.stringify({ settings: s, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `senlin-backup-${S.isoDate(new Date())}.json`; a.click(); };
-    $('#import').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); Object.assign(state.settings, d.settings || {}); state.cast = d.cast || state.cast; state.srs = d.srs || state.srs; state.scenes = d.scenes || state.scenes; state.progress = d.progress || state.progress; save(); rebuild(); applyTheme(); toast('Backup restored'); navigate(); } catch (err) { toast('That file is not a SenLin backup'); } }; r.readAsText(f); };
-    $('#reset').onclick = () => { if (confirm('Delete all progress, reviews, scenes and cast? This cannot be undone.')) { ['settings', 'cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => localStorage.removeItem('senlin.' + k)); location.reload(); } };
-    if (window.SenLinApp && window.SenLinApp.settingsExtraAfter) window.SenLinApp.settingsExtraAfter();
-    if (window.SenLinApp && window.SenLinApp.placementExtraAfter) window.SenLinApp.placementExtraAfter();
-    if (window.SenLinApp && window.SenLinApp.accountExtraAfter) window.SenLinApp.accountExtraAfter();
-    if (window.SenLinApp && window.SenLinApp.reminderExtraAfter) window.SenLinApp.reminderExtraAfter();
-  };
-
-  /* ------------------------------------------------------------ bridge for add-on modules (tutor.js) */
-  /** Replace the learner's data (cloud pull / backup restore) and re-render. */
-  function applyData(d) {
-    if (!d) return;
-    Object.assign(state.settings, d.settings || {});
-    ['cast', 'srs', 'scenes', 'progress', 'extra', 'talks'].forEach(k => { if (d[k]) state[k] = d[k]; });
-    save(); rebuild(); applyTheme(); navigate();
-  }
-  const snapshot = () => ({ settings: state.settings, cast: state.cast, srs: state.srs, scenes: state.scenes, progress: state.progress, extra: state.extra, talks: state.talks });
-  window.SenLinApp = { routes, state, save, esc, tts, toast, pinyinHTML, sayBtn, playBtn, navigate, rebuild, applyData, snapshot, listenOnce, listenEngine, matchScore, DAYS: () => DAYS, todayDay, levelStatus, locked, settingsExtra: null, settingsExtraAfter: null, accountExtra: null, accountExtraAfter: null, reminderExtra: null, reminderExtraAfter: null, extraReviewItems: () => [], addWord: null };
-
-  /* ------------------------------------------------------------ go */
-  navigate();
-  /* pull in the remaining levels in the background once the first screen is up, so Library and Levels are instant later */
-  if (LAZY.pending) (window.requestIdleCallback || (f => setTimeout(f, 1500)))(() => { LAZY.load().then(() => { rebuild(); if (/^#\/(library|levels|progress|plan)/.test(location.hash)) navigate(); }).catch(() => {}); });
-})();
+    </div>`},g.settings.after=()=>{const s=l.settings;u("#start").onchange=e=>{e.target.value&&(s.startDate=e.target.value,b(),z("Day 1 set to "+s.startDate))},u("#pace").onchange=e=>{s.charsPerDay=+e.target.value,b(),T(),z("Pace updated")},u("#theme").onchange=e=>{s.theme=e.target.value,b(),P()},u("#biztoggle").onchange=e=>{s.business=e.target.checked,b(),z(s.business?"Deal Desk on":"Deal Desk off")},u("#voice").onchange=e=>{s.voice=e.target.value,b()},u("#voicesource").onchange=e=>{s.voiceSource=e.target.value,b()},u("#rate").oninput=e=>{s.rate=+e.target.value,u("#rateval").textContent=s.rate,b()},u("#testvoice").onclick=()=>C.speak("你好，我是森林。"),u("#export").onclick=()=>{const e=new Blob([JSON.stringify({settings:s,cast:l.cast,srs:l.srs,scenes:l.scenes,progress:l.progress},null,2)],{type:"application/json"}),t=document.createElement("a");t.href=URL.createObjectURL(e),t.download=`senlin-backup-${p.isoDate(new Date)}.json`,t.click()},u("#import").onchange=e=>{const t=e.target.files[0];if(!t)return;const n=new FileReader;n.onload=()=>{try{const r=JSON.parse(n.result);Object.assign(l.settings,r.settings||{}),l.cast=r.cast||l.cast,l.srs=r.srs||l.srs,l.scenes=r.scenes||l.scenes,l.progress=r.progress||l.progress,b(),T(),P(),z("Backup restored"),x()}catch{z("That file is not a SenLin backup")}},n.readAsText(t)},u("#reset").onclick=()=>{confirm("Delete all progress, reviews, scenes and cast? This cannot be undone.")&&(["settings","cast","srs","scenes","progress","extra","talks"].forEach(e=>localStorage.removeItem("senlin."+e)),location.reload())},window.SenLinApp&&window.SenLinApp.settingsExtraAfter&&window.SenLinApp.settingsExtraAfter(),window.SenLinApp&&window.SenLinApp.placementExtraAfter&&window.SenLinApp.placementExtraAfter(),window.SenLinApp&&window.SenLinApp.accountExtraAfter&&window.SenLinApp.accountExtraAfter(),window.SenLinApp&&window.SenLinApp.reminderExtraAfter&&window.SenLinApp.reminderExtraAfter()};function Re(s){s&&(Object.assign(l.settings,s.settings||{}),["cast","srs","scenes","progress","extra","talks"].forEach(e=>{s[e]&&(l[e]=s[e])}),b(),T(),P(),x())}const Ie=()=>({settings:l.settings,cast:l.cast,srs:l.srs,scenes:l.scenes,progress:l.progress,extra:l.extra,talks:l.talks});window.SenLinApp={routes:g,state:l,save:b,esc:i,tts:C,toast:z,pinyinHTML:f,sayBtn:D,playBtn:m,navigate:x,rebuild:T,applyData:Re,snapshot:Ie,listenOnce:Z,listenEngine:_,matchScore:J,DAYS:()=>y,todayDay:S,levelStatus:G,locked:ne,settingsExtra:null,settingsExtraAfter:null,accountExtra:null,accountExtraAfter:null,reminderExtra:null,reminderExtraAfter:null,extraReviewItems:()=>[],addWord:null},x(),O.pending&&(window.requestIdleCallback||(s=>setTimeout(s,1500)))(()=>{O.load().then(()=>{T(),/^#\/(library|levels|progress|plan)/.test(location.hash)&&x()}).catch(()=>{})})})();
