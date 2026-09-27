@@ -336,6 +336,7 @@
           <h2 class="h3">Catch-up (${missed.length} missed)</h2>
           <p class="muted small">Missed days never expire. Do the oldest first — each lesson builds on the last.</p>
           <div class="row">${missed.slice(0, 14).map(d => `<a class="chip" href="#/lesson/${d}">Day ${d}</a>`).join('')}${missed.length > 14 ? `<span class="chip">+${missed.length - 14} more</span>` : ''}</div>
+          ${missed.length >= 3 ? `<div class="row between" style="margin-top:.4rem"><span class="faint small">Life happened? Restart the calendar so today is Day ${target}: nothing you finished is lost, and the missed list clears.</span><button class="btn btn-sm" id="reschedule" data-day="${target}">Make today Day ${target}</button></div>` : ''}
         </section>` : ''}
         <section class="card stack" style="border-left:4px solid var(--gold)">
           <div class="row between"><div><h2 class="h3">Talk with 森林老师 — live 1-on-1</h2><p class="muted small">Role-play a café order, a taxi ride, a job interview. Speak or type; get corrected in real time.</p></div><a class="btn btn-primary" href="#/talk">Start a conversation</a></div>
@@ -393,6 +394,15 @@
         <a class="btn btn-sm btn-ghost" href="#/">Exit</a>
       </div></div>
       <div id="segment"></div>`;
+  };
+  routes.today.after = () => {
+    const b = $('#reschedule'); if (!b) return;
+    b.onclick = () => {
+      const day = Number(b.dataset.day) || 1; const d = new Date(); d.setDate(d.getDate() - (day - 1));
+      state.settings.startDate = S.isoDate(d); save(); toast(`Today is Day ${day}. Day 1 moved to ${S.isoDate(d)} (Settings).`);
+      if (window.SenLinCloud) window.SenLinCloud.track('visit', { route: 'reschedule' });
+      navigate();
+    };
   };
   routes.lesson.after = () => renderSegment();
 
