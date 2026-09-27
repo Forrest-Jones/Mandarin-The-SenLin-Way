@@ -298,10 +298,13 @@
   /* ------------------------------------------------------------ TODAY */
   routes.today = function () {
     const day = todayDay();
-    const info = dayInfo(day);
     const done = !!state.progress.completed[day];
     const missed = []; for (let d = 1; d < day; d++) if (!state.progress.completed[d] && d <= DAYS.length) missed.push(d);
     const beyond = day > DAYS.length;
+    /* each lesson builds on the last, so with missed days behind you the next lesson is the oldest one, not the calendar's */
+    const catching = !done && !beyond && missed.length > 0;
+    const target = catching ? missed[0] : day;
+    const info = dayInfo(Math.min(target, DAYS.length));
     const preview = info.type === 'pron'
       ? `<p class="lead">${esc(info.pron.title)}</p><p class="muted">${esc(info.pron.brief)}</p>`
       : `<div class="row">${info.chars.map(c => `<span class="chip chip-gold"><span class="hz">${c.h}</span> ${esc(c.p)} · ${esc(c.m)}</span>`).join('')}${info.words.map(w => `<span class="chip"><span class="hz">${w.w}</span> ${esc(w.m)}</span>`).join('')}</div>
@@ -309,13 +312,14 @@
     return `
       <div class="stack-lg">
         <section class="card card-accent stack">
-          <span class="eyebrow">${fmtDate(new Date())} · Day ${day}${beyond ? ' · beyond the scheduled curriculum' : ''}</span>
+          <span class="eyebrow">${fmtDate(new Date())} · Day ${day}${beyond ? ' · beyond the scheduled curriculum' : catching ? ` · next up: Day ${target}` : ''}</span>
           ${(() => { const L = currentLevelInfo(); if (!L) return ''; const info = (S.LEVELINFO && S.LEVELINFO.levels.find(x => x.level === L.level)) || {}; return `<div class="row"><a class="chip chip-gold" href="#/levels"><b>${esc(L.name)}</b> · ${esc(info.cefr || '')} · ${L.completed}/${L.total} days</a><span class="muted small">${L.status === 'done' ? 'level complete' : `on track to finish ${esc(L.name)} by ${esc(fmtDateY(L.endDate))}`}</span></div>`; })()}
           <h1 class="h1">${done ? 'Today’s tree is planted. 🌳' : beyond ? 'Consolidation day' : esc(info.phase)}</h1>
           <p class="muted" style="font-weight:700">Building your Mandarin Word Forest, one tree at a time.</p>
           <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
           <div class="row">
-            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(day, DAYS.length)}">${done ? 'Do it again' : 'Start the 10-minute lesson'}</a>
+            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(target, DAYS.length)}">${done ? 'Do it again' : catching ? `Continue with Day ${target}` : 'Start the 10-minute lesson'}</a>
+            ${catching ? `<a class="btn btn-ghost" href="#/lesson/${Math.min(day, DAYS.length)}" style="color:#fff;border-color:rgba(255,255,255,.4)">Today’s lesson (Day ${day}) instead</a>` : ''}
             ${dueCount() ? `<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${dueCount()} due cards</a>` : ''}
             <span class="streak"><span class="fire">🔥</span> ${streak()}-day streak</span>
           </div>
