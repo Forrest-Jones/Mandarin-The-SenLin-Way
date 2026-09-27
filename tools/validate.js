@@ -104,3 +104,12 @@ console.log('  OK');
     if (!m || +m[1] !== L.characters.length) { console.error(`loader.js: HSK ${L.level} has ${L.characters.length} characters, loader table says ${m ? m[1] : 'nothing'}`); process.exit(1); }
   }
 }
+
+/* the Pro page states the course totals in plain text; keep them equal to the data */
+{
+  const cloud = require('fs').readFileSync(require('path').join(__dirname, '..', 'js', 'cloud.js'), 'utf8');
+  const LV = require('../js/data/levels.js');
+  const fmt = n => n.toLocaleString('en-US');
+  const want = `${fmt(LV.reduce((n, l) => n + l.characters.length, 0))} characters, ${fmt(LV.reduce((n, l) => n + l.words.length, 0))} words, ${fmt(LV.reduce((n, l) => n + l.sentences.length, 0))} sentences`;
+  if (!cloud.includes(want)) { console.error(`cloud.js: the Pro page totals should read "${want}"`); process.exit(1); }
+}

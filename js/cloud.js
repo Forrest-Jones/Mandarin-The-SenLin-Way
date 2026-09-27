@@ -201,7 +201,7 @@
     await refreshEntitlement().catch(() => {}); toast(isPro() ? 'Pro is active' : 'No purchase found — sign in with the email you bought with'); A.navigate();
   }
   const ctaText = p => p.trialDays ? `Start ${p.trialDays}-day free trial` : p.interval ? 'Choose ' + p.name.replace('Pro ', '') : 'Buy lifetime access';
-  const FEATURES = ['The whole road: HSK 1 to HSK 6, 2,676 characters, 4,641 words, 1,444 sentences', 'Deal Desk: 12 units of cross-border private-equity and venture Mandarin', 'Built-in AI tutor, no API key, up to 400 turns a day', 'Cloud sync across phone and laptop with automatic backups', 'Cloud studio voice and pronunciation checking on every device, including iPhone', 'Everything offline once loaded, forever'];
+  const FEATURES = ['The whole road: HSK 1 to HSK 6, 2,676 characters, 4,641 words, 1,445 sentences', 'Deal Desk: 12 units of cross-border private-equity and venture Mandarin', 'Built-in AI tutor, no API key, up to 400 turns a day', 'Cloud sync across phone and laptop with automatic backups', 'Cloud studio voice and pronunciation checking on every device, including iPhone', 'Everything offline once loaded, forever'];
   routes.pro = function (arg) {
     if (arg === 'thanks') return `<div class="stack-lg" style="max-width:640px"><section class="card card-gold stack">
       <span class="eyebrow">SenLin Pro</span><h1 class="h2">Welcome to the forest 🌱</h1>
