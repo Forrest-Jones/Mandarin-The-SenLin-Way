@@ -2,6 +2,7 @@
 // "your 10 minutes" at each learner's chosen local time. RFC 8291 (aes128gcm) + RFC 8292 (VAPID)
 // implemented with WebCrypto only.
 import { HttpError, json, noContent, readJson, nowIso, b64urlEncode, b64urlDecode, upstreamFetch } from './util.js';
+import SCHEDULE from './schedule.js';
 import { getUser } from './auth.js';
 import { first, all, run } from './db.js';
 
@@ -76,13 +77,42 @@ export function dueNow(subs, now = new Date(), windowMin = 15) {
     return !(s.last_sent && String(s.last_sent).startsWith(loc.date));
   });
 }
+const DEFAULT_REMINDER = { title: 'Your 10 minutes of Mandarin 🌱', body: 'One tree a day. Today’s lesson is ready.', url: '#/lesson' };
+const dayNumber = (dateISO, startISO) => Math.floor((Date.parse(dateISO + 'T00:00:00Z') - Date.parse(startISO + 'T00:00:00Z')) / 86400e3) + 1;
+
+/** The reminder for one learner: their synced snapshot (settings.startDate, progress.completed) and today's local date.
+ *  Mirrors the Today screen: the oldest missed day comes first, a finished day nudges towards the review deck. */
+export function reminderFor(blob, dateISO, schedule = SCHEDULE) {
+  const start = blob?.settings?.startDate;
+  if (!start || !/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(dateISO || '')) return DEFAULT_REMINDER;
+  const day = Math.max(1, dayNumber(dateISO, start));
+  const done = blob?.progress?.completed || {};
+  if (done[day]) return { title: 'Today’s tree is planted 🌳', body: `Day ${day} is done. Two minutes on the review deck keeps it green.`, url: '#/review' };
+  let target = day;
+  for (let d = 1; d < day && d <= schedule.length; d++) if (!done[d]) { target = d; break; }
+  if (target > schedule.length) return { title: 'Your 10 minutes of Mandarin 🌱', body: 'The scheduled course is complete. A short review keeps the forest alive.', url: '#/review' };
+  const [title, chars] = schedule[target - 1];
+  const what = chars ? `${chars}` : title;
+  return { title: target < day ? `Catch up: Day ${target} 🌱` : `Day ${target} · ten minutes 🌱`, body: `${what} — one tree, ten minutes.`, url: `#/lesson/${target}` };
+}
+
 export async function runDailyPush(env, now = new Date()) {
   const subs = await all(env, 'SELECT * FROM push_subs');
   const due = dueNow(subs, now);
   let sent = 0, gone = 0;
+  const blobs = new Map();
+  const snapshotFor = async (userId) => {
+    if (!userId) return null;
+    if (!blobs.has(userId)) {
+      let parsed = null;
+      try { const row = await first(env, 'SELECT data FROM sync_blobs WHERE user_id = ?', userId); parsed = row?.data ? JSON.parse(row.data) : null; } catch { parsed = null; }
+      blobs.set(userId, parsed);
+    }
+    return blobs.get(userId);
+  };
   for (const s of due) {
     const loc = localNow(s.tz || 'UTC', now);
-    const r = await sendPush(env, s, { title: 'Your 10 minutes of Mandarin 🌱', body: 'One tree a day. Today’s lesson is ready.', url: '#/lesson' });
+    const r = await sendPush(env, s, reminderFor(await snapshotFor(s.user_id), loc.date));
     if (r.status === 404 || r.status === 410) { await run(env, 'DELETE FROM push_subs WHERE endpoint = ?', s.endpoint); gone++; continue; }
     if (r.ok) { sent++; await run(env, 'UPDATE push_subs SET last_sent = ? WHERE endpoint = ?', `${loc.date}T${String(Math.floor(loc.minutes / 60)).padStart(2, '0')}:${String(loc.minutes % 60).padStart(2, '0')}`, s.endpoint); }
   }

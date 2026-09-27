@@ -73,6 +73,7 @@ The Talk page calls Claude three ways, in this order: signed-in learners go thro
 | `tools/audio.js` → `audio/` | site | pre-generated MP3s from a licensed studio voice (≈ $1.50 one-off for the whole course); the site plays them first, then the device voice, then the cloud voice |
 | `tools/review.js` → `review/` | editors | CSV export of HSK 4–6 sentences, grammar and business lines for a native-speaker review pass, and `--apply` to read it back |
 | `js/loader.js` | site | HSK 4–6 (250 KB gzipped) load lazily, so first paint only needs HSK 1–3 |
+| `tools/schedule.js` | dev | regenerates `server/src/schedule.js` (one line per curriculum day) after curriculum or data changes; the validator fails when it is stale |
 | `tests/e2e/` | CI | Playwright smoke, navigation, lesson, settings, offline, mobile (Pixel 7) and axe accessibility checks on every push |
 | `privacy.html`, `terms.html` | site | required by both stores; linked from the footer |
 

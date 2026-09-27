@@ -113,3 +113,9 @@ console.log('  OK');
   const want = `${fmt(LV.reduce((n, l) => n + l.characters.length, 0))} characters, ${fmt(LV.reduce((n, l) => n + l.words.length, 0))} words, ${fmt(LV.reduce((n, l) => n + l.sentences.length, 0))} sentences`;
   if (!cloud.includes(want)) { console.error(`cloud.js: the Pro page totals should read "${want}"`); process.exit(1); }
 }
+
+/* the worker's per-day reminder table is generated from the curriculum; fail when it is stale */
+{
+  const r = require('child_process').spawnSync(process.execPath, [require('path').join(__dirname, 'schedule.js')], { encoding: 'utf8' });
+  if (r.status !== 0) { console.error(r.stdout.trim() || 'server/src/schedule.js is stale'); process.exit(1); }
+}

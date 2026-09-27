@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../src/worker.js';
-import { makeEnv, req, FakeCtx, fakeFetch } from './fakes.js';
+import { makeEnv, req, FakeCtx, fakeFetch, signIn } from './fakes.js';
 import { encryptPayload, decryptPayload, vapidAuthHeader, dueNow, runDailyPush } from '../src/push.js';
 import { b64urlEncode, b64urlDecode } from '../src/util.js';
 
@@ -65,4 +65,46 @@ test('web push: subscribe, due-time logic, daily send, dead endpoints pruned', a
   // unsubscribe
   assert.equal((await worker.fetch(req('/v1/push/subscribe', { method: 'DELETE', body: { endpoint: a.subscription.endpoint } }), env, new FakeCtx())).status, 204);
   assert.deepEqual(await runDailyPush(env, new Date('2026-09-22T11:35:00Z')), { due: 0, sent: 0, gone: 0 });
+});
+
+test('reminderFor: personalised by the synced snapshot (next day, catch-up, done, finished course, no data)', async () => {
+  const { reminderFor } = await import('../src/push.js');
+  const schedule = [['The four tones', ''], ['Actors: b p m f', ''], ['Phase 1 · HSK 1', '木 林 森'], ['Phase 1 · HSK 1', '我 你 他']];
+  const blob = { settings: { startDate: '2026-09-20' }, progress: { completed: { 1: 'x', 2: 'x' } } };
+  assert.deepEqual(reminderFor(blob, '2026-09-22', schedule), { title: 'Day 3 · ten minutes 🌱', body: '木 林 森 — one tree, ten minutes.', url: '#/lesson/3' });
+  assert.deepEqual(reminderFor({ settings: { startDate: '2026-09-20' }, progress: { completed: { 1: 'x' } } }, '2026-09-21', schedule), { title: 'Day 2 · ten minutes 🌱', body: 'Actors: b p m f — one tree, ten minutes.', url: '#/lesson/2' });
+  // a brand-new learner on day 2 who never did day 1 is pointed at day 1, like the Today screen
+  assert.equal(reminderFor({ settings: { startDate: '2026-09-20' } }, '2026-09-21', schedule).url, '#/lesson/1');
+  // day 4 with day 3 missed → catch up with 3 first
+  assert.deepEqual(reminderFor(blob, '2026-09-23', schedule), { title: 'Catch up: Day 3 🌱', body: '木 林 森 — one tree, ten minutes.', url: '#/lesson/3' });
+  // already done today → review nudge
+  assert.equal(reminderFor({ settings: { startDate: '2026-09-20' }, progress: { completed: { 1: 'x', 2: 'x', 3: 'x' } } }, '2026-09-22', schedule).url, '#/review');
+  // past the schedule with everything done
+  assert.equal(reminderFor({ settings: { startDate: '2026-09-20' }, progress: { completed: { 1: 1, 2: 1, 3: 1, 4: 1 } } }, '2026-09-30', schedule).url, '#/review');
+  // no snapshot, bad dates → the generic line
+  assert.equal(reminderFor(null, '2026-09-22', schedule).body, 'One tree a day. Today’s lesson is ready.');
+  assert.equal(reminderFor({ settings: { startDate: 'soon' } }, '2026-09-22', schedule).url, '#/lesson');
+  // the real table is the whole curriculum
+  const real = reminderFor({ settings: { startDate: '2026-09-01' }, progress: { completed: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i + 1, 1])) } }, '2026-09-13');
+  assert.equal(real.url, '#/lesson/13'); assert.match(real.body, /^木 林 森/);
+});
+
+test('runDailyPush uses the signed-in learner’s snapshot for the reminder text', async () => {
+  const calls = [];
+  const FETCH = fakeFetch({ 'push.example.com': (url, init) => { calls.push({ url, init }); return new Response('', { status: 201 }); } });
+  const env = makeEnv({ FETCH });
+  const { token } = await signIn(env, worker, 'planter@example.com');
+  const ctx = new FakeCtx();
+  const start = '2026-09-10';
+  assert.equal((await worker.fetch(req('/v1/sync', { method: 'PUT', token, body: { version: 0, data: { settings: { startDate: start }, progress: { completed: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1 } } } } }), env, ctx)).status, 200);
+  await ctx.done();
+  const a = await fakeBrowserSubscription('https://push.example.com/send/p');
+  assert.equal((await worker.fetch(req('/v1/push/subscribe', { method: 'POST', token, body: { subscription: a.subscription, hour: 7, minute: 30, tz: 'America/New_York' } }), env, new FakeCtx())).status, 200);
+  // 2026-09-22 New York = Day 13 for a 2026-09-10 start
+  const res = await runDailyPush(env, new Date('2026-09-22T11:35:00Z'));
+  assert.deepEqual(res, { due: 1, sent: 1, gone: 0 });
+  const text = JSON.parse(await decryptPayload(new Uint8Array(calls[0].init.body), a.kp, a.subscription.keys.auth));
+  assert.equal(text.title, 'Day 13 · ten minutes 🌱');
+  assert.match(text.body, /^木 林 森/);
+  assert.equal(text.url, '#/lesson/13');
 });
