@@ -20,6 +20,7 @@ const LEVELS = require('../js/data/levels.js');
 const BUSINESS = require('../js/data/business.js');
 const SCENARIOS = require('../js/data/scenarios.js');
 const PINYIN = require('../js/data/pinyin.js');
+const ENGINE = require('../js/engine.js');   // speakable(): pinyin drills are voiced through characters with that reading
 const GRAMMAR = require('../js/data/grammar.js');
 
 const ALL_KINDS = ['chars', 'words', 'sentences', 'grammar', 'scenarios', 'business', 'pinyin', 'ui'];
@@ -268,7 +269,7 @@ async function main(argv = process.argv.slice(2)) {
     while (next < jobs.length) {
       const job = jobs[next++];
       try {
-        const buf = await withRetry(() => P.synth(job.it.t, job.rate, voice));
+        const buf = await withRetry(() => P.synth(ENGINE.speakable(job.it.t), job.rate, voice));
         if (!buf.length) throw new Error('empty audio');
         fs.writeFileSync(job.file, buf);
         sentChars += chars(job.it.t);

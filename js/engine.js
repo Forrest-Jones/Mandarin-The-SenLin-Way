@@ -239,7 +239,7 @@
 
     /* pronunciation days (1–12): no cards, sentences or characters yet, so the segments are the sounds themselves */
     if (d.type === 'pron') {
-      return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review: [], chars: [], words: [], grammar: [], sentences: [], quiz: pronQuiz(d, rand), segments: PRON_SEGMENTS, business: dealDesk(day, CONFIG.businessStartDay) };
+      return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review: [], chars: [], words: [], grammar: [], sentences: [], quiz: pronQuiz(d, rand), shadow: shadowRows(d), segments: PRON_SEGMENTS, business: dealDesk(day, CONFIG.businessStartDay) };
     }
 
     /* quiz: 5 questions from today's new + review */
@@ -268,7 +268,31 @@
       return { prompt, question: askPinyin ? 'How is it pronounced?' : 'What does it mean?', options, correct };
     });
 
-    return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review, chars, words: d.words, grammar: d.grammar || [], sentences, quiz, segments: CONFIG.segments, business: dealDesk(day, CONFIG.businessStartDay) };
+    const segments = review.length ? CONFIG.segments : CONFIG.segments.filter(s => s.id !== 'review');   // the first character day has nothing to recall yet
+    return { day: d.day, phase: d.phase, type: d.type, pron: d.pron, date: null, warmup, review, chars, words: d.words, grammar: d.grammar || [], sentences, quiz, segments, business: dealDesk(day, CONFIG.businessStartDay) };
+  }
+
+  /* ------------------------------------------------------------------ speakable text */
+  /* Pinyin drill rows ("mā má mǎ mà ma") are read badly by Chinese voices, which spell the letters. Each syllable is
+     spoken through a character that has exactly that reading (妈，麻，马，骂，吗), separated by pauses. */
+  const SPEAK_FALLBACK = { 'fō': '佛', 'ō': '噢', 'bú': '不', 'cī': '疵', 'kāo': '尻' };
+  let speakMaps = null;
+  function speakable(text) {
+    if (typeof text !== 'string' || /\p{Script=Han}/u.test(text) || !/[a-zü]/i.test(text)) return text;
+    if (!speakMaps) {
+      const norm = x => x.toLowerCase().normalize('NFC').replace(/\s+/g, '');
+      const chars = new Map(); CHARACTERS.forEach(c => { const k = norm(c.p); if (!chars.has(k) || c.level < chars.get(k).level) chars.set(k, c); });
+      const words = new Map(); WORDS.forEach(w => { const k = norm(w.p); if (!words.has(k)) words.set(k, w); });
+      speakMaps = { chars, words, norm };
+    }
+    const { chars, words, norm } = speakMaps;
+    const out = text.replace(/\(.*?\)|→|·/g, ' ').trim().split(/\s+/).map(tok => {
+      const k = norm(tok).replace(/[^a-zü\u00e0-\u01dc]/g, ''); if (!k) return '';
+      const w = words.get(k); if (w) return w.w;
+      const c = chars.get(k); if (c) return c.h;
+      return SPEAK_FALLBACK[k] || tok;
+    }).filter(Boolean);
+    return out.join(/\p{Script=Han}/u.test(out.join('')) ? '，' : ' ');
   }
 
   /* ------------------------------------------------------------------ pronunciation-day quiz */
@@ -290,6 +314,13 @@
     (d.pron.finals || d.pron.finalsIntro || []).forEach(k => { const f = PINYIN.finals.find(x => x.key === k); if (f) add(f.ex); });
     if (!ex.length) PINYIN.tonePairs.forEach(tp => { const m = /^(\S+)\s+(\S+)$/.exec(tp.ex); if (m) ex.push({ p: m[2], hz: m[1] }); });
     const seen = new Set(); return ex.filter(e => !seen.has(e.p) && seen.add(e.p));
+  }
+  /** What the shadowing segment says: the day's drill rows, or the day's tone-pair words when a day has no drills (tone-pair and props days). */
+  function shadowRows(d) {
+    const rows = (d.pron.drills || []).map(r => ({ say: r.replace(/\(.*?\)|→/g, '').trim(), show: r.replace(/\(.*?\)/g, '').trim(), note: (r.match(/\((.*?)\)/) || [])[1] || '' })).filter(r => r.say);
+    if (rows.length) return rows;
+    const pairs = d.pron.pairs && d.pron.pairs.length ? PINYIN.tonePairs.filter(tp => d.pron.pairs.includes(tp.pair)) : PINYIN.tonePairs;
+    return pairs.slice(0, 8).map(tp => { const m = /^(\S+)\s+(\S+)$/.exec(tp.ex); return { say: m ? m[1] : tp.ex, show: m ? m[2] : tp.ex, hz: m ? m[1] : '', note: `${tp.pair} · ${tp.en}` }; });
   }
   /** Five questions: hear a syllable and pick its pinyin, read a syllable and name its tone, find a tone inside a drill row. */
   function pronQuiz(d, rand) {
@@ -374,7 +405,7 @@
     if (lesson.words.length) { L.push('\n**New words**'); lesson.words.forEach(w => L.push(`- ${w.w} ${w.p} — ${w.m}`)); }
     lesson.grammar.forEach(g => { L.push(`\n**Pattern of the day: ${g.name}** — ${g.pattern}`); L.push(`${g.zh}  ${g.p}  — ${g.en}`); L.push(g.note); });
     if (lesson.business) { L.push('\n**Deal desk (business Mandarin)**'); lesson.business.terms.forEach(t => L.push(`- ${t.w} ${t.p} — ${t.m}${t.note ? ' · ' + t.note : ''}`)); L.push(`- ${lesson.business.phrase.zh}  ${lesson.business.phrase.p}  — ${lesson.business.phrase.en}`); }
-    if (pron) { L.push('\n## 3 · Shadowing: say each row three times (2½ min)'); lesson.pron.drills.forEach(x => L.push('- ' + x)); }
+    if (pron) { L.push('\n## 3 · Shadowing: say each row three times (2½ min)'); (lesson.shadow || []).forEach(x => L.push(`- ${x.hz ? x.hz + ' ' : ''}${x.show}${x.note ? ' (' + x.note + ')' : ''}`)); }
     else { L.push('\n## 4 · Sentences: shadow each one 3× (2 min)'); lesson.sentences.forEach(s => L.push(`- ${s.zh}  ${s.p}  — ${s.en}`)); }
     L.push(pron ? '\n## 4 · Quiz: hear the tone (2 min)' : '\n## 5 · Quiz (1 min)');
     lesson.quiz.forEach((q, i) => L.push(q.kind === 'listen' ? `${i + 1}. **${q.pinyin}** — which one is it?  ${q.options.map((o, j) => `(${'abcd'[j]}) ${o}`).join('  ')}` : `${i + 1}. **${q.prompt}** — ${q.question}  ${q.options.map((o, j) => `(${'abcd'[j]}) ${o}`).join('  ')}`));
@@ -395,6 +426,6 @@
     parsePinyin, resolveCast, scene,
     buildSchedule, dayNumber, dateForDay, isoDate, parseISO,
     srsInit, srsReview, itemId, learnedItems,
-    buildLesson, lessonMarkdown, curriculumStats
+    buildLesson, lessonMarkdown, curriculumStats, speakable
   };
 });

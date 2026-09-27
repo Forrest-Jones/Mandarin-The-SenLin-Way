@@ -88,6 +88,7 @@
       rate = rate || state.settings.rate; const src = state.settings.voiceSource || 'auto';
       this.stop();
       if (src === 'auto' || src === 'recorded') { const url = await this.recordedUrl(text, rate); if (url) { try { await this.playUrl(url, rate); return; } catch (e) { /* fall through */ } } }
+      text = S.speakable(text);                       // pinyin drills are voiced through characters with that exact reading
       const N = window.SenLinNative;
       if (src !== 'cloud' && N && N.isNative && N.tts.available) { try { await N.tts.speak(text, rate); return; } catch (e) { /* fall through */ } }
       if ((src === 'auto' || src === 'device' || src === 'recorded') && this.hasDeviceVoice()) return this.speakDevice(text, rate);
@@ -431,12 +432,12 @@
 
   /** Pronunciation days: say every drill row three times, slow then normal; a tap marks the row done. */
   function renderShadow(L) {
-    const rows = L.pron.drills.map(d => d.replace(/\(.*?\)/g, '').trim());
+    const rows = L.shadow || [];
     const done = rows.filter((r, i) => lesson.shadow['drill' + i]).length;
     return `<div class="stack" style="margin-top:1rem">
       <div class="card stack"><span class="eyebrow">Say each row three times · ${done} of ${rows.length} done</span>
         <p class="muted small">Play it, copy the pitch with your voice, then play it again and match it. Slow first (🐢), then normal speed. Exaggerate: high-flat, rising, low-dip, falling.</p>
-        ${rows.map((r, i) => `<div class="row between" style="gap:.6rem;padding:.35rem 0;border-top:1px solid var(--line)"><span class="py" style="font-size:1.25rem">${pinyinHTML(r)}</span><span class="row" style="gap:.3rem">${playBtn(r)}${playBtn(r, { slow: true, rate: 0.6 })}<button class="btn btn-sm${lesson.shadow['drill' + i] ? ' btn-primary' : ' btn-ghost'}" data-shadow="drill${i}" data-n="${lesson.shadow['drill' + i] ? 0 : 1}" aria-pressed="${lesson.shadow['drill' + i] ? 'true' : 'false'}">${lesson.shadow['drill' + i] ? '✓ said it' : 'Said it ×3'}</button></span></div>`).join('')}
+        ${rows.map((r, i) => `<div class="row between" style="gap:.6rem;padding:.35rem 0;border-top:1px solid var(--line)"><span>${r.hz ? `<span class="mid-hz">${esc(r.hz)}</span> ` : ''}<span class="py" style="font-size:1.25rem">${pinyinHTML(r.show)}</span>${r.note ? ` <span class="muted small">${esc(r.note)}</span>` : ''}</span><span class="row" style="gap:.3rem">${playBtn(r.say)}${playBtn(r.say, { slow: true, rate: 0.6 })}<button class="btn btn-sm${lesson.shadow['drill' + i] ? ' btn-primary' : ' btn-ghost'}" data-shadow="drill${i}" data-n="${lesson.shadow['drill' + i] ? 0 : 1}" aria-pressed="${lesson.shadow['drill' + i] ? 'true' : 'false'}">${lesson.shadow['drill' + i] ? '✓ said it' : 'Said it ×3'}</button></span></div>`).join('')}
       </div>
       ${L.pron.task ? `<div class="card stack" style="background:var(--accent-soft)"><p><b>Task:</b> ${esc(L.pron.task)}</p></div>` : ''}
     </div>`;
