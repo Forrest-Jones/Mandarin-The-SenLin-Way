@@ -24,3 +24,13 @@ test.describe('pricing page', () => {
     await expect(page.locator('#app')).toContainText('Welcome to the forest');
   });
 });
+
+test.describe('settings with a server configured', () => {
+  test('a direct load of #/settings shows the sign-in card', async ({ page }) => {
+    await page.route(/\/v1\//, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(/health/.test(route.request().url()) ? { ok: true, ready: true, providers: { ai: true, email: true } } : { ok: true }) }));
+    await page.addInitScript(() => { try { localStorage.setItem('senlin.apiBase', JSON.stringify('https://senlin-api.example.workers.dev')); } catch (e) {} });
+    await page.goto('/#/settings');
+    await expect(page.locator('#account')).toContainText('Sign in to sync your forest');
+    await expect(page.locator('#acct-login')).toBeVisible();
+  });
+});

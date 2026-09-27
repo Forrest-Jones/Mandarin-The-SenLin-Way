@@ -397,7 +397,7 @@
     const head = (title, secs, note) => `<div class="seg-head"><div><span class="eyebrow">Day ${L.day} · ${lesson.seg + 1} of ${segs.length}</span><h2 class="h2">${esc(title)}</h2></div><span class="muted small">${Math.round(secs / 60 * 10) / 10} min${note ? ' · ' + esc(note) : ''}</span></div>`;
     const next = (label = 'Next →') => `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${label}</button></div>`;
     if (!seg) { el.innerHTML = renderDone(); wireDone(); return; }
-    let html = head(seg.title, seg.seconds, seg.id === 'review' ? `${L.review.length} cards` : seg.id === 'sentences' ? `${L.sentences.length} sentences` : '');
+    let html = head(seg.title, seg.seconds, seg.id === 'review' ? `${L.review.length} cards` : seg.id === 'sentences' ? (L.sentences.length ? `${L.sentences.length} sentences` : `${L.chars.length + L.words.length} to say`) : '');
     if (seg.id === 'warmup') html += renderWarmup(L) + next();
     if (seg.id === 'review') html += renderReview(L);
     if (seg.id === 'new') html += renderNew(L) + next();
@@ -513,7 +513,18 @@
   }
 
   function renderSentences(L) {
-    if (!L.sentences.length) return `<div class="card" style="margin-top:1rem"><p class="lead">Sentences begin once you own a few characters. Use the time to replay today’s scenes with your eyes closed.</p></div>`;
+    if (!L.sentences.length) {
+      /* the first character days have no sentence yet: shadow today's characters and words instead, so the segment still trains the mouth */
+      const items = L.chars.map(x => ({ key: 'c' + x.ch.h, hz: x.ch.h, p: x.ch.p, m: x.ch.m })).concat(L.words.map(w => ({ key: 'w' + w.w, hz: w.w, p: w.p, m: w.m })));
+      if (!items.length) return `<div class="card" style="margin-top:1rem"><p class="lead">Sentences begin once you own a few characters. Use the time to replay today’s scenes with your eyes closed.</p></div>`;
+      return `<div class="stack" style="margin-top:1rem">
+        <p class="muted small">No full sentence yet: today’s trees are single characters. Shadow each one three times — play, then say it <b>with</b> the voice, matching the tone.${ASR ? ' Tap 🎤 to say it and get checked.' : ''} Sentences start as soon as you own enough characters to build one.</p>
+        ${items.map(it => `<div class="sentence">
+          <div class="row between"><span><span class="mid-hz">${esc(it.hz)}</span> <span class="py">${pinyinHTML(it.p)}</span> <span class="muted small">${esc(it.m)}</span></span><span class="row">${playBtn(it.hz)}${playBtn(it.hz, { slow: true, rate: 0.6 })}${sayBtn(it.hz)}</span></div>
+          <div class="row"><span class="small muted">Passes:</span>${[1, 2, 3].map(n => `<button class="btn btn-sm${(lesson.shadow[it.key] || 0) >= n ? ' btn-primary' : ''}" data-shadow="${esc(it.key)}" data-n="${n}">${n}</button>`).join('')}</div>
+        </div>`).join('')}
+      </div>`;
+    }
     return `<div class="stack" style="margin-top:1rem">
       <p class="muted small">Shadowing: play, then speak <b>with</b> the voice, matching rhythm and tones. Three passes each — first with pinyin, then with the English hidden, then eyes closed.${ASR ? ' Tap 🎤 to say it and get checked.' : ''}${(navigator.mediaDevices && window.MediaRecorder) ? ' Tap ⏺ to record yourself and compare.' : ''}</p>
       ${L.sentences.map((s, i) => `<div class="sentence">

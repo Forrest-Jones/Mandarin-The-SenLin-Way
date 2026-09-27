@@ -387,4 +387,6 @@
     if (window.SenLinNative && window.SenLinNative.billing && auth.user) { try { window.SenLinNative.billing.configure(auth.user.id); } catch (e) { /* ignore */ } }
   }
   track('visit', { route: (location.hash.split('/')[1] || 'today') });
+  /* app.js rendered the first screen before this file loaded: redraw the routes whose cards come from here */
+  if (/^#\/(settings|pro)\b/.test(location.hash)) A.navigate();
 })();
