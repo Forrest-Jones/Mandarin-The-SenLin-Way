@@ -321,7 +321,7 @@
           <p class="muted" style="font-weight:700">Building your Mandarin Word Forest, one tree at a time.</p>
           <div>${beyond ? '<p class="lead">You have completed the scheduled curriculum. Review is due — keep the forest alive.</p>' : preview}</div>
           <div class="row">
-            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(target, DAYS.length)}">${done ? 'Do it again' : catching ? `Continue with Day ${target}` : 'Start the 10-minute lesson'}</a>
+            <a class="btn btn-gold btn-lg" href="#/lesson/${Math.min(target, DAYS.length)}">${done ? 'Do it again' : lesson.saved(target) ? `Resume Day ${target} · step ${lesson.saved(target).seg + 1}` : catching ? `Continue with Day ${target}` : 'Start the 10-minute lesson'}</a>
             ${catching ? `<a class="btn btn-ghost" href="#/lesson/${Math.min(day, DAYS.length)}" style="color:#fff;border-color:rgba(255,255,255,.4)">Today’s lesson (Day ${day}) instead</a>` : ''}
             ${dueCount() ? `<a class="btn btn-ghost" href="#/review" style="color:#fff;border-color:rgba(255,255,255,.4)">Review ${dueCount()} due cards</a>` : ''}
             <span class="streak"><span class="fire">🔥</span> ${streak()}-day streak</span>
@@ -376,6 +376,10 @@
   /* ------------------------------------------------------------ LESSON */
   const lesson = { day: 0, data: null, seg: 0, elapsed: 0, timer: null, review: { i: 0, shown: false }, quiz: { i: 0, right: 0, answered: false }, shadow: {} };
   lesson.stop = function () { clearInterval(lesson.timer); lesson.timer = null; };
+  /* a lesson in progress survives a reload, an app switch or a closed tab: the position is kept for three hours */
+  const RESUME_MS = 3 * 3600e3;
+  lesson.persist = function () { if (!lesson.data || state.progress.completed[lesson.day]) return; store.set('lesson', { day: lesson.day, seg: lesson.seg, elapsed: lesson.elapsed, review: lesson.review.i, quiz: { i: lesson.quiz.i, right: lesson.quiz.right }, at: Date.now() }); };
+  lesson.saved = function (day) { const r = store.get('lesson', null); return r && r.day === day && Date.now() - r.at < RESUME_MS && !state.progress.completed[day] && r.seg > 0 ? r : null; };
   lesson.start = function (day) {
     lesson.stop();
     lesson.day = day; lesson.seg = 0; lesson.elapsed = 0;
@@ -384,7 +388,15 @@
     if (window.SenLinCloud) window.SenLinCloud.track('lesson_start', { day });
     const extraDue = window.SenLinApp.extraReviewItems().filter(i => state.srs[i.id] && state.srs[i.id].due <= Date.now());
     if (extraDue.length) lesson.data.review = extraDue.concat(lesson.data.review).slice(0, (S.CONFIG.reviewMax || S.CONFIG.reviewCap) + 4);
-    lesson.timer = setInterval(() => { lesson.elapsed++; const c = $('#clock'); if (c) { const left = S.CONFIG.lessonMinutes * 60 - lesson.elapsed; c.textContent = (left < 0 ? '+' : '') + seconds(left); c.classList.toggle('over', left < 0); } }, 1000);
+    const r = lesson.saved(day);
+    if (r) {
+      const segs = lesson.data.segments || S.CONFIG.segments;
+      lesson.seg = Math.min(r.seg, segs.length); lesson.elapsed = r.elapsed | 0;
+      lesson.review.i = Math.min(r.review | 0, lesson.data.review.length);
+      lesson.quiz.i = Math.min((r.quiz && r.quiz.i) | 0, lesson.data.quiz.length); lesson.quiz.right = Math.min((r.quiz && r.quiz.right) | 0, lesson.quiz.i);
+      toast(`Resumed Day ${day} where you left off.`);
+    }
+    lesson.timer = setInterval(() => { lesson.elapsed++; if (lesson.elapsed % 15 === 0) lesson.persist(); const c = $('#clock'); if (c) { const left = S.CONFIG.lessonMinutes * 60 - lesson.elapsed; c.textContent = (left < 0 ? '+' : '') + seconds(left); c.classList.toggle('over', left < 0); } }, 1000);
   };
   routes.lesson = function (arg) {
     const day = Math.max(1, Math.min(parseInt(arg, 10) || todayDay(), DAYS.length));
@@ -414,6 +426,7 @@
     $('#segments').querySelectorAll('button').forEach(b => b.onclick = () => { lesson.seg = +b.dataset.seg; renderSegment(); });
     const seg = segs[lesson.seg];
     const el = $('#segment');
+    lesson.persist();
     const head = (title, secs, note) => `<div class="seg-head"><div><span class="eyebrow">Day ${L.day} · ${lesson.seg + 1} of ${segs.length}</span><h2 class="h2">${esc(title)}</h2></div><span class="muted small">${Math.round(secs / 60 * 10) / 10} min${note ? ' · ' + esc(note) : ''}</span></div>`;
     const next = (label = 'Next →') => `<div class="row" style="margin-top:1.2rem;justify-content:flex-end"><button class="btn btn-primary" id="next">${label}</button></div>`;
     if (!seg) { el.innerHTML = renderDone(); wireDone(); return; }
@@ -571,6 +584,7 @@
 
   function renderDone() {
     const L = lesson.data; const wasDone = !!state.progress.completed[L.day];
+    store.set('lesson', null);
     if (!wasDone) {
       state.progress.completed[L.day] = S.isoDate(new Date());
       if (window.SenLinCloud) window.SenLinCloud.track('lesson_done', { day: L.day, quiz: lesson.quiz.right });
@@ -589,7 +603,7 @@
       <div class="progress-ring" style="--p:${pct}" title="${Object.keys(state.progress.completed).length} of ${stats.days} lessons"><div>${pct}%</div></div>
       <p class="muted small">${Object.keys(state.progress.completed).length} of ${stats.days} lessons in the whole course${L.quiz.length ? ` · quiz ${lesson.quiz.right}/${L.quiz.length}` : ''}</p>
       <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
-      <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a></div>
+      <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a>${navigator.share || (navigator.clipboard && navigator.clipboard.writeText) ? '<button class="btn btn-ghost" id="share" style="color:#fff;border-color:rgba(255,255,255,.4)">Share</button>' : ''}</div>
     </div>${dueCount() > 12 ? `<div class="card stack" style="margin-top:1rem"><span class="eyebrow">Still waiting</span><p><b>${dueCount()} cards are due.</b> Today’s lesson reviewed what fitted in ten minutes; a few spare minutes on the deck keeps the forest from thinning.</p><div class="row"><a class="btn btn-primary" href="#/review">Review now</a></div></div>` : ''}${reminderNudge()}${reviewPrompt()}`;
   }
   /** After the first lessons, one card that points at the daily reminder (the single biggest day-7 retention lever). */
@@ -608,8 +622,19 @@
     return `<div class="card stack" id="review-card" style="margin-top:1rem"><span class="eyebrow">A small favour</span><p><b>Enjoying SenLin?</b> A rating helps other learners find it, and takes a few seconds.</p>
       <div class="row"><a class="btn btn-primary" id="review-yes" href="${esc(link)}" target="_blank" rel="noopener">Rate SenLin</a><button class="btn btn-ghost" id="review-later">Not now</button></div></div>`;
   }
+  async function shareForest() {
+    const trees = Object.keys(state.progress.completed).length; const chars = learnedChars();
+    const url = (S.CONFIG.siteUrl || location.href.split('#')[0]);
+    const text = `Day ${lesson.day} of Mandarin done: ${trees} lesson${trees === 1 ? '' : 's'}, ${chars} characters planted. Ten minutes a day, HSK 1 to 6 — Mandarin The SenLin Way.`;
+    if (window.SenLinCloud) window.SenLinCloud.track('share', { day: lesson.day });
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Mandarin The SenLin Way', text, url }); return; }
+      await navigator.clipboard.writeText(`${text} ${url}`); toast('Copied — paste it anywhere.');
+    } catch (e) { /* the learner cancelled the share sheet */ }
+  }
   function wireDone() {
     lesson.stop(); confetti();
+    const sh = $('#share'); if (sh) sh.onclick = shareForest;
     const nudge = $('#nudge-reminder');
     if (nudge) { const off = () => { store.set('nudge-reminder', Date.now()); nudge.remove(); }; $('#nudge-reminder-later').onclick = off; $('#nudge-reminder-go').onclick = () => store.set('nudge-reminder', Date.now()); }
     const card = $('#review-card'); if (!card) return;

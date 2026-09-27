@@ -54,3 +54,32 @@ test.describe('pronunciation days', () => {
     expect(errs.errors()).toEqual([]);
   });
 });
+
+test('a lesson in progress resumes after a reload, Today offers to resume it, and finishing clears it', async ({ page }) => {
+  const start = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(Date.now() - 12 * 86400e3));   // the browser's zone, not Node's
+  await page.addInitScript((s) => { localStorage.setItem('senlin.settings', JSON.stringify({ startDate: s })); const c = {}; for (let i = 1; i <= 12; i++) c[i] = s; localStorage.setItem('senlin.progress', JSON.stringify({ completed: c })); }, start);
+  await go(page, '#/lesson/13');
+  await page.click('#next'); await page.click('#next');
+  await expect(page.locator('#segments button.active')).toContainText('Sentences');
+  await page.reload();
+  await go(page, '#/lesson/13');
+  await expect(page.locator('#segments button.active')).toContainText('Sentences');
+  await expect(page.locator('#segment .eyebrow').first()).toContainText('3 of 4');
+
+  await go(page, '#/');
+  await expect(page.locator('a.btn-gold')).toContainText(/Resume Day 13 · step 3/);
+
+  await go(page, '#/lesson/13');
+  await page.click('#next');
+  for (let k = 0; k < 40; k++) {
+    if (await page.locator('#qn').count()) { await page.click('#qn'); continue; }
+    const o = page.locator('[data-opt]:not([data-opt="__skip__"])'); if (await o.count()) { await o.first().click(); continue; }
+    break;
+  }
+  await page.click('#next');
+  await expect(page.locator('.done-banner')).toContainText('Day 13 complete');
+  await expect(page.locator('#share')).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('senlin.lesson') || 'null'))).toBeNull();
+  await go(page, '#/');
+  await expect(page.locator('a.btn-gold')).toContainText(/Day 14|Do it again|Start/);
+});

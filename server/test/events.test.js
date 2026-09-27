@@ -89,3 +89,18 @@ test('cohorts: day-1 / day-7 return rates and the visit → lesson funnel', asyn
   assert.deepEqual(r.funnel, { visited: 4, started: 2, done: 1 });
   assert.deepEqual(cohorts([], now), { day1: { learners: 0, returned: 0, pct: null }, day7: { learners: 0, returned: 0, pct: null }, funnel: { visited: 0, started: 0, done: 0 } });
 });
+
+test('dailySeries: per-day actives and lessons for the last 14 days, oldest first', async () => {
+  const { dailySeries } = await import('../src/events.js');
+  const now = Date.parse('2026-09-27T12:00:00Z');
+  const at = (daysAgo) => new Date(now - daysAgo * 86400e3).toISOString();
+  const rows = [
+    { actor: 'a', name: 'visit', ts: at(0) }, { actor: 'a', name: 'lesson_done', ts: at(0) }, { actor: 'b', name: 'lesson_done', ts: at(0) },
+    { actor: 'a', name: 'lesson_done', ts: at(13) }, { actor: 'z', name: 'visit', ts: at(14) }, { actor: 'q', name: 'visit', ts: 'nope' },
+  ];
+  const d = dailySeries(rows, now);
+  assert.equal(d.length, 14);
+  assert.deepEqual(d[13], { date: '2026-09-27', actives: 2, lessons: 2 });
+  assert.deepEqual(d[0], { date: '2026-09-14', actives: 1, lessons: 1 });
+  assert.equal(d.reduce((n, x) => n + x.actives, 0), 3);
+});

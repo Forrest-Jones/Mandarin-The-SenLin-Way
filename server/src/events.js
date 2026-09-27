@@ -4,7 +4,7 @@ import { HttpError, json, noContent, readJson, nowIso, timingSafeEqual } from '.
 import { getUser } from './auth.js';
 import { stmt, first, all } from './db.js';
 
-export const EVENT_NAMES = new Set(['lesson_start', 'lesson_done', 'review', 'talk_start', 'talk_end', 'write_quiz', 'tone_drill', 'install', 'purchase', 'error', 'visit', 'say', 'sign_in']);
+export const EVENT_NAMES = new Set(['lesson_start', 'lesson_done', 'review', 'talk_start', 'talk_end', 'write_quiz', 'tone_drill', 'install', 'purchase', 'error', 'visit', 'say', 'sign_in', 'share', 'review_prompt']);
 export const EVENTS_MAX_PER_REQUEST = 50;
 const PROPS_MAX_CHARS = 2000;
 
@@ -99,7 +99,9 @@ export async function handleAdminStats(request, env) {
     count('SELECT COUNT(*) AS n FROM push_subs'),
     count('SELECT COUNT(*) AS n FROM events WHERE name = ? AND ts >= ?', 'lesson_done', d7),
   ]);
-  const retention = cohorts(await all(env, 'SELECT actor, name, ts FROM events WHERE ts >= ?', iso(45 * 86400e3)), now);
+  const recentEvents = await all(env, 'SELECT actor, name, ts FROM events WHERE ts >= ?', iso(45 * 86400e3));
+  const retention = cohorts(recentEvents, now);
+  const daily = dailySeries(recentEvents, now);
   const recentErrors = (await all(env, 'SELECT * FROM errors')).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).slice(0, 10)
     .map((e) => ({ at: e.created_at, message: String(e.message || '').slice(0, 200), url: e.url, version: e.version }));
   return json({
@@ -111,8 +113,22 @@ export async function handleAdminStats(request, env) {
     pushSubscriptions: pushSubs,
     errorsLast24h: errors24,
     retention,
+    daily,
     recentErrors,
   });
+}
+
+/** The last `days` calendar days (UTC), oldest first: active learners and lessons done per day. */
+export function dailySeries(rows, now = Date.now(), days = 14) {
+  const today = Math.floor(now / 86400e3);
+  const out = Array.from({ length: days }, (_, i) => ({ date: new Date((today - days + 1 + i) * 86400e3).toISOString().slice(0, 10), actives: new Set(), lessons: 0 }));
+  for (const r of rows) {
+    const t = Date.parse(r.ts); if (Number.isNaN(t)) continue;
+    const idx = Math.floor(t / 86400e3) - (today - days + 1); if (idx < 0 || idx >= days) continue;
+    if (r.actor) out[idx].actives.add(r.actor);
+    if (r.name === 'lesson_done') out[idx].lessons++;
+  }
+  return out.map((d) => ({ date: d.date, actives: d.actives.size, lessons: d.lessons }));
 }
 
 /** Day-1 / day-7 return rates and the visit → lesson funnel, from the last 45 days of events (opt-in learners only).

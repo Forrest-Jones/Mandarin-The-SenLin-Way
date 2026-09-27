@@ -2,7 +2,8 @@
 const { test, expect } = require('@playwright/test');
 const { go, watchErrors } = require('./helpers');
 
-const isoDaysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// dates as the browser sees them (playwright.config sets Europe/London), not as the Node clock does: the two differ around midnight
+const isoDaysAgo = n => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(Date.now() - n * 86400e3));
 
 test.describe('today', () => {
   test('a first visit opens on Day 1 with nothing missed', async ({ page }) => {

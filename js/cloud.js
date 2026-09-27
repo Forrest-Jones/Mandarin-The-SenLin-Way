@@ -220,6 +220,18 @@
         const d = await api('/v1/admin/stats');
         const tile = (n, label) => `<div class="card stat"><b>${esc(String(n))}</b><span>${label}</span></div>`;
         const pct = (r) => (r && r.pct != null ? r.pct + '%' : '–');
+        /* one thin bar per day, anchored to the baseline; the peak is labelled, every bar has a hover title, the table below is the accessible view */
+        const bars = (rows, key, label) => {
+          const W = 300, H = 88, top = 16, gap = 2, bw = (W - gap * (rows.length - 1)) / rows.length;
+          const max = Math.max(1, ...rows.map(r => r[key])); const peak = rows.findIndex(r => r[key] === max);
+          const total = rows.reduce((n, r) => n + r[key], 0);
+          return `<div class="stack" style="gap:.2rem"><span class="small muted">${label} · <b>${total}</b> in ${rows.length} days</span>
+            <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(label)}, last ${rows.length} days">
+              <line x1="0" y1="${H - 12}" x2="${W}" y2="${H - 12}" stroke="currentColor" stroke-opacity=".2"/>
+              ${rows.map((r, i) => { const h = r[key] ? Math.max(3, (H - 12 - top) * r[key] / max) : 0; const x = i * (bw + gap); const y = H - 12 - h;
+                return `<g><title>${esc(r.date)}: ${r[key]} ${key === 'lessons' ? 'lessons' : 'active'}</title><rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="var(--accent)" fill-opacity="${i === rows.length - 1 ? 1 : .55}"/>${i === peak && max > 0 ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(y - 4).toFixed(1)}" text-anchor="middle" font-size="11" fill="currentColor">${max}</text>` : ''}${i === 0 || i === rows.length - 1 ? `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 1}" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity=".6">${esc(r.date.slice(5))}</text>` : ''}</g>`; }).join('')}
+            </svg></div>`;
+        };
         el.innerHTML = `<div class="grid grid-3">
             ${tile(d.users.total, `learners · ${d.users.new7d} new this week · ${d.users.new30d} in 30 days`)}
             ${tile(d.users.pro, 'Pro subscribers')}
@@ -229,6 +241,9 @@
             ${tile(d.pushSubscriptions, 'daily reminders set')}
             ${tile(d.errorsLast24h, 'client errors in 24 h')}
           </div>
+          ${Array.isArray(d.daily) && d.daily.length ? `<section class="card stack"><h2 class="h3">Last ${d.daily.length} days</h2>
+            <div class="grid grid-2">${[['lessons', 'Lessons done per day'], ['actives', 'Active learners per day']].map(([k, label]) => bars(d.daily, k, label)).join('')}</div>
+            <details><summary class="small">As a table</summary><div class="table-scroll"><table class="table small"><thead><tr><th>Day</th><th>Lessons</th><th>Active</th></tr></thead><tbody>${d.daily.map(x => `<tr><td class="muted">${esc(x.date.slice(5))}</td><td>${x.lessons}</td><td>${x.actives}</td></tr>`).join('')}</tbody></table></div></details></section>` : ''}
           ${d.retention ? `<section class="card stack"><h2 class="h3">Retention · last 30 days</h2>
             <div class="grid grid-3">
               ${tile(pct(d.retention.day1), `day-1 return · ${d.retention.day1.returned} of ${d.retention.day1.learners} new learners came back the next day`)}
