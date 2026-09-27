@@ -68,7 +68,7 @@ Stay in character as a Chinese business counterpart: formal register (您, title
 ${FORMAT}`;
     return `You are 森林老师 (Sēnlín lǎoshī), a warm, patient Mandarin tutor running a live 1-on-1 role-play with a learner at HSK ${level}.
 Scenario: ${sc.en} (${sc.title}). Setting: ${sc.setting}. You play: ${sc.persona}. The learner's goal: ${sc.goal}
-Stay in character and speak natural spoken Mandarin (simplified characters). Keep every reply to 1–2 short sentences and always end with a question or a prompt so the learner keeps talking. Match HSK ${level}: prefer these characters the learner already knows: ${known}. Introduce at most one new word per turn. If the learner makes a mistake, keep the conversation going but correct it in the FIX line. If the learner writes in English, gently answer in Chinese and show them how to say it. Never break the 5-line format, never add commentary.
+Stay in character and speak natural spoken Mandarin (simplified characters). Keep every reply to 1–2 short sentences and always end with a question or a prompt so the learner keeps talking. Match HSK ${level}: prefer these characters the learner already knows: ${known}. Introduce at most one new word per turn. If the learner makes a mistake, keep the conversation going but correct it in the FIX line. If the learner writes in English, gently answer in Chinese and show them how to say it. If the learner says 我不知道怎么说 or asks for help, put one short sentence they could say next in the ZH line (with pinyin and English) and invite them to repeat it. Never break the 5-line format, never add commentary.
 ${FORMAT}`;
   }
 
@@ -159,6 +159,8 @@ ${FORMAT}`;
         ${ASR ? `<button type="button" class="btn btn-icon" id="mic" title="Speak" ${T.busy ? 'disabled' : ''}>🎤</button>` : ''}
         <button class="btn btn-primary" type="submit" ${T.busy ? 'disabled' : ''}>Send</button>
       </form>
+      ${!T.busy && !T.turns.some(t => t.role === 'user') && (T.sc.starters || []).length ? `<div class="stack" id="starters" style="gap:.4rem"><span class="faint small">Not sure how to begin? Tap one, or say it your own way:</span><div class="row">${T.sc.starters.map(st => `<button type="button" class="chip" data-starter="${esc(st.zh)}" title="${esc(st.en)}"><span class="hz">${esc(st.zh)}</span> <span class="muted">${esc(st.p)}</span></button>`).join('')}</div></div>`
+      : !T.busy ? `<div class="row" style="gap:.4rem"><button type="button" class="chip" data-starter="我不知道怎么说。请帮我。" title="I don’t know how to say it. Please help me."><span class="hz">我不知道怎么说</span> <span class="muted">help me say it</span></button><button type="button" class="chip" data-starter="请再说一遍，慢一点。" title="Please say that again, slower."><span class="hz">请再说一遍</span> <span class="muted">say it again</span></button></div>` : ''}
       <div class="small muted" id="talk-note">${ASR ? '' : '🎤 Microphone input needs Chrome (desktop or Android), the app, or a signed-in account for the cloud recogniser. Here you can type your replies; the tutor still speaks.'}</div>
     </div>`;
     const chat = document.getElementById('chat'); chat.scrollTop = chat.scrollHeight;
@@ -169,6 +171,7 @@ ${FORMAT}`;
     const mic = document.getElementById('mic'); if (mic) mic.onclick = () => listen();
     el.querySelectorAll('[data-addword]').forEach(b => b.onclick = () => { const w = JSON.parse(b.dataset.addword); addWord(w); b.textContent = '✓ added'; });
     el.querySelectorAll('[data-reveal]').forEach(e => e.onclick = () => e.classList.remove('hidden'));
+    el.querySelectorAll('[data-starter]').forEach(b => b.onclick = () => send(b.dataset.starter));
     if (!T.busy) { const inp = document.getElementById('say'); if (inp && !T.handsFree) inp.focus(); }
   }
 
