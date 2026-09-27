@@ -57,7 +57,12 @@ export async function handlePushTest(request, env) {
   const body = await readJson(request, 8192).catch(() => ({}));
   const sub = body.endpoint ? await first(env, 'SELECT * FROM push_subs WHERE endpoint = ?', body.endpoint) : null;
   if (!sub) throw new HttpError(404, 'not_subscribed');
-  const r = await sendPush(env, sub, { title: 'SenLin reminder is on 🌱', body: 'This is how your daily 10-minute nudge will look.', url: '#/' });
+  // the test shows exactly what tomorrow's reminder will say: personalised when the subscription belongs to a synced account
+  let blob = null;
+  if (sub.user_id) { try { const row = await first(env, 'SELECT data FROM sync_blobs WHERE user_id = ?', sub.user_id); blob = row?.data ? JSON.parse(row.data) : null; } catch { blob = null; } }
+  let date = null; try { date = localNow(sub.tz || 'UTC').date; } catch { date = null; }
+  const msg = reminderFor(blob, date);
+  const r = await sendPush(env, sub, { title: `Test · ${msg.title}`, body: msg.body, url: msg.url });
   return json({ ok: r.ok, status: r.status });
 }
 

@@ -107,4 +107,10 @@ test('runDailyPush uses the signed-in learner’s snapshot for the reminder text
   assert.equal(text.title, 'Day 13 · ten minutes 🌱');
   assert.match(text.body, /^木 林 森/);
   assert.equal(text.url, '#/lesson/13');
+  // "Send a test" previews the same personalised line
+  const t = await worker.fetch(req('/v1/push/test', { method: 'POST', token, body: { endpoint: a.subscription.endpoint } }), env, new FakeCtx());
+  assert.equal(t.status, 200);
+  const preview = JSON.parse(await decryptPayload(new Uint8Array(calls[1].init.body), a.kp, a.subscription.keys.auth));
+  assert.match(preview.title, /^Test · (Day \d+ · ten minutes|Catch up: Day \d+) 🌱$/);
+  assert.match(preview.body, /one tree, ten minutes\.$/);
 });
