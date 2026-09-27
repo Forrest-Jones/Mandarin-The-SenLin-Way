@@ -83,3 +83,31 @@ test('a lesson in progress resumes after a reload, Today offers to resume it, an
   await go(page, '#/');
   await expect(page.locator('a.btn-gold')).toContainText(/Day 14|Do it again|Start/);
 });
+
+test('from the second lesson the done screen offers to install the app when the browser allows it', async ({ page }) => {
+  const start = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(Date.now() - 13 * 86400e3));
+  await page.addInitScript((s) => {
+    localStorage.setItem('senlin.settings', JSON.stringify({ startDate: s }));
+    const c = {}; for (let i = 1; i <= 13; i++) c[i] = s; localStorage.setItem('senlin.progress', JSON.stringify({ completed: c }));
+    localStorage.setItem('senlin.nudge-reminder', String(Date.now()));
+    window.__installPrompted = 0;
+    window.addEventListener('load', () => { const e = new Event('beforeinstallprompt'); e.prompt = () => { window.__installPrompted++; }; e.userChoice = Promise.resolve({ outcome: 'accepted' }); window.dispatchEvent(e); });
+  }, start);
+  await go(page, '#/lesson/14');
+  for (let i = 0; i < 6; i++) {
+    for (let k = 0; k < 40; k++) {
+      if (await page.locator('#reveal').count()) { await page.click('#reveal'); continue; }
+      if (await page.locator('[data-grade="2"]').count()) { await page.click('[data-grade="2"]'); continue; }
+      if (await page.locator('#qn').count()) { await page.click('#qn'); continue; }
+      const o = page.locator('[data-opt]:not([data-opt="__skip__"])'); if (await o.count()) { await o.first().click(); continue; }
+      break;
+    }
+    const nx = page.locator('#next'); if (await nx.count()) await nx.click(); else break;
+  }
+  await expect(page.locator('.done-banner')).toContainText('Day 14 complete');
+  await expect(page.locator('#nudge-install')).toContainText('Install SenLin');
+  await page.click('#nudge-install-go');
+  expect(await page.evaluate(() => window.__installPrompted)).toBe(1);
+  await expect(page.locator('#nudge-install')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('senlin.nudge-install'))).not.toBeNull();
+});

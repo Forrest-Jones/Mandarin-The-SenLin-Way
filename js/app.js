@@ -604,7 +604,23 @@
       <p class="muted small">${Object.keys(state.progress.completed).length} of ${stats.days} lessons in the whole course${L.quiz.length ? ` · quiz ${lesson.quiz.right}/${L.quiz.length}` : ''}</p>
       <p class="muted small">${nextDay <= DAYS.length ? `Tomorrow (Day ${nextDay}): ${dayInfo(nextDay).type === 'pron' ? esc(dayInfo(nextDay).pron.title) : dayInfo(nextDay).chars.map(c => c.h).join(' ') + ' + ' + dayInfo(nextDay).words.length + ' words'}` : 'The scheduled curriculum is complete — keep reviewing daily.'}</p>
       <div class="row" style="justify-content:center"><a class="btn btn-primary" href="#/">Back to Today</a><a class="btn" href="#/progress">Progress</a>${navigator.share || (navigator.clipboard && navigator.clipboard.writeText) ? '<button class="btn btn-ghost" id="share" style="color:#fff;border-color:rgba(255,255,255,.4)">Share</button>' : ''}</div>
-    </div>${dueCount() > 12 ? `<div class="card stack" style="margin-top:1rem"><span class="eyebrow">Still waiting</span><p><b>${dueCount()} cards are due.</b> Today’s lesson reviewed what fitted in ten minutes; a few spare minutes on the deck keeps the forest from thinning.</p><div class="row"><a class="btn btn-primary" href="#/review">Review now</a></div></div>` : ''}${reminderNudge()}${reviewPrompt()}`;
+    </div>${dueCount() > 12 ? `<div class="card stack" style="margin-top:1rem"><span class="eyebrow">Still waiting</span><p><b>${dueCount()} cards are due.</b> Today’s lesson reviewed what fitted in ten minutes; a few spare minutes on the deck keeps the forest from thinning.</p><div class="row"><a class="btn btn-primary" href="#/review">Review now</a></div></div>` : ''}${reminderNudge()}${installNudge()}${reviewPrompt()}`;
+  }
+  /* the browser's install prompt (Chrome / Edge on Android and desktop) is deferred until the learner has a reason to want the app */
+  let installEvt = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
+  const isStandalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true || !!(window.SenLinNative && window.SenLinNative.isNative);
+  const isIosSafari = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && /safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
+  /** From the second lesson on: install the app (full screen, offline, reminders). Shown once a month at most, never inside the app itself. */
+  function installNudge() {
+    const n = Object.keys(state.progress.completed).length;
+    if (n < 2 || isStandalone()) return '';
+    const last = store.get('nudge-install', null); if (last && Date.now() - last < 30 * 86400000) return '';
+    if (installEvt) return `<div class="card stack" id="nudge-install" style="margin-top:1rem"><span class="eyebrow">One tap away</span><p><b>Install SenLin on this device.</b> Opens full screen from your home screen, works offline, and your reminder lands as a real notification.</p>
+      <div class="row"><button class="btn btn-primary" id="nudge-install-go">Install</button><button class="btn btn-ghost" id="nudge-install-later">Not now</button></div></div>`;
+    if (isIosSafari()) return `<div class="card stack" id="nudge-install" style="margin-top:1rem"><span class="eyebrow">One tap away</span><p><b>Add SenLin to your home screen.</b> Tap Share <span aria-hidden="true">⎋</span> below, then <b>Add to Home Screen</b>: it opens full screen and works offline.</p>
+      <div class="row"><button class="btn btn-ghost" id="nudge-install-later">Got it</button></div></div>`;
+    return '';
   }
   /** After the first lessons, one card that points at the daily reminder (the single biggest day-7 retention lever). */
   function reminderNudge() {
@@ -635,6 +651,12 @@
   function wireDone() {
     lesson.stop(); confetti();
     const sh = $('#share'); if (sh) sh.onclick = shareForest;
+    const inst = $('#nudge-install');
+    if (inst) {
+      const off = () => { store.set('nudge-install', Date.now()); inst.remove(); };
+      $('#nudge-install-later').onclick = off;
+      const go = $('#nudge-install-go'); if (go) go.onclick = async () => { const ev = installEvt; installEvt = null; off(); if (!ev) return; try { ev.prompt(); const c = await ev.userChoice; if (window.SenLinCloud) window.SenLinCloud.track('install', { prompt: true, outcome: c && c.outcome }); } catch (e) { /* ignore */ } };
+    }
     const nudge = $('#nudge-reminder');
     if (nudge) { const off = () => { store.set('nudge-reminder', Date.now()); nudge.remove(); }; $('#nudge-reminder-later').onclick = off; $('#nudge-reminder-go').onclick = () => store.set('nudge-reminder', Date.now()); }
     const card = $('#review-card'); if (!card) return;
