@@ -41,6 +41,11 @@
   async function health() { if (healthCache) return healthCache; try { healthCache = await api('/v1/health'); } catch (e) { healthCache = { ok: false, providers: {} }; } return healthCache; }
   async function verify(email, code) { return finishSignIn(await api('/v1/auth/verify', { method: 'POST', json: { email, code } })); }
   async function password(email, pw, create) { return finishSignIn(await api('/v1/auth/password', { method: 'POST', json: { email, password: pw, create: !!create } })); }
+  /** After signing in from a locked screen (Talk, a Pro lesson), go back there instead of staying on Settings. */
+  function afterSignIn() {
+    let after = null; try { after = sessionStorage.getItem('senlin.after'); sessionStorage.removeItem('senlin.after'); } catch (e) { /* private mode */ }
+    if (after && /^#\/settings\/signin/.test(location.hash) && /^#\//.test(after) && !/^#\/settings/.test(after)) location.hash = after; else A.navigate();
+  }
   async function finishSignIn(d) {
     auth = { token: d.token, user: d.user, plan: d.user.plan }; store.set('auth', auth);
     track('sign_in');
@@ -298,7 +303,7 @@
         if (!/^\S+@\S+\.\S+$/.test(email)) { note.textContent = 'Enter a valid email address'; return; }
         if (pw.length < 8) { note.textContent = 'Use a password of at least 8 characters'; return; }
         note.textContent = create ? 'creating…' : 'signing in…';
-        try { const r = await password(email, pw, create); toast(r.created ? 'Account created' : 'Signed in'); A.navigate(); }
+        try { const r = await password(email, pw, create); toast(r.created ? 'Account created' : 'Signed in'); afterSignIn(); }
         catch (e) { note.textContent = e.status === 404 ? 'No account with a password for that email yet. Tap "Create account".' : e.status === 401 ? 'Wrong password.' : (e.message || 'Could not sign in'); }
       };
       $('#acct-login').onclick = () => pwGo(false);
@@ -313,7 +318,7 @@
       };
       $('#acct-verify').onclick = async () => {
         const note = $('#acct-note'); note.textContent = 'checking…';
-        try { await verify($('#acct-email').value.trim(), $('#acct-code').value.trim()); toast('Signed in'); A.navigate(); }
+        try { await verify($('#acct-email').value.trim(), $('#acct-code').value.trim()); toast('Signed in'); afterSignIn(); }
         catch (e) { note.textContent = e.message || 'Wrong code'; }
       };
       return;

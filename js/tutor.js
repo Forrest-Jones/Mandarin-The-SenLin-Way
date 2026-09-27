@@ -122,7 +122,7 @@ ${FORMAT}`;
     el.innerHTML = p === 'artifact' ? '✅ AI tutor ready (using your Claude account through this preview).'
       : p === 'cloud' ? `✅ AI tutor ready. ${C && C.isPro() ? 'Pro: up to 400 turns a day.' : 'Free plan: 25 turns a day. <a href="#/pro" style="text-decoration:underline">Pro</a> raises it to 400.'}`
       : p === 'sdk' ? `✅ AI tutor ready (developer key, model ${MODEL}).`
-      : C && C.available() ? `<div class="row between"><span>🔒 Sign in to talk with the tutor. Free, one minute.</span><a class="btn btn-sm btn-primary" href="#/settings">Sign in</a></div>`
+      : C && C.available() ? `<div class="row between"><span>🔒 Sign in to talk with the tutor. Free, one minute.</span><a class="btn btn-sm btn-primary" href="#/settings/signin" onclick="try{sessionStorage.setItem('senlin.after','#/talk')}catch(e){}">Sign in</a></div>`
       : `⚠️ This copy of the site has no tutor service configured.`;
   };
 

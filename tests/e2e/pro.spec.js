@@ -34,3 +34,21 @@ test.describe('settings with a server configured', () => {
     await expect(page.locator('#acct-login')).toBeVisible();
   });
 });
+
+test('signing in from Talk returns to Talk', async ({ page }) => {
+  await page.route(/\/v1\//, route => {
+    const u = route.request().url();
+    const body = /health/.test(u) ? { ok: true, ready: true, providers: { ai: true, email: true } }
+      : /auth\/password/.test(u) ? { token: 't', user: { id: 'u1', email: 'a@b.co', plan: 'free' }, created: true }
+      : /entitlement/.test(u) ? { plan: 'free', features: { ai: true } } : { ok: true };
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  });
+  await page.addInitScript(() => { try { localStorage.setItem('senlin.apiBase', JSON.stringify('https://senlin-api.example.workers.dev')); } catch (e) {} });
+  await page.goto('/#/talk');
+  await page.getByRole('link', { name: 'Sign in' }).first().click();
+  await expect(page).toHaveURL(/#\/settings\/signin/);
+  await page.fill('#acct-email', 'a@b.co'); await page.fill('#acct-password', 'password123');
+  await page.click('#acct-create');
+  await expect(page).toHaveURL(/#\/talk$/);
+  await expect(page.locator('#talk-status')).toContainText('AI tutor ready');
+});
