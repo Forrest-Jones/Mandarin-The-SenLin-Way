@@ -87,6 +87,8 @@ Where the rails live: `server/README.md` → *Billing* (Stripe products, prices,
 - [ ] Recorded audio generated (Actions → *Generate audio* with the `GOOGLE_TTS_KEY` secret, HSK 1 first, then all levels) and committed under `audio/` so voice works on every device
 - [ ] HSK 4–6 content passed native review (`tools/review.js` export → editor → `--apply`)
 - [ ] Privacy policy and terms reachable from the app (footer links) and the store listing
+- [ ] Account deletion works end to end (Settings → Account → Delete account) and `privacy.html#delete` is in the Data safety form as the deletion URL
+- [ ] Reviewer account created, listed in `PRO_EMAILS`, and its credentials pasted into App content → App access
 - [ ] Lighthouse PWA audit green (installable, offline, icons, maskable)
 - [ ] Internal testing track for a week with real devices (Android 10+, Chrome 120+)
 - [ ] Keystore, passwords and RevenueCat keys backed up outside the repo
