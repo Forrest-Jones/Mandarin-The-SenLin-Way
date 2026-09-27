@@ -747,7 +747,7 @@
       <div><span class="eyebrow">Progress</span><h1 class="h2">Your forest</h1></div>
       <section class="grid grid-3">
         <div class="card stat"><b>${streak()}</b><span>day streak</span></div>
-        <div class="card stat"><b>${total} / ${st.days}</b><span>lessons completed</span></div>
+        <div class="card stat"><b>${total}</b><span>lessons completed · ${(() => { const L = currentLevelInfo(); return L ? `${L.completed} of ${L.total} in ${esc(L.name)}` : ''; })()} · ${st.days} on the whole road</span></div>
         <div class="card stat"><b>${learned.filter(i => i.type === 'c').length}</b><span>characters · ${learned.filter(i => i.type === 'w').length} words · ${learned.filter(i => i.type === 's').length} sentences</span></div>
         <div class="card stat"><b>${due}</b><span>reviews due now · ${mature} mature (21 d+)</span></div>
         <div class="card stat"><b>${rv.total ? Math.round(rv.good / rv.total * 100) : 0}%</b><span>recall rate (${rv.total} reviews)</span></div>
