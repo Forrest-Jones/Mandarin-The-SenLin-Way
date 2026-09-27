@@ -219,6 +219,7 @@
       try {
         const d = await api('/v1/admin/stats');
         const tile = (n, label) => `<div class="card stat"><b>${esc(String(n))}</b><span>${label}</span></div>`;
+        const pct = (r) => (r && r.pct != null ? r.pct + '%' : '–');
         el.innerHTML = `<div class="grid grid-3">
             ${tile(d.users.total, `learners · ${d.users.new7d} new this week · ${d.users.new30d} in 30 days`)}
             ${tile(d.users.pro, 'Pro subscribers')}
@@ -228,6 +229,13 @@
             ${tile(d.pushSubscriptions, 'daily reminders set')}
             ${tile(d.errorsLast24h, 'client errors in 24 h')}
           </div>
+          ${d.retention ? `<section class="card stack"><h2 class="h3">Retention · last 30 days</h2>
+            <div class="grid grid-3">
+              ${tile(pct(d.retention.day1), `day-1 return · ${d.retention.day1.returned} of ${d.retention.day1.learners} new learners came back the next day`)}
+              ${tile(pct(d.retention.day7), `day-7 return · ${d.retention.day7.returned} of ${d.retention.day7.learners} were active a week later`)}
+              ${tile(d.retention.funnel.visited ? `${d.retention.funnel.done}/${d.retention.funnel.visited}` : '0', `finished a lesson · ${d.retention.funnel.started} started one`)}
+            </div>
+            <p class="faint small">Day-1 and day-7 use the Play Console definitions (active again on that calendar day). Under 40 % day-1 or 20 % day-7 usually means the first lesson is the thing to fix, not the store listing.</p></section>` : ''}
           <section class="card stack"><h2 class="h3">Latest errors</h2>${(d.recentErrors || []).length ? `<div class="table-scroll"><table class="table"><thead><tr><th>When</th><th>Message</th><th>Page</th><th>Version</th></tr></thead><tbody>${d.recentErrors.map(e => `<tr><td class="small muted" style="white-space:nowrap">${esc((e.at || '').replace('T', ' ').slice(0, 16))}</td><td class="small">${esc(e.message)}</td><td class="small muted">${esc((e.url || '').replace(/^https?:\/\/[^/]+/, '').slice(0, 40))}</td><td class="small muted">${esc(e.version || '')}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted small">None reported.</p>'}</section>
           <p class="faint small">Counts come from the worker (D1). Learners, Pro, tutor turns, reminders and errors are exact; active and lessons-done counts only include learners who switched on anonymous usage counts in Settings. Generated ${esc((d.generatedAt || '').replace('T', ' ').slice(0, 16))} UTC.</p>`;
       } catch (e) { el.innerHTML = `<p class="muted">Could not load: ${esc(e.message || 'error')}</p>`; }

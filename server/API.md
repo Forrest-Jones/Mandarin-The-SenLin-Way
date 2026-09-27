@@ -32,7 +32,7 @@ Errors are `{ "error": "<code>", "message"?: "..." }`; limits are `429 { "error"
 | POST | `/v1/webhooks/revenuecat` | `Authorization: <REVENUECAT_WEBHOOK_SECRET>` | RevenueCat events; `app_user_id` must be our user id |
 | POST | `/v1/webhooks/stripe` | Stripe signature | `checkout.session.completed` (`client_reference_id` = user id) → pro; subscription updated/deleted → plan |
 | GET/POST | `/v1/admin/stripe-setup` | `X-Admin-Key` or `?key=` | one-shot, idempotent Stripe setup: product, prices (lookup keys `pro_monthly`, `pro_yearly`, `pro_lifetime`), webhook for this worker, portal configuration; stores ids and the webhook secret in KV → `{ ok, mode, productId, prices, webhookId, webhookUrl, webhookSecretStored, portalConfig, created, next }` |
-| GET | `/v1/admin/stats` | `X-Admin-Key`, or the Bearer token of an `OWNER_EMAIL` account | users (total, new 7/30 d, Pro), actives (7/30 d), lessons done (7/30 d, total), AI messages, push subscriptions, errors (24 h) and the ten latest error rows; the app renders it at `#/admin` for owner accounts |
+| GET | `/v1/admin/stats` | `X-Admin-Key`, or the Bearer token of an `OWNER_EMAIL` account | users (total, new 7/30 d, Pro), actives (7/30 d), lessons done (7/30 d, total), AI messages, push subscriptions, errors (24 h), `retention` (day-1 / day-7 return rates and the visit → lesson-start → lesson-done funnel over the last 30 days of cohorts) and the ten latest error rows; the app renders it at `#/admin` for owner accounts |
 
 ## Examples
 

@@ -64,3 +64,28 @@ test('an OWNER_EMAIL account can read the admin stats without the key', async ()
   const denied = await worker.fetch(req('/v1/admin/stats', { headers: { authorization: `Bearer ${other.token}` } }), env, new FakeCtx());
   assert.equal(denied.status, 401);
 });
+
+test('cohorts: day-1 / day-7 return rates and the visit → lesson funnel', async () => {
+  const { cohorts } = await import('../src/events.js');
+  const now = Date.parse('2026-09-27T12:00:00Z');
+  const at = (daysAgo, hour = 10) => new Date(now - daysAgo * 86400e3 + (hour - 12) * 3600e3).toISOString();
+  const rows = [
+    // a: first seen 10 days ago, back the next day and on day 7, finished a lesson → retained on both, funnel done
+    { actor: 'a', name: 'visit', ts: at(10) }, { actor: 'a', name: 'lesson_start', ts: at(10) }, { actor: 'a', name: 'lesson_done', ts: at(10) },
+    { actor: 'a', name: 'visit', ts: at(9) }, { actor: 'a', name: 'visit', ts: at(3) },
+    // b: first seen 10 days ago, never came back, only looked
+    { actor: 'b', name: 'visit', ts: at(10) },
+    // c: first seen yesterday → too young for either cohort, but in the funnel (started, not done)
+    { actor: 'c', name: 'visit', ts: at(1) }, { actor: 'c', name: 'lesson_start', ts: at(1) },
+    // d: first seen 40 days ago → outside the 30-day cohorts entirely
+    { actor: 'd', name: 'visit', ts: at(40) }, { actor: 'd', name: 'visit', ts: at(39) },
+    // e: first seen 5 days ago, back next day → day-1 cohort only (day-7 window still open)
+    { actor: 'e', name: 'visit', ts: at(5) }, { actor: 'e', name: 'visit', ts: at(4) },
+    { actor: '', name: 'visit', ts: at(2) }, { actor: 'f', name: 'visit', ts: 'not a date' },
+  ];
+  const r = cohorts(rows, now);
+  assert.deepEqual(r.day1, { learners: 3, returned: 2, pct: 67 });
+  assert.deepEqual(r.day7, { learners: 2, returned: 1, pct: 50 });
+  assert.deepEqual(r.funnel, { visited: 4, started: 2, done: 1 });
+  assert.deepEqual(cohorts([], now), { day1: { learners: 0, returned: 0, pct: null }, day7: { learners: 0, returned: 0, pct: null }, funnel: { visited: 0, started: 0, done: 0 } });
+});

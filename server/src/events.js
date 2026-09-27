@@ -99,6 +99,7 @@ export async function handleAdminStats(request, env) {
     count('SELECT COUNT(*) AS n FROM push_subs'),
     count('SELECT COUNT(*) AS n FROM events WHERE name = ? AND ts >= ?', 'lesson_done', d7),
   ]);
+  const retention = cohorts(await all(env, 'SELECT actor, name, ts FROM events WHERE ts >= ?', iso(45 * 86400e3)), now);
   const recentErrors = (await all(env, 'SELECT * FROM errors')).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).slice(0, 10)
     .map((e) => ({ at: e.created_at, message: String(e.message || '').slice(0, 200), url: e.url, version: e.version }));
   return json({
@@ -109,6 +110,37 @@ export async function handleAdminStats(request, env) {
     aiMessages: { total: aiMessages, last30d: aiMessages30 },
     pushSubscriptions: pushSubs,
     errorsLast24h: errors24,
+    retention,
     recentErrors,
   });
+}
+
+/** Day-1 / day-7 return rates and the visit → lesson funnel, from the last 45 days of events (opt-in learners only).
+ *  A learner's day 0 is the first day we saw them in the window; "day-1 retained" = active again the next calendar day,
+ *  "day-7 retained" = active on day 7 (the Play Store's own definition).  Cohorts only count learners whose window has
+ *  closed (day 0 at least 2 / 8 days ago), so a fresh install never reads as churned.                                  */
+export function cohorts(rows, now = Date.now()) {
+  const day = (ts) => Math.floor(Date.parse(ts) / 86400e3);
+  const today = Math.floor(now / 86400e3);
+  const byActor = new Map();
+  for (const r of rows) {
+    if (!r.actor || !r.ts || Number.isNaN(Date.parse(r.ts))) continue;
+    let a = byActor.get(r.actor);
+    if (!a) { a = { first: Infinity, days: new Set(), started: false, done: false }; byActor.set(r.actor, a); }
+    const d = day(r.ts); a.days.add(d); if (d < a.first) a.first = d;
+    if (r.name === 'lesson_start') a.started = true;
+    if (r.name === 'lesson_done') a.done = true;
+  }
+  const since = today - 30;                                  // cohorts: first seen in the last 30 days
+  const rate = (offset) => {
+    let n = 0, back = 0;
+    for (const a of byActor.values()) {
+      if (a.first < since || a.first > today - offset - 1) continue;
+      n++; if (a.days.has(a.first + offset)) back++;
+    }
+    return { learners: n, returned: back, pct: n ? Math.round((100 * back) / n) : null };
+  };
+  let visited = 0, started = 0, done = 0;
+  for (const a of byActor.values()) { if (a.first < since) continue; visited++; if (a.started) started++; if (a.done) done++; }
+  return { day1: rate(1), day7: rate(7), funnel: { visited, started, done } };
 }
