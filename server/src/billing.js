@@ -161,7 +161,7 @@ export async function handlePlans(request, env) {
   return json({ plans, web: stripe, paywall: envFlag(env, 'PAYWALL'), portal: stripe });
 }
 
-async function stripeCall(env, path, form, method = 'POST') {
+export async function stripeCall(env, path, form, method = 'POST') {
   const body = new URLSearchParams();
   const add = (k, v) => { if (v === undefined || v === null) return; if (Array.isArray(v)) v.forEach((vv) => add(`${k}[]`, vv)); else if (typeof v === 'object') Object.entries(v).forEach(([kk, vv]) => add(`${k}[${kk}]`, vv)); else body.append(k, String(v)); };
   Object.entries(form || {}).forEach(([k, v]) => add(k, v));

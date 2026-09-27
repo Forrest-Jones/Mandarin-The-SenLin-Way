@@ -48,7 +48,7 @@ Copy every field from `store/listing.md` (title, short and full description, bot
 **Data safety** (answer from `privacy.html`):
 - Collects: email address (account, optional), app activity (opt-in analytics, event names only), crash logs. Not collected: location, contacts, photos, financial info (payments are handled by Google Play / Stripe), device IDs, advertising ID.
 - Shared with third parties: messages typed to the tutor go to Anthropic (AI processing); audio for pronunciation feedback goes to the speech provider (Microsoft/Google/Deepgram). Not sold. Not used for ads.
-- Data is encrypted in transit; users can request deletion (Settings → Reset, email the owner). Account creation is optional.
+- Data is encrypted in transit; users can delete their account in the app (Settings → Account → Delete account calls `DELETE /v1/me`) or by email. **Account deletion URL** for the form: `https://forrest-jones.github.io/Mandarin-The-SenLin-Way/privacy.html#delete`. Account creation is optional.
 - Sensitive permissions: RECORD_AUDIO (pronunciation feedback), POST_NOTIFICATIONS (daily reminder). Route A needs none declared beyond what Chrome provides.
 
 **Ads**: none. **Target audience**: 13+ (do not tick "designed for children").
@@ -89,7 +89,7 @@ Where the rails live: `server/README.md` → *Billing* (Stripe products, prices,
 
 ## 7. iOS
 
-The TWA route is Android-only. iOS requires Route B. Apple insists in-app digital purchases use StoreKit (RevenueCat handles it), a working "Restore purchases" button (present in `js/native.js` → `billing.restore()`), an account-deletion path (Settings → Reset plus the contact email; add an in-app "Delete account" once the backend exposes it), and a privacy nutrition label mirroring the Data safety answers above.
+The TWA route is Android-only. iOS requires Route B. Apple insists in-app digital purchases use StoreKit (RevenueCat handles it), a working "Restore purchases" button (present in `js/native.js` → `billing.restore()`), an account-deletion path (Settings → Account → Delete account, plus the contact email), and a privacy nutrition label mirroring the Data safety answers above.
 
 ## 8. Ranking on Google Play (ASO) — the plan
 

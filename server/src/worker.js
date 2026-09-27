@@ -4,6 +4,7 @@
 import { HttpError, json, err } from './util.js';
 import { preflight, withCors } from './cors.js';
 import { handleAuthRequest, handleAuthVerify, handleAuthPassword, handleMe, requireUser, getUser } from './auth.js';
+import { handleDeleteMe } from './account.js';
 import { handleSyncGet, handleSyncPut, handleBackupsList, handleBackupGet } from './sync.js';
 import { handleAiChat } from './ai.js';
 import { handleTts, ttsProvider } from './tts.js';
@@ -52,6 +53,7 @@ export const ROUTES = [
   ['POST', '/v1/auth/verify', handleAuthVerify],
   ['POST', '/v1/auth/password', handleAuthPassword],
   ['GET', '/v1/me', handleMe],
+  ['DELETE', '/v1/me', handleDeleteMe],
   ['GET', '/v1/sync', handleSyncGet],
   ['PUT', '/v1/sync', handleSyncPut],
   ['GET', '/v1/sync/backups', handleBackupsList],

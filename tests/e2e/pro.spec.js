@@ -52,3 +52,34 @@ test('signing in from Talk returns to Talk', async ({ page }) => {
   await expect(page).toHaveURL(/#\/talk$/);
   await expect(page.locator('#talk-status')).toContainText('AI tutor ready');
 });
+
+test('a signed-in learner can delete the account from Settings (Google Play account-deletion requirement)', async ({ page }) => {
+  const calls = [];
+  await page.route(/\/v1\//, route => {
+    const u = route.request().url(); const m = route.request().method(); calls.push(`${m} ${u.replace(/^.*\/v1/, '/v1')}`);
+    if (m === 'DELETE' && /\/v1\/me$/.test(u)) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, deleted: { syncBlobs: 1 }, stripe: { cancelled: 0 } }) });
+    const body = /health/.test(u) ? { ok: true, ready: true, providers: { ai: true, email: true } }
+      : /\/v1\/me$/.test(u) ? { user: { id: 'u1', email: 'a@b.co', plan: 'free' }, usage: {}, limits: {} }
+      : /entitlement/.test(u) ? { plan: 'free', features: { ai: true } } : /sync/.test(u) ? { version: 0, data: null } : { ok: true };
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  });
+  await page.addInitScript(() => { try {
+    localStorage.setItem('senlin.apiBase', JSON.stringify('https://senlin-api.example.workers.dev'));
+    localStorage.setItem('senlin.auth', JSON.stringify({ token: 't', user: { id: 'u1', email: 'a@b.co', plan: 'free' }, plan: 'free' }));
+  } catch (e) {} });
+  await page.goto('/#/settings');
+  await expect(page.locator('#account')).toContainText('a@b.co');
+  await page.locator('#account summary', { hasText: 'Delete account' }).click();
+  await expect(page.locator('#acct-delete')).toBeVisible();
+
+  page.once('dialog', d => d.dismiss());
+  await page.click('#acct-delete');
+  await expect(page.locator('#account')).toContainText('a@b.co');
+  expect(calls.filter(c => c.startsWith('DELETE /v1/me'))).toEqual([]);
+
+  page.once('dialog', d => d.accept());
+  await page.click('#acct-delete');
+  await expect(page.locator('#account')).toContainText(/Sign in|Create account/);
+  expect(calls.filter(c => c === 'DELETE /v1/me')).toHaveLength(1);
+  expect(await page.evaluate(() => localStorage.getItem('senlin.auth'))).toBeNull();
+});

@@ -316,6 +316,7 @@
       <div class="row">${!isPro() ? `<a class="btn btn-gold" href="#/pro">Go Pro — from $5 a month</a>` : ''}${isPro() && !isNative() ? `<button class="btn btn-sm" id="acct-manage">Manage subscription</button>` : ''}<button class="btn btn-sm btn-ghost" id="acct-restore">Restore purchase</button></div>
       ${u.owner ? `<p class="small"><a href="#/admin" style="text-decoration:underline">Owner dashboard →</a></p>` : ''}
       <details><summary class="small">Backups</summary><div id="backups" class="small muted">loading…</div></details>
+      <details><summary class="small">Delete account</summary><div class="small muted stack" style="margin-top:.4rem"><p>Removes your email, synced progress, backups, reminders and usage records from our server within seconds. Progress already on this device stays until you use Reset below. ${isPro() && !isNative() ? 'Your web subscription is cancelled at the same time.' : isPro() ? 'A store subscription must be cancelled in Google Play or the App Store separately.' : ''}</p><div class="row"><button class="btn btn-sm btn-ghost" id="acct-delete" style="color:var(--vermilion)">Delete my account</button></div></div></details>
       ${CFG.analytics === 'opt-in' ? `<label class="row small"><input type="checkbox" id="analytics" ${state.settings.analytics ? 'checked' : ''}> Share anonymous usage counts (which pages and features are used; never your text, voice or email)</label>` : ''}
     </section>`;
   };
@@ -364,6 +365,13 @@
     renderStatus();
     $('#sync-now').onclick = async () => { const b = $('#sync-now'); b.disabled = true; try { await pull(); await push(); toast('Synced'); } catch (e) { toast('Sync failed: ' + (e.message || e)); } b.disabled = false; renderStatus(); };
     $('#acct-out').onclick = () => { signOut(); A.navigate(); };
+    const del = $('#acct-delete'); if (del) del.onclick = async () => {
+      const email = (auth.user && auth.user.email) || 'your account';
+      if (!confirm(`Delete ${email} and everything stored for it on the server? This cannot be undone. (Progress on this device is kept.)`)) return;
+      del.disabled = true; del.textContent = 'Deleting…';
+      try { await api('/v1/me', { method: 'DELETE' }); signOut(false); toast('Account deleted. Your progress stays on this device.'); A.navigate(); }
+      catch (e) { del.disabled = false; del.textContent = 'Delete my account'; toast(e.message || 'Could not delete the account — email us and we will do it by hand'); }
+    };
     const forget = $('#api-forget'); if (forget) forget.onclick = () => { signOut(false); store.set('apiBase', null); location.reload(); };
     const mg = $('#acct-manage'); if (mg) mg.onclick = portal;
     const rs = $('#acct-restore'); if (rs) rs.onclick = restore;
