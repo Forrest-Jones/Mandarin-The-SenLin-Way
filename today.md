@@ -1,41 +1,43 @@
-# Mandarin The SenLin Way — Day 9
+# Mandarin The SenLin Way — Day 10
 *Pronunciation Mastery · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/9
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/10
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **3-1**: 老师 lǎoshī — teacher. Say it five times.
-- huā huó huài huì
-- guān gùn guāng
-- xué yuán yún
+Tone pair of the day **3-2**: 北京 Běijīng — try 我们 wǒmen — we (3-5). Say it five times.
 
 ## 2 · Today’s sounds (4 min)
-**The u-sets and ü-sets**
+**Tone pairs I (1-x and 2-x)**
 
-The last ten finals all start with a rounded u or ü glide. ui is really u-ei, un is really u-en.
-- Set **-ua** (huà 话): “wah”. Location: a garage
-- Set **-uo** (zuò 坐): “woh”. Location: a supermarket
-- Set **-uai** (kuài 块): “why”. Location: a courthouse
-- Set **-ui** (huì 会): “way” (really u-ei). Location: a hair salon
-- Set **-uan** (guān 关): “wahn”. Location: a park
-- Set **-un** (kùn 困): “wun” (really u-en). Location: a bakery
-- Set **-uang** (huáng 黄): “wahng”. Location: a casino
-- Set **-üe** (xué 学): “yweh”. Location: a bookstore
-- Set **-üan** (yuán 元): “ywen”. Location: a swimming pool
-- Set **-ün** (yún 云): “ywin”. Location: a gas station
+Real speech is tones in sequence. Drill every two-tone combination until the shapes are automatic. This is the single highest-leverage pronunciation practice.
+- 1-1: 今天 jīntiān (today)
+- 1-2: 中国 Zhōngguó (China)
+- 1-3: 生日 shēngrì (birthday (1-4 in speech))
+- 1-4: 商店 shāngdiàn (shop)
+- 2-1: 明天 míngtiān (tomorrow)
+- 2-2: 同学 tóngxué (classmate)
+- 2-3: 苹果 píngguǒ (apple)
+- 2-4: 学校 xuéxiào (school)
+- 1-5: 妈妈 māma (mom)
+- 2-5: 朋友 péngyou (friend)
 
-**Task:** Assign the last ten sets. You now have a place for every syllable in Mandarin.
+**Task:** Say each pair three times, then say it inside the example word. Record yourself once and compare with the speaker.
 
 ## 3 · Shadowing: say each row three times (2½ min)
-- huā huó huài huì
-- guān gùn guāng
-- xué yuán yún
+- 今天 jīntiān (1-1 · today)
+- 中国 Zhōngguó (1-2 · China)
+- 生日 shēngrì (1-3 · birthday (1-4 in speech))
+- 商店 shāngdiàn (1-4 · shop)
+- 明天 míngtiān (2-1 · tomorrow)
+- 同学 tóngxué (2-2 · classmate)
+- 苹果 píngguǒ (2-3 · apple)
+- 学校 xuéxiào (2-4 · school)
 
 ## 4 · Quiz: hear the tone (2 min)
-1. **guān** — which one is it?  (a) yuán  (b) huáng  (c) guān  (d) xué
-2. **yún** — Which tone is this?  (a) 1st · high-flat ˉ  (b) 2nd · rising ˊ  (c) 3rd · low-dip ˇ  (d) 4th · falling ˋ
-3. **huì** — Which tone is this?  (a) 1st · high-flat ˉ  (b) 2nd · rising ˊ  (c) 3rd · low-dip ˇ  (d) 4th · falling ˋ
-4. **huā** — Which tone is this?  (a) 1st · high-flat ˉ  (b) 2nd · rising ˊ  (c) 3rd · low-dip ˇ  (d) 4th · falling ˋ
-5. **huì** — which one is it?  (a) yún  (b) huì  (c) huáng  (d) huài
+1. **jīntiān** — Which tone pair is 今天 (today)?  (a) 4-5  (b) 1-1  (c) 2-4  (d) 2-2
+2. **shāngdiàn** — Which tone pair is 商店 (shop)?  (a) 3-4  (b) 1-3  (c) 1-4  (d) 3-1
+3. **xuéxiào** — which one is it?  (a) míngtiān  (b) xuéxiào  (c) dàxué  (d) péngyou
+4. **tóngxué** — which one is it?  (a) míngtiān  (b) xuéxiào  (c) lǎoshī  (d) tóngxué
+5. **wǒmen** — Which tone pair is 我们 (we)?  (a) 1-3  (b) 2-3  (c) 3-5  (d) 1-1
 
-Answers: 1c 2b 3d 4a 5b
+Answers: 1b 2c 3b 4d 5c
