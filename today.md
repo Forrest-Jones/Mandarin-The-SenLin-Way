@@ -1,13 +1,16 @@
-# Mandarin The SenLin Way — Day 19
+# Mandarin The SenLin Way — Day 20
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/19
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/20
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **3-5**: 我们 wǒmen — we. Say it five times.
-Say aloud: 们 men · 的 de · 中 zhōng · 不 bù
+Tone pair of the day **4-5**: 爸爸 bàba — dad. Say it five times.
+Say aloud: 吗 ma · 的 de · 这 zhè · 那 nà
 
 ## 2 · Review (2½ min)
+- 呢 — ne — and…? (particle)
+- 那 — nà — that
+- 这 — zhè — this
 - 中国人 — Zhōngguórén — Chinese person
 - 中国 — Zhōngguó — China
 - 国 — guó — country
@@ -17,42 +20,36 @@ Say aloud: 们 men · 的 de · 中 zhōng · 不 bù
 - 也 — yě — also
 - 很 — hěn — very
 - 她们 — tāmen — they (f.)
-- 他们 — tāmen — they (m.)
-- 你们 — nǐmen — you (plural)
-- 我们 — wǒmen — we, us
 
 ## 3 · New (3½ min)
-### 这  zhè  — this
-Props: 辶 walk (walking boots), 文 writing (a written sign)
-Scene: Jackie Chan, in the bathroom of your school, walks in BOOTS (辶) toward a WRITTEN SIGN (文) that says “THIS way”.
-### 那  nà  — that
-Props: 刀 knife (a knife), 二 two (two sticks), 阝 city (a city gate)
-Scene: Neo, in the bathroom of your childhood home, throws a KNIFE (刀) past TWO STICKS (二) at a far CITY GATE (阝): “THAT one, over there.”
-### 呢  ne  — and…? (particle)
-Props: 口 mouth (a giant mouth), 尸 corpse (a bed sheet), 匕 spoon (a spoon)
-Scene: Neo, in the hallway of your school, asks with a GIANT MOUTH (口) from under a BED SHEET (尸), holding a SPOON (匕): “and you…?”
+### 什  shén  — what (什么)
+Props: 亻 person (side) (a mannequin), 十 ten (a cross)
+Scene: Sherlock Holmes, in the kitchen of a hotel, asks a MANNEQUIN (亻) wearing a CROSS (十): “WHAT is that?”
+### 么  me  — (suffix of 什么)
+Props: 丿 slash (a whip), 厶 private (a nose)
+Scene: Mario, in the hallway of your school, cracks a WHIP (丿) at a NOSE (厶) — the tail end of “what”.
+### 哪  nǎ  — which / where
+Props: 口 mouth (a giant mouth), 那 that (a signpost)
+Scene: Neo, in the bedroom of your childhood home, shouts with a GIANT MOUTH (口) at a SIGNPOST (那): “WHICH one?!”
 
-**Pattern of the day: 呢 bounce-back question** — Noun + 呢？
-我很好，你呢？  Wǒ hěn hǎo, nǐ ne?  — I am fine, and you?
-呢 asks the same question about someone else, or asks where something is: 我的书呢？
+**New words**
+- 什么 shénme — what
 
 **Deal desk (business Mandarin)**
-- 家族办公室 jiāzú bàngōngshì — family office
-- 主权财富基金 zhǔquán cáifù jījīn — sovereign wealth fund
-- 这个项目我们很感兴趣，想进一步了解。  Zhège xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyíbù liǎojiě.  — We are very interested in this deal and would like to learn more.
+- 名片 míngpiàn — business card · Give and receive with both hands; read it before putting it away.
+- 私募股权 sīmù gǔquán — private equity (PE)
+- 这一轮谁领投？我们可以考虑跟投。  Zhè yì lún shéi lǐngtóu? Wǒmen kěyǐ kǎolǜ gēntóu.  — Who is leading this round? We could consider following.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
+- 这是什么？  Zhè shì shénme?  — What is this?
 - 那是我的。  Nà shì wǒ de.  — That is mine.
-- 这不是我们的。  Zhè bú shì wǒmen de.  — This is not ours.
-- 我很好，你呢？  Wǒ hěn hǎo, nǐ ne?  — I am fine, and you?
-- 他也很好。  Tā yě hěn hǎo.  — He is fine too.
-- 我是中国人。  Wǒ shì Zhōngguórén.  — I am Chinese.
+- 我很好。  Wǒ hěn hǎo.  — I am fine.
 
 ## 5 · Quiz (1 min)
-1. **中** — What does it mean?  (a) you  (b) (plural)  (c) woods  (d) middle / China
-2. **人** — How is it pronounced?  (a) nǐ  (b) zhōng  (c) zhè  (d) rén
-3. **ne** — which one is it?  (a) 森  (b) 呢  (c) 是  (d) 林
-4. **他们** — How is it pronounced?  (a) Zhōngguó  (b) Zhōngguórén  (c) bú shì  (d) tāmen
-5. **那** — What does it mean?  (a) that  (b) (plural)  (c) ’s (possessive)  (d) woods
+1. **什么** — What does it mean?  (a) what  (b) they (f.)  (c) forest  (d) they (m.)
+2. **也** — How is it pronounced?  (a) guó  (b) hǎo  (c) yě  (d) mù
+3. **Zhōngguó** — which one is it?  (a) 我们  (b) 中国  (c) 她们  (d) 中国人
+4. **这** — How is it pronounced?  (a) yě  (b) tā  (c) ma  (d) zhè
+5. **吗** — What does it mean?  (a) ? (question)  (b) middle / China  (c) he  (d) I / me
 
-Answers: 1d 2d 3b 4d 5a
+Answers: 1a 2c 3b 4d 5a
