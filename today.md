@@ -1,13 +1,16 @@
-# Mandarin The SenLin Way — Day 21
+# Mandarin The SenLin Way — Day 22
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/21
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/22
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-1**: 今天 jīntiān — today. Say it five times.
-Say aloud: 中 zhōng · 不 bù · 那 nà · 的 de
+Tone pair of the day **1-2**: 中国 Zhōngguó — China. Say it five times.
+Say aloud: 那 nà · 好 hǎo · 呢 ne · 什 shén
 
 ## 2 · Review (2½ min)
+- 三 — sān — three
+- 二 — èr — two
+- 一 — yī — one
 - 什么 — shénme — what
 - 哪 — nǎ — which / where
 - 么 — me — (suffix of 什么)
@@ -17,35 +20,33 @@ Say aloud: 中 zhōng · 不 bù · 那 nà · 的 de
 - 这 — zhè — this
 - 中国人 — Zhōngguórén — Chinese person
 - 中国 — Zhōngguó — China
-- 国 — guó — country
-- 中 — zhōng — middle / China
-- 人 — rén — person
 
 ## 3 · New (3½ min)
-### 一  yī  — one
-Props: 一 one (a stick)
-Scene: Yoda, outside the front door of your workplace, lays ONE STICK (一) on the floor.
-### 二  èr  — two
-Props: 二 two (two sticks)
-Scene: Elmo, in the bathroom of a restaurant, lays TWO STICKS (二), one above the other.
-### 三  sān  — three
-Props: 三 three (three sticks)
-Scene: Superman, outside the front door of a temple or church, lays THREE STICKS (三) — a little ladder.
+### 四  sì  — four
+Props: 囗 enclosure (a fence), 儿 legs (a pair of legs)
+Scene: Superman, in the bathroom of your workplace, hides a PAIR OF LEGS (儿) inside a FENCE (囗) — FOUR walls, four legs.
+### 五  wǔ  — five
+Props: 五 five (an open hand)
+Scene: Wonder Woman, in the bedroom of your grandparents’ house, holds up an OPEN HAND (五): FIVE fingers spread.
+### 六  liù  — six
+Props: 亠 lid (top) (a top hat), 八 eight (a moustache)
+Scene: Luke Skywalker, in the bathroom of a museum, wears a TOP HAT (亠) over a MOUSTACHE (八) — a dapper SIX.
 
 **Deal desk (business Mandarin)**
-- 风险投资 fēngxiǎn tóuzī — venture capital (VC) · Also 创业投资 (chuàngyè tóuzī), the regulatory term.
-- 募资 mùzī — fundraising
-- 请先签保密协议，然后我们发商业计划书。  Qǐng xiān qiān bǎomì xiéyì, ránhòu wǒmen fā shāngyè jìhuàshū.  — Please sign the NDA first, then we will send the business plan.
+- 出资承诺 chūzī chéngnuò — capital commitment
+- 实缴 shíjiǎo — paid-in (capital)
+- 我们的报价是投前估值两亿美元，投资三千万美元。  Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.  — Our offer is a pre-money valuation of 200 million US dollars, with an investment of 30 million US dollars.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 我很好，你呢？  Wǒ hěn hǎo, nǐ ne?  — I am fine, and you?
-- 那是我的。  Nà shì wǒ de.  — That is mine.
+- 一、二、三、四、五。  Yī, èr, sān, sì, wǔ.  — One, two, three, four, five.
+- 这是什么？  Zhè shì shénme?  — What is this?
+- 我很好。  Wǒ hěn hǎo.  — I am fine.
 
 ## 5 · Quiz (1 min)
-1. **一** — What does it mean?  (a) that  (b) you  (c) one  (d) tree
-2. **三** — How is it pronounced?  (a) èr  (b) sān  (c) wǒ  (d) yě
-3. **guó** — which one is it?  (a) 国  (b) 好  (c) 是  (d) 吗
-4. **什么** — How is it pronounced?  (a) hǎo de  (b) shénme  (c) Zhōngguórén  (d) wǒmen
-5. **那** — What does it mean?  (a) woods  (b) that  (c) you  (d) one
+1. **这** — What does it mean?  (a) country  (b) this  (c) six  (d) one
+2. **一** — How is it pronounced?  (a) yī  (b) sì  (c) sān  (d) tā
+3. **wǔ** — which one is it?  (a) 么  (b) 五  (c) 也  (d) 你
+4. **中国人** — How is it pronounced?  (a) Zhōngguórén  (b) Zhōngguó  (c) tāmen  (d) hǎo de
+5. **六** — What does it mean?  (a) which / where  (b) four  (c) six  (d) good
 
-Answers: 1c 2b 3a 4b 5b
+Answers: 1b 2a 3b 4a 5c
