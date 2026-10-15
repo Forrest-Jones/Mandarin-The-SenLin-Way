@@ -1,13 +1,18 @@
-# Mandarin The SenLin Way — Day 24
+# Mandarin The SenLin Way — Day 25
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/24
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/25
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-4**: 商店 shāngdiàn — shop. Say it five times.
-Say aloud: 二 èr · 林 lín · 什 shén · 这 zhè
+Tone pair of the day **2-1**: 明天 míngtiān — tomorrow. Say it five times.
+Say aloud: 五 wǔ · 十 shí · 呢 ne · 木 mù
 
 ## 2 · Review (2½ min)
+- 个人 — gèrén — individual
+- 一个 — yí ge — one (of)
+- 个 — gè — (measure word)
+- 零 — líng — zero
+- 十 — shí — ten
 - 九 — jiǔ — nine
 - 八 — bā — eight
 - 七 — qī — seven
@@ -15,43 +20,43 @@ Say aloud: 二 èr · 林 lín · 什 shén · 这 zhè
 - 五 — wǔ — five
 - 四 — sì — four
 - 三 — sān — three
-- 二 — èr — two
-- 一 — yī — one
-- 什么 — shénme — what
-- 哪 — nǎ — which / where
-- 么 — me — (suffix of 什么)
 
 ## 3 · New (3½ min)
-### 十  shí  — ten
-Props: 十 ten (a cross)
-Scene: Sherlock Holmes, in the kitchen of your workplace, carries a wooden CROSS (十) — TEN, like a Roman X stood upright.
-### 零  líng  — zero
-Props: 雨 rain (an umbrella), 令 order (a whistle)
-Scene: Luke Skywalker, in the kitchen of a fire station, stands under an UMBRELLA (雨) blowing a WHISTLE (令) — ZERO raindrops get through.
-### 个  gè  — (measure word)
-Props: 人 person (a person), 丨 line (a pole)
-Scene: Gandalf, in the bathroom of your school, pushes a POLE (丨) under a PERSON (人) — ONE (measure word) person on a stick.
+### 学  xué  — study
+Props: ⺍ dots (a crown of dots), 冖 cover (a lid), 子 child (a baby rattle)
+Scene: Xena, in the kitchen of a bookstore, puts a CROWN OF DOTS (⺍) on a LID (冖) over a CHILD (子) who is STUDYING.
+### 生  shēng  — life / be born
+Props: 生 life (a sprout)
+Scene: Sherlock Holmes, outside the front door of a library, watches a SPROUT (生) push out of the ground — LIFE is BORN.
+### 习  xí  — practice
+Props: 习 practice (a wing)
+Scene: Xena, in the kitchen of your workplace, PRACTICES flapping a single WING (习) again and again.
 
 **New words**
-- 一个 yí ge — one (of)
-- 个人 gèrén — individual
+- 学生 xuésheng — student
+- 学习 xuéxí — to study, learn
+- 人生 rénshēng — life
+
+**Pattern of the day: A 是 B** — A + 是 + B
+我是学生。  Wǒ shì xuésheng.  — I am a student.
+是 links two nouns. Never use 是 before an adjective (say 我很好, not 我是好).
 
 **Deal desk (business Mandarin)**
-- 业绩报酬 yèjì bàochou — carried interest / performance fee · Colloquially just “carry”.
-- 门槛收益率 ménkǎn shōuyìlǜ — hurdle rate
-- 估值可以谈，但是董事会席位不能少。  Gūzhí kěyǐ tán, dànshì dǒngshìhuì xíwèi bù néng shǎo.  — Valuation is negotiable, but the board seat is not.
+- 基金期限 jījīn qīxiàn — fund term
+- 投资期 tóuzīqī — investment period
+- 请把最近三年的审计报告放进数据室。  Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàngjìn shùjùshì.  — Please put the last three years of audit reports in the data room.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 六、七、八、九、十。  Liù, qī, bā, jiǔ, shí.  — Six, seven, eight, nine, ten.
-- 这是一个人。  Zhè shì yí ge rén.  — This is a person.
-- 我很好。  Wǒ hěn hǎo.  — I am fine.
-- 他也很好。  Tā yě hěn hǎo.  — He is fine too.
+- 你是学生吗？  Nǐ shì xuésheng ma?  — Are you a student?
+- 我也是学生。  Wǒ yě shì xuésheng.  — I am also a student.
+- 我是中国人。  Wǒ shì Zhōngguórén.  — I am Chinese.
+- 这是什么？  Zhè shì shénme?  — What is this?
 
 ## 5 · Quiz (1 min)
-1. **七** — What does it mean?  (a) nine  (b) woods  (c) what (什么)  (d) seven
-2. **十** — How is it pronounced?  (a) men  (b) mù  (c) tā  (d) shí
-3. **èr** — which one is it?  (a) 六  (b) 二  (c) 哪  (d) 木
-4. **个人** — How is it pronounced?  (a) Zhōngguórén  (b) nǐmen  (c) bú shì  (d) gèrén
-5. **六** — What does it mean?  (a) and…? (particle)  (b) six  (c) ten  (d) I / me
+1. **学生** — What does it mean?  (a) to study, learn  (b) is not  (c) hello  (d) student
+2. **个人** — How is it pronounced?  (a) Zhōngguó  (b) gèrén  (c) bú shì  (d) xuésheng
+3. **xué** — which one is it?  (a) 哪  (b) 森  (c) 学  (d) 不
+4. **四** — How is it pronounced?  (a) sì  (b) rén  (c) sēn  (d) yī
+5. **习** — What does it mean?  (a) tree  (b) practice  (c) nine  (d) four
 
-Answers: 1d 2d 3b 4d 5b
+Answers: 1d 2b 3c 4a 5b
