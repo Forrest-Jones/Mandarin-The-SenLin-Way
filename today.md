@@ -1,62 +1,60 @@
-# Mandarin The SenLin Way — Day 25
+# Mandarin The SenLin Way — Day 26
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/25
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/26
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **2-1**: 明天 míngtiān — tomorrow. Say it five times.
-Say aloud: 五 wǔ · 十 shí · 呢 ne · 木 mù
+Tone pair of the day **2-2**: 同学 tóngxué — classmate. Say it five times.
+Say aloud: 八 bā · 十 shí · 呢 ne · 人 rén
 
 ## 2 · Review (2½ min)
+- 人生 — rénshēng — life
+- 学习 — xuéxí — to study, learn
+- 学生 — xuésheng — student
+- 习 — xí — practice
+- 生 — shēng — life / be born
+- 学 — xué — study
 - 个人 — gèrén — individual
 - 一个 — yí ge — one (of)
 - 个 — gè — (measure word)
 - 零 — líng — zero
 - 十 — shí — ten
 - 九 — jiǔ — nine
-- 八 — bā — eight
-- 七 — qī — seven
-- 六 — liù — six
-- 五 — wǔ — five
-- 四 — sì — four
-- 三 — sān — three
 
 ## 3 · New (3½ min)
-### 学  xué  — study
-Props: ⺍ dots (a crown of dots), 冖 cover (a lid), 子 child (a baby rattle)
-Scene: Xena, in the kitchen of a bookstore, puts a CROWN OF DOTS (⺍) on a LID (冖) over a CHILD (子) who is STUDYING.
-### 生  shēng  — life / be born
-Props: 生 life (a sprout)
-Scene: Sherlock Holmes, outside the front door of a library, watches a SPROUT (生) push out of the ground — LIFE is BORN.
-### 习  xí  — practice
-Props: 习 practice (a wing)
-Scene: Xena, in the kitchen of your workplace, PRACTICES flapping a single WING (习) again and again.
+### 老  lǎo  — old
+Props: 耂 old (a cane), 匕 spoon (a spoon)
+Scene: Luke Skywalker, in the bedroom of a stadium, leans on a CANE (耂) and eats with a SPOON (匕) — OLD age.
+### 师  shī  — teacher
+Props: 刂 knife (side) (a sword), 一 one (a stick), 巾 cloth (a towel)
+Scene: Sherlock Holmes, outside the front door of your workplace, waves a SWORD (刂), then ONE STICK (一) and a TOWEL (巾) — the TEACHER cleans the sword.
+### 校  xiào  — school
+Props: 木 tree (a tree), 亠 lid (top) (a top hat), 父 father (a pipe)
+Scene: Xena, in the bathroom of a beach house, climbs a TREE (木) wearing a TOP HAT (亠) with FATHER’s PIPE (父) — SCHOOL drop-off.
 
 **New words**
-- 学生 xuésheng — student
-- 学习 xuéxí — to study, learn
-- 人生 rénshēng — life
+- 学校 xuéxiào — school
+- 老师 lǎoshī — teacher
 
-**Pattern of the day: A 是 B** — A + 是 + B
-我是学生。  Wǒ shì xuésheng.  — I am a student.
-是 links two nouns. Never use 是 before an adjective (say 我很好, not 我是好).
+**Pattern of the day: Yes/no with 吗** — Statement + 吗？
+你是老师吗？  Nǐ shì lǎoshī ma?  — Are you a teacher?
+Add 吗 to any statement to make a yes/no question. Word order does not change.
 
 **Deal desk (business Mandarin)**
-- 基金期限 jījīn qīxiàn — fund term
-- 投资期 tóuzīqī — investment period
-- 请把最近三年的审计报告放进数据室。  Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàngjìn shùjùshì.  — Please put the last three years of audit reports in the data room.
+- 首次交割 shǒucì jiāogē — first close
+- 最终交割 zuìzhōng jiāogē — final close
+- 这笔关联交易是怎么定价的？  Zhè bǐ guānlián jiāoyì shì zěnme dìngjià de?  — How was this related-party transaction priced?
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 你是学生吗？  Nǐ shì xuésheng ma?  — Are you a student?
-- 我也是学生。  Wǒ yě shì xuésheng.  — I am also a student.
-- 我是中国人。  Wǒ shì Zhōngguórén.  — I am Chinese.
-- 这是什么？  Zhè shì shénme?  — What is this?
+- 他是我的老师。  Tā shì wǒ de lǎoshī.  — He is my teacher.
+- 这不是我们的。  Zhè bú shì wǒmen de.  — This is not ours.
+- 我很好。  Wǒ hěn hǎo.  — I am fine.
 
 ## 5 · Quiz (1 min)
-1. **学生** — What does it mean?  (a) to study, learn  (b) is not  (c) hello  (d) student
-2. **个人** — How is it pronounced?  (a) Zhōngguó  (b) gèrén  (c) bú shì  (d) xuésheng
-3. **xué** — which one is it?  (a) 哪  (b) 森  (c) 学  (d) 不
-4. **四** — How is it pronounced?  (a) sì  (b) rén  (c) sēn  (d) yī
-5. **习** — What does it mean?  (a) tree  (b) practice  (c) nine  (d) four
+1. **老** — What does it mean?  (a) which / where  (b) zero  (c) old  (d) he
+2. **个人** — How is it pronounced?  (a) xuéxiào  (b) yí ge  (c) gèrén  (d) xuésheng
+3. **rénshēng** — which one is it?  (a) 中国人  (b) 中国  (c) 人生  (d) 一个
+4. **学** — How is it pronounced?  (a) sān  (b) de  (c) xué  (d) xí
+5. **个** — What does it mean?  (a) nine  (b) (measure word)  (c) you  (d) tree
 
-Answers: 1d 2b 3c 4a 5b
+Answers: 1c 2c 3c 4c 5b
