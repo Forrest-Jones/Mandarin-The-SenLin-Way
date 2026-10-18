@@ -1,63 +1,57 @@
-# Mandarin The SenLin Way — Day 27
+# Mandarin The SenLin Way — Day 28
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/27
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/28
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **2-3**: 苹果 píngguǒ — apple. Say it five times.
-Say aloud: 零 líng · 七 qī · 呢 ne · 个 gè
+Tone pair of the day **2-4**: 学校 xuéxiào — school. Say it five times.
+Say aloud: 习 xí · 六 liù · 那 nà · 她 tā
 
 ## 2 · Review (2½ min)
+- 小学 — xiǎoxué — primary school
+- 大学生 — dàxuéshēng — university student
+- 大学 — dàxué — university
+- 同学 — tóngxué — classmate
+- 小 — xiǎo — small
+- 大 — dà — big
+- 同 — tóng — same
 - 老师 — lǎoshī — teacher
 - 学校 — xuéxiào — school
 - 校 — xiào — school
 - 师 — shī — teacher
 - 老 — lǎo — old
-- 人生 — rénshēng — life
-- 学习 — xuéxí — to study, learn
-- 学生 — xuésheng — student
-- 习 — xí — practice
-- 生 — shēng — life / be born
-- 学 — xué — study
-- 个人 — gèrén — individual
 
 ## 3 · New (3½ min)
-### 同  tóng  — same
-Props: 冂 border (a doorframe), 一 one (a stick), 口 mouth (a giant mouth)
-Scene: Thor, in the kitchen of a police station, stands in a DOORFRAME (冂) with ONE STICK (一) and a GIANT MOUTH (口) — we speak with the SAME voice.
-### 大  dà  — big
-Props: 大 big (a giant)
-Scene: Darth Vader, in the bathroom of your childhood home, grows into a GIANT (大) with arms spread wide: “BIG!”
-### 小  xiǎo  — small
-Props: 小 small (a figurine)
-Scene: Xena, in the bedroom of a beach house, shrinks to a tiny FIGURINE (小) — three little strokes.
+### 爸  bà  — dad
+Props: 父 father (a pipe), 巴 snake (a boa)
+Scene: Batman, in the bathroom of your childhood home, watches FATHER with his PIPE (父) wrestle a BOA (巴) — DAD the hero.
+### 妈  mā  — mom
+Props: 女 woman (a bridal veil), 马 horse (a saddle)
+Scene: Mario, outside the front door of your childhood home, sees a WOMAN (女) leap into a SADDLE (马) — MOM the rider.
+### 子  zǐ  — child / -zi
+Props: 子 child (a baby rattle)
+Scene: Zorro, in the bedroom of your workplace, shakes a BABY RATTLE (子) — a CHILD.
 
 **New words**
-- 同学 tóngxué — classmate
-- 大学 dàxué — university
-- 大学生 dàxuéshēng — university student
-- 小学 xiǎoxué — primary school
-
-**Pattern of the day: 也 “also”** — Subject + 也 + verb
-我也是学生。  Wǒ yě shì xuésheng.  — I am also a student.
-也 goes after the subject and before the verb, never at the end of the sentence.
+- 爸爸 bàba — dad
+- 妈妈 māma — mom
+- 个子 gèzi — height, build
 
 **Deal desk (business Mandarin)**
-- 基石投资者 jīshí tóuzīzhě — anchor / cornerstone investor
-- 美元基金 měiyuán jījīn — USD fund
-- 毛利率去年为什么下降了五个百分点？  Máolìlǜ qùnián wèishénme xiàjiàngle wǔ ge bǎifēndiǎn?  — Why did gross margin fall five percentage points last year?
+- 人民币基金 rénmínbì jījīn — RMB fund
+- 项目 xiàngmù — deal / project · Investors call every target company a 项目.
+- 我们原则上同意，细节还需要再讨论。  Wǒmen yuánzé shàng tóngyì, xìjié hái xūyào zài tǎolùn.  — We agree in principle; the details need more discussion.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 他们是同学。  Tāmen shì tóngxué.  — They are classmates.
-- 我们的学校很大。  Wǒmen de xuéxiào hěn dà.  — Our school is very big.
-- 这是什么？  Zhè shì shénme?  — What is this?
-- 一、二、三、四、五。  Yī, èr, sān, sì, wǔ.  — One, two, three, four, five.
+- 我爸爸是老师。  Wǒ bàba shì lǎoshī.  — My dad is a teacher.
+- 这是一个人。  Zhè shì yí ge rén.  — This is a person.
+- 我很好。  Wǒ hěn hǎo.  — I am fine.
 
 ## 5 · Quiz (1 min)
-1. **习** — What does it mean?  (a) practice  (b) ? (question)  (c) I / me  (d) (measure word)
-2. **个人** — How is it pronounced?  (a) gèrén  (b) xuéxiào  (c) xuésheng  (d) sēnlín
-3. **shī** — which one is it?  (a) 师  (b) 人  (c) 零  (d) 二
-4. **大学** — How is it pronounced?  (a) yí ge  (b) dàxué  (c) gèrén  (d) Zhōngguó
-5. **小学** — What does it mean?  (a) primary school  (b) what  (c) we, us  (d) school
+1. **小** — What does it mean?  (a) small  (b) study  (c) three  (d) and…? (particle)
+2. **妈妈** — How is it pronounced?  (a) Zhōngguórén  (b) shénme  (c) wǒmen  (d) māma
+3. **shī** — which one is it?  (a) 很  (b) 中  (c) 师  (d) 他
+4. **爸** — How is it pronounced?  (a) nǎ  (b) shī  (c) bà  (d) tā
+5. **妈** — What does it mean?  (a) mom  (b) to be / yes  (c) you  (d) five
 
-Answers: 1a 2a 3a 4b 5a
+Answers: 1a 2d 3c 4c 5a
