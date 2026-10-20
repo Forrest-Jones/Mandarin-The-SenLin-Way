@@ -1,57 +1,60 @@
-# Mandarin The SenLin Way — Day 29
+# Mandarin The SenLin Way — Day 30
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/29
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/30
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **3-1**: 老师 lǎoshī — teacher. Say it five times.
-Say aloud: 校 xiào · 三 sān · 这 zhè · 八 bā
+Tone pair of the day **3-2**: 北京 Běijīng — try 我们 wǒmen — we (3-5). Say it five times.
+Say aloud: 爸 bà · 哪 nǎ · 国 guó · 我 wǒ
 
 ## 2 · Review (2½ min)
+- 儿子 — érzi — son
+- 那儿 — nàr — there
+- 这儿 — zhèr — here
+- 哪儿 — nǎr — where
+- 朋 — péng — friend
+- 女 — nǚ — woman / female
+- 儿 — ér — son / -r
 - 个子 — gèzi — height, build
 - 妈妈 — māma — mom
 - 爸爸 — bàba — dad
 - 子 — zǐ — child / -zi
 - 妈 — mā — mom
-- 爸 — bà — dad
-- 小学 — xiǎoxué — primary school
-- 大学生 — dàxuéshēng — university student
-- 大学 — dàxué — university
-- 同学 — tóngxué — classmate
-- 小 — xiǎo — small
-- 大 — dà — big
 
 ## 3 · New (3½ min)
-### 儿  ér  — son / -r
-Props: 儿 legs (a pair of legs)
-Scene: Elmo, in the kitchen of a restaurant, walks on a PAIR OF LEGS (儿) — a toddler learning to walk, a SON.
-### 女  nǚ  — woman / female
-Props: 女 woman (a bridal veil)
-Scene: Neo, in the bedroom of a best friend’s house, lifts a BRIDAL VEIL (女) — a WOMAN.
-### 朋  péng  — friend
-Props: 月 moon / flesh (a crescent moon (or a slab of meat)), 月 moon / flesh (a crescent moon (or a slab of meat))
-Scene: Pikachu, in the kitchen of a library, hangs two CRESCENT MOONS (月月) side by side — FRIENDS stick together.
+### 友  yǒu  — friend
+Props: ナ left hand (a left glove), 又 right hand (a rubber hand)
+Scene: Yoda, in the bedroom of a shopping mall, shakes a LEFT GLOVE (ナ) with a RUBBER HAND (又) — FRIENDSHIP.
+### 姐  jiě  — older sister
+Props: 女 woman (a bridal veil), 且 shelf (a shelf)
+Scene: James Bond, in the bedroom of a movie theater, sees a WOMAN (女) climb a SHELF (且) — OLDER SISTER reaches the top.
+### 先  xiān  — first
+Props: 丿 slash (a whip), 土 earth (a dirt pile), 儿 legs (a pair of legs)
+Scene: Xena, outside the front door of a bank, cracks a WHIP (丿) at a DIRT PILE (土) and a PAIR OF LEGS (儿) sprints off FIRST.
 
 **New words**
-- 哪儿 nǎr — where
-- 这儿 zhèr — here
-- 那儿 nàr — there
-- 儿子 érzi — son
+- 女儿 nǚ'ér — daughter
+- 朋友 péngyou — friend
+- 姐姐 jiějie — older sister
+- 先生 xiānsheng — Mr., sir, husband
 
 **Deal desk (business Mandarin)**
-- 赛道 sàidào — sector / vertical · Literally “race track”: the hot sector.
-- 商业模式 shāngyè móshì — business model
-- 这一点我们可以让步，但估值上希望您也灵活一些。  Zhè yì diǎn wǒmen kěyǐ ràngbù, dàn gūzhí shàng xīwàng nín yě línghuó yìxiē.  — We can concede this point, but we hope you can be flexible on valuation too.
+- 融资 róngzī — financing / to raise capital
+- 轮次 lúncì — financing round · 天使轮 angel, A轮 Series A, B轮 Series B…
+- 我们内部再讨论一下，明天给您答复。  Wǒmen nèibù zài tǎolùn yíxià, míngtiān gěi nín dáfù.  — We will discuss internally and reply tomorrow.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 他是我的老师。  Tā shì wǒ de lǎoshī.  — He is my teacher.
-- 六、七、八、九、十。  Liù, qī, bā, jiǔ, shí.  — Six, seven, eight, nine, ten.
+- 她是我的朋友。  Tā shì wǒ de péngyou.  — She is my friend.
+- 姐姐是大学生。  Jiějie shì dàxuéshēng.  — Older sister is a university student.
+- 先生，你好！  Xiānsheng, nǐ hǎo!  — Hello, sir!
+- 我们的学校很大。  Wǒmen de xuéxiào hěn dà.  — Our school is very big.
+- 你好吗？  Nǐ hǎo ma?  — How are you?
 
 ## 5 · Quiz (1 min)
-1. **个子** — What does it mean?  (a) to study, learn  (b) height, build  (c) hello  (d) university student
-2. **妈** — How is it pronounced?  (a) mā  (b) qī  (c) sēn  (d) xiǎo
-3. **nǎr** — which one is it?  (a) 那儿  (b) 一个  (c) 个人  (d) 哪儿
-4. **大学生** — How is it pronounced?  (a) tāmen  (b) dàxuéshēng  (c) xuésheng  (d) xuéxiào
-5. **小学** — What does it mean?  (a) forest  (b) primary school  (c) they (f.)  (d) school
+1. **女儿** — What does it mean?  (a) school  (b) dad  (c) daughter  (d) university
+2. **爸爸** — How is it pronounced?  (a) nǐ hǎo  (b) nǎr  (c) gèzi  (d) bàba
+3. **zhèr** — which one is it?  (a) 学生  (b) 这儿  (c) 个人  (d) 儿子
+4. **儿子** — How is it pronounced?  (a) nǎr  (b) érzi  (c) lǎoshī  (d) zhèr
+5. **姐姐** — What does it mean?  (a) where  (b) older sister  (c) primary school  (d) Chinese person
 
-Answers: 1b 2a 3d 4b 5b
+Answers: 1c 2d 3b 4b 5b
