@@ -1,58 +1,57 @@
-# Mandarin The SenLin Way — Day 34
+# Mandarin The SenLin Way — Day 35
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/34
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/35
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **4-2**: 大学 dàxué — university. Say it five times.
-Say aloud: 都 dōu · 是 shì · 她 tā · 爸 bà
+Tone pair of the day **4-3**: 电脑 diànnǎo — computer. Say it five times.
+Say aloud: 木 mù · 林 lín · 他 tā · 很 hěn
 
 ## 2 · Review (2½ min)
+- 人家 — rénjiā — other people; others
+- 明明 — míngmíng — obviously; plainly
+- 明天 — míngtiān — tomorrow
+- 今天 — jīntiān — today
+- 明 — míng — bright / tomorrow
+- 今 — jīn — now / today
+- 天 — tiān — sky / day
 - 大不了 — dàbuliǎo — at the worst; if worst comes to worst
 - 太太 — tàitai — Mrs, wife
 - 友好 — yǒuhǎo — friendly
 - 太好了 — tài hǎo le — great!
 - 太 — tài — too (much)
-- 都 — dōu — all / both
-- 和 — hé — and
-- 国家 — guójiā — country
-- 女人 — nǚrén — woman
-- 大家 — dàjiā — everyone
-- 没有 — méiyǒu — not have, there is not
-- 了 — le — (completed)
 
 ## 3 · New (3½ min)
-### 天  tiān  — sky / day
-Props: 一 one (a stick), 大 big (a giant)
-Scene: Thor, outside the front door of a bank, holds ONE STICK (一) above a GIANT’s head (大) — the SKY, a DAY.
-### 今  jīn  — now / today
-Props: 人 person (a person), 一 one (a stick), 乛 hook (a coat hook)
-Scene: James Bond, outside the front door of a farm, a PERSON (人) hangs ONE STICK (一) on a COAT HOOK (乛): TODAY’s coat, hung NOW.
-### 明  míng  — bright / tomorrow
-Props: 日 sun (a sun lamp), 月 moon / flesh (a crescent moon (or a slab of meat))
-Scene: Mario, in the kitchen of a fire station, raises the SUN LAMP (日) and the CRESCENT MOON (月) together — BRIGHT, TOMORROW.
+### 昨  zuó  — yesterday
+Props: 日 sun (a sun lamp), 乍 sudden (a clapper board)
+Scene: Zorro, in the kitchen of a supermarket, holds the SUN LAMP (日) up to a CLAPPER BOARD (乍): “Cut! That was YESTERDAY’s take.”
+### 年  nián  — year
+Props: 年 year (a calendar)
+Scene: Neo, in the kitchen of a bank, flips a CALENDAR (年) through all twelve months — one YEAR.
+### 月  yuè  — month / moon
+Props: 月 moon / flesh (a crescent moon (or a slab of meat))
+Scene: Yoda, in the bathroom of a bookstore, hangs a CRESCENT MOON (月) — one MONTH.
 
 **New words**
-- 今天 jīntiān — today
-- 明天 míngtiān — tomorrow
-- 明明 míngmíng — obviously; plainly
-- 人家 rénjiā — other people; others
+- 昨天 zuótiān — yesterday
+- 今年 jīnnián — this year
+- 明年 míngnián — next year
+- 天生 tiānshēng — innate; inherent
 
 **Deal desk (business Mandarin)**
-- 竞争壁垒 jìngzhēng bìlěi — competitive moat
-- 投资意向书 tóuzī yìxiàngshū — letter of intent / term sheet · Also 条款清单 (tiáokuǎn qīngdān) for the term sheet itself.
-- 资金先打到托管账户，工商变更完成后再释放。  Zījīn xiān dǎ dào tuōguǎn zhànghù, gōngshāng biàngēng wánchéng hòu zài shìfàng.  — Funds go to escrow first and are released after the registry update is complete.
+- 排他期 páitāqī — exclusivity period
+- 保密协议 bǎomì xiéyì — non-disclosure agreement (NDA)
+- 境外直接投资备案大概需要多长时间？  Jìngwài zhíjiē tóuzī bèi’àn dàgài xūyào duō cháng shíjiān?  — Roughly how long will the ODI filing take?
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 明天我在家。  Míngtiān wǒ zài jiā.  — Tomorrow I will be at home.
-- 六、七、八、九、十。  Liù, qī, bā, jiǔ, shí.  — Six, seven, eight, nine, ten.
-- 你好！  Nǐ hǎo!  — Hello!
+- 他是我的老师。  Tā shì wǒ de lǎoshī.  — He is my teacher.
+- 我也是学生。  Wǒ yě shì xuésheng.  — I am also a student.
 
 ## 5 · Quiz (1 min)
-1. **人家** — What does it mean?  (a) mom  (b) is not  (c) other people; others  (d) here
-2. **明** — How is it pronounced?  (a) mù  (b) shī  (c) mā  (d) míng
-3. **guójiā** — which one is it?  (a) 我们  (b) 中国人  (c) 国家  (d) 明明
-4. **今天** — How is it pronounced?  (a) dàbuliǎo  (b) jīntiān  (c) wǒmen  (d) nǚrén
-5. **没有** — What does it mean?  (a) not have, there is not  (b) dad  (c) OK, alright  (d) height, build
+1. **昨天** — What does it mean?  (a) innate; inherent  (b) there  (c) yesterday  (d) they (f.)
+2. **明明** — How is it pronounced?  (a) dàjiā  (b) Zhōngguórén  (c) míngmíng  (d) gèrén
+3. **zuó** — which one is it?  (a) 儿  (b) 太  (c) 昨  (d) 先
+4. **友好** — How is it pronounced?  (a) yí ge  (b) míngtiān  (c) yǒuhǎo  (d) jiějie
+5. **明** — What does it mean?  (a) bright / tomorrow  (b) son / -r  (c) friend  (d) which / where
 
-Answers: 1c 2d 3c 4b 5a
+Answers: 1c 2c 3c 4c 5a
