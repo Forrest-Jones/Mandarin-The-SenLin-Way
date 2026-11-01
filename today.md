@@ -1,62 +1,63 @@
-# Mandarin The SenLin Way — Day 41
+# Mandarin The SenLin Way — Day 42
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/41
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/42
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-1**: 今天 jīntiān — today. Say it five times.
-Say aloud: 们 men · 习 xí · 日 rì · 姐 jiě
+Tone pair of the day **1-2**: 中国 Zhōngguó — China. Say it five times.
+Say aloud: 也 yě · 八 bā · 年 nián · 我 wǒ
 
 ## 2 · Review (2½ min)
+- 学期 — xuéqī — semester
+- 同时 — tóngshí — at the same time
+- 后来 — hòulái — later, afterwards
+- 北京 — Běijīng — Beijing
+- 来 — lái — come
+- 京 — jīng — capital
+- 北 — běi — north
 - 一下 — yíxià — a bit, briefly
 - 小时 — xiǎoshí — hour
 - 东西 — dōngxi — thing, stuff
 - 里面 — lǐmiàn — inside
 - 西 — xī — west
-- 东 — dōng — east
-- 里 — lǐ — inside
-- 下面 — xiàmiàn — below, under
-- 上面 — shàngmiàn — on top, above
-- 后面 — hòumiàn — behind
-- 前面 — qiánmiàn — in front
-- 面 — miàn — side / face
 
 ## 3 · New (3½ min)
-### 北  běi  — north
-Props: 北 north (a compass)
-Scene: Batman, in the bedroom of an airport, spins a COMPASS (北) until it points NORTH.
-### 京  jīng  — capital
-Props: 京 capital (a pagoda)
-Scene: James Bond, outside the front door of a fire station, stands on the roof of a PAGODA (京) — the CAPITAL city.
-### 来  lái  — come
-Props: 一 one (a stick), 米 rice (a bag of rice)
-Scene: Luke Skywalker, in the kitchen of a hospital, waves a BAG OF RICE (米) under ONE STICK (一): “COME and eat!”
+### 去  qù  — go
+Props: 土 earth (a dirt pile), 厶 private (a nose)
+Scene: Queen Elizabeth, in the bathroom of a best friend’s house, kicks a DIRT PILE (土) with a NOSE (厶) turned away — “GO!”
+### 回  huí  — return
+Props: 囗 enclosure (a fence), 口 mouth (a giant mouth)
+Scene: Harry Potter, in the kitchen of a hair salon, walks a GIANT MOUTH (口) in circles inside a FENCE (囗) — RETURN.
+### 出  chū  — go out
+Props: 山 mountain (a mountain), 山 mountain (a mountain)
+Scene: Charlie Chaplin, outside the front door of your grandparents’ house, climbs a MOUNTAIN (山) on top of a MOUNTAIN (山) — going OUT.
 
 **New words**
-- 北京 Běijīng — Beijing
-- 后来 hòulái — later, afterwards
-- 同时 tóngshí — at the same time
-- 学期 xuéqī — semester
+- 回家 huí jiā — go home
+- 回来 huílai — come back
+- 出去 chūqu — go out
+- 出来 chūlai — come out
 
-**Pattern of the day: 是…的 emphasis** — Subject + 是 + time/place/manner + verb + 的
-我是昨天来的。  Wǒ shì zuótiān lái de.  — It was yesterday that I came.
-For a completed action, 是…的 spotlights when, where or how it happened, not that it happened.
+**Pattern of the day: Time before the verb** — Subject + time + verb
+我明天去北京。  Wǒ míngtiān qù Běijīng.  — I am going to Beijing tomorrow.
+Time words sit before the verb (or before the subject), never at the end like in English.
 
 **Deal desk (business Mandarin)**
-- 优先认购权 yōuxiān rèngòuquán — pre-emptive right
-- 回购权 huígòuquán — redemption / buy-back right
-- 我们计划三到五年内通过上市或并购退出。  Wǒmen jìhuà sān dào wǔ nián nèi tōngguò shàngshì huò bìnggòu tuìchū.  — We plan to exit within three to five years via IPO or M&A.
+- 期权池 qīquánchí — option pool (ESOP)
+- 可转换优先股 kězhuǎnhuàn yōuxiāngǔ — convertible preferred shares
+- 上一期基金的内部收益率是百分之二十五，回报倍数三倍。  Shàng yì qī jījīn de nèibù shōuyìlǜ shì bǎi fēn zhī èrshíwǔ, huíbào bèishù sān bèi.  — The previous fund’s IRR was 25 percent with a 3x multiple.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 他们明天来我家。  Tāmen míngtiān lái wǒ jiā.  — They are coming to my home tomorrow.
-- 我很好，你呢？  Wǒ hěn hǎo, nǐ ne?  — I am fine, and you?
-- 我也是学生。  Wǒ yě shì xuésheng.  — I am also a student.
+- 你什么时候回家？  Nǐ shénme shíhou huí jiā?  — When do you go home?
+- 我去北京。  Wǒ qù Běijīng.  — I am going to Beijing.
+- 这是一个人。  Zhè shì yí ge rén.  — This is a person.
+- 现在是上午。  Xiànzài shì shàngwǔ.  — It is morning now.
 
 ## 5 · Quiz (1 min)
-1. **前面** — What does it mean?  (a) week  (b) in front  (c) thing, stuff  (d) height, build
-2. **后来** — How is it pronounced?  (a) hǎo de  (b) tàitai  (c) hòulái  (d) péngyou
-3. **xiàmiàn** — which one is it?  (a) 零星  (b) 东西  (c) 下面  (d) 大学
-4. **北** — How is it pronounced?  (a) wǒ  (b) xià  (c) wǔ  (d) běi
-5. **东西** — What does it mean?  (a) thing, stuff  (b) morning (a.m.)  (c) other people; others  (d) obviously; plainly
+1. **北** — What does it mean?  (a) down / under  (b) study  (c) two  (d) north
+2. **北京** — How is it pronounced?  (a) dàxuéshēng  (b) Běijīng  (c) nǚrén  (d) dōngxi
+3. **huí** — which one is it?  (a) 五  (b) 四  (c) 回  (d) 了
+4. **一下** — How is it pronounced?  (a) dōngxi  (b) lǎoshī  (c) yíxià  (d) tāmen
+5. **回家** — What does it mean?  (a) tomorrow  (b) Miss, young lady  (c) go home  (d) woman
 
-Answers: 1b 2c 3c 4d 5a
+Answers: 1d 2b 3c 4c 5c
