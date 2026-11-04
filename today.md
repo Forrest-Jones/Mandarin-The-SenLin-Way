@@ -1,58 +1,63 @@
-# Mandarin The SenLin Way — Day 44
+# Mandarin The SenLin Way — Day 45
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/44
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/45
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-4**: 商店 shāngdiàn — shop. Say it five times.
-Say aloud: 这 zhè · 人 rén · 天 tiān · 里 lǐ
+Tone pair of the day **2-1**: 明天 míngtiān — tomorrow. Say it five times.
+Say aloud: 呢 ne · 是 shì · 和 hé · 五 wǔ
 
 ## 2 · Review (2½ min)
+- 出国 — chūguó — to go abroad
+- 小说 — xiǎoshuō — novel
+- 说明 — shuōmíng — to explain; instructions
+- 出生 — chūshēng — to be born
+- 写 — xiě — write
+- 读 — dú — read
+- 说 — shuō — speak
 - 出现 — chūxiàn — to appear
 - 见面 — jiànmiàn — to meet
 - 去年 — qùnián — last year
 - 看见 — kànjiàn — to see
 - 听 — tīng — listen
-- 见 — jiàn — see
-- 看 — kàn — look / watch
-- 出来 — chūlai — come out
-- 出去 — chūqu — go out
-- 回来 — huílai — come back
-- 回家 — huí jiā — go home
-- 出 — chū — go out
 
 ## 3 · New (3½ min)
-### 说  shuō  — speak
-Props: 讠 speech (a microphone), 丷 horns (horns), 口 mouth (a giant mouth), 儿 legs (a pair of legs)
-Scene: Sherlock Holmes, outside the front door of a supermarket, speaks into a MICROPHONE (讠) wearing HORNS (丷), a GIANT MOUTH (口) and a PAIR OF LEGS (儿) — SPEAKING while running.
-### 读  dú  — read
-Props: 讠 speech (a microphone), 十 ten (a cross), 买 buy (a shopping cart)
-Scene: Darth Vader, in the kitchen of your grandparents’ house, READS aloud into a MICROPHONE (讠) from a CROSS (十) painted on a SHOPPING CART (买).
-### 写  xiě  — write
-Props: 冖 cover (a lid), 与 give (a gift box)
-Scene: Xena, in the bedroom of a movie theater, hides under a LID (冖) with a GIFT BOX (与) — WRITING a card.
+### 话  huà  — words / speech
+Props: 讠 speech (a microphone), 舌 tongue (a tongue)
+Scene: Harry Potter, in the bathroom of a garage, speaks into a MICROPHONE (讠) with a wagging TONGUE (舌) — WORDS, speech.
+### 汉  hàn  — Han / Chinese
+Props: 氵 water (side) (a water pistol), 又 right hand (a rubber hand)
+Scene: Harry Potter, in the bathroom of a temple or church, fires a WATER PISTOL (氵) with a RUBBER HAND (又) — the HAN river, Chinese.
+### 语  yǔ  — language
+Props: 讠 speech (a microphone), 五 five (an open hand), 口 mouth (a giant mouth)
+Scene: Yoda, in the bedroom of a best friend’s house, speaks into a MICROPHONE (讠) with an OPEN HAND (五) and a GIANT MOUTH (口) — LANGUAGE.
 
 **New words**
-- 出生 chūshēng — to be born
-- 说明 shuōmíng — to explain; instructions
-- 小说 xiǎoshuō — novel
-- 出国 chūguó — to go abroad
+- 说话 shuō huà — to speak, talk
+- 汉语 Hànyǔ — Chinese language
+- 日期 rìqī — date
+- 看来 kànlai — apparently; it seems that
+
+**Pattern of the day: Duration with 了…了** — verb + 了 + duration + (object) + 了
+我学了三年汉语了。  Wǒ xué le sān nián Hànyǔ le.  — I have been studying Chinese for three years (and still am).
+Duration goes after the verb. The final 了 means the action continues up to now.
 
 **Deal desk (business Mandarin)**
-- 随售权 suíshòuquán — tag-along right
-- 锁定期 suǒdìngqī — lock-up period
-- 合作愉快，以后常来往！  Hézuò yúkuài, yǐhòu cháng láiwǎng!  — To a happy partnership; let’s stay in close touch!
+- 尽职调查 jìnzhí diàochá — due diligence · Shortened to 尽调 (jìndiào) in speech.
+- 财务尽调 cáiwù jìndiào — financial due diligence
+- 今天我做东，大家别客气。  Jīntiān wǒ zuòdōng, dàjiā bié kèqi.  — Today it's on me, everyone; please don't stand on ceremony.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 你听我说。  Nǐ tīng wǒ shuō.  — Listen to me.
-- 你现在在家吗？  Nǐ xiànzài zài jiā ma?  — Are you at home now?
-- 他在前面。  Tā zài qiánmiàn.  — He is in front.
+- 我们学习汉语。  Wǒmen xuéxí Hànyǔ.  — We study Chinese.
+- 老师说汉语。  Lǎoshī shuō Hànyǔ.  — The teacher speaks Chinese.
+- 明天我在家。  Míngtiān wǒ zài jiā.  — Tomorrow I will be at home.
+- 这是一个人。  Zhè shì yí ge rén.  — This is a person.
 
 ## 5 · Quiz (1 min)
-1. **小说** — What does it mean?  (a) classmate  (b) girlfriend  (c) novel  (d) we, us
-2. **出生** — How is it pronounced?  (a) dàxué  (b) chūshēng  (c) nǚpéngyou  (d) shàngmiàn
-3. **chūlai** — which one is it?  (a) 学生  (b) 上午  (c) 森林  (d) 出来
-4. **读** — How is it pronounced?  (a) ér  (b) hé  (c) dú  (d) tīng
-5. **去年** — What does it mean?  (a) last year  (b) to be born  (c) next year  (d) to meet
+1. **语** — What does it mean?  (a) person  (b) country  (c) capital  (d) language
+2. **出生** — How is it pronounced?  (a) chūguó  (b) tài hǎo le  (c) chūshēng  (d) chūqu
+3. **huà** — which one is it?  (a) 话  (b) 二  (c) 上  (d) 都
+4. **见面** — How is it pronounced?  (a) rénjiā  (b) xuésheng  (c) nǚpéngyou  (d) jiànmiàn
+5. **说话** — What does it mean?  (a) Miss, young lady  (b) woman  (c) to speak, talk  (d) Sunday
 
-Answers: 1c 2b 3d 4c 5a
+Answers: 1d 2c 3a 4d 5c
