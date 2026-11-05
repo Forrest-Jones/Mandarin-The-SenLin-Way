@@ -1,63 +1,59 @@
-# Mandarin The SenLin Way — Day 45
+# Mandarin The SenLin Way — Day 46
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/45
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/46
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **2-1**: 明天 míngtiān — tomorrow. Say it five times.
-Say aloud: 呢 ne · 是 shì · 和 hé · 五 wǔ
+Tone pair of the day **2-2**: 同学 tóngxué — classmate. Say it five times.
+Say aloud: 哪 nǎ · 话 huà · 家 jiā · 月 yuè
 
 ## 2 · Review (2½ min)
+- 看来 — kànlai — apparently; it seems that
+- 日期 — rìqī — date
+- 汉语 — Hànyǔ — Chinese language
+- 说话 — shuō huà — to speak, talk
+- 语 — yǔ — language
+- 汉 — hàn — Han / Chinese
+- 话 — huà — words / speech
 - 出国 — chūguó — to go abroad
 - 小说 — xiǎoshuō — novel
 - 说明 — shuōmíng — to explain; instructions
 - 出生 — chūshēng — to be born
 - 写 — xiě — write
-- 读 — dú — read
-- 说 — shuō — speak
-- 出现 — chūxiàn — to appear
-- 见面 — jiànmiàn — to meet
-- 去年 — qùnián — last year
-- 看见 — kànjiàn — to see
-- 听 — tīng — listen
 
 ## 3 · New (3½ min)
-### 话  huà  — words / speech
-Props: 讠 speech (a microphone), 舌 tongue (a tongue)
-Scene: Harry Potter, in the bathroom of a garage, speaks into a MICROPHONE (讠) with a wagging TONGUE (舌) — WORDS, speech.
-### 汉  hàn  — Han / Chinese
-Props: 氵 water (side) (a water pistol), 又 right hand (a rubber hand)
-Scene: Harry Potter, in the bathroom of a temple or church, fires a WATER PISTOL (氵) with a RUBBER HAND (又) — the HAN river, Chinese.
-### 语  yǔ  — language
-Props: 讠 speech (a microphone), 五 five (an open hand), 口 mouth (a giant mouth)
-Scene: Yoda, in the bedroom of a best friend’s house, speaks into a MICROPHONE (讠) with an OPEN HAND (五) and a GIANT MOUTH (口) — LANGUAGE.
+### 电  diàn  — electricity
+Props: 日 sun (a sun lamp), 乚 fishhook (a fishhook)
+Scene: Darth Vader, in the bathroom of a bank, catches the SUN LAMP (日) on a FISHHOOK (乚) — ELECTRICITY, lightning.
+### 视  shì  — view (TV)
+Props: 礻 altar (side) (an altar), 见 see (binoculars)
+Scene: Sherlock Holmes, in the bathroom of your workplace, props BINOCULARS (见) on an ALTAR (礻) — WATCHING TV.
+### 影  yǐng  — shadow / movie
+Props: 日 sun (a sun lamp), 京 capital (a pagoda), 彡 hair (a wig)
+Scene: Yoda, in the bedroom of a fire station, casts a shadow: SUN LAMP (日) over a PAGODA (京) with a WIG (彡) streaming — a MOVIE.
 
 **New words**
-- 说话 shuō huà — to speak, talk
-- 汉语 Hànyǔ — Chinese language
-- 日期 rìqī — date
-- 看来 kànlai — apparently; it seems that
-
-**Pattern of the day: Duration with 了…了** — verb + 了 + duration + (object) + 了
-我学了三年汉语了。  Wǒ xué le sān nián Hànyǔ le.  — I have been studying Chinese for three years (and still am).
-Duration goes after the verb. The final 了 means the action continues up to now.
+- 电话 diànhuà — telephone
+- 电视 diànshì — television
+- 电影 diànyǐng — movie
+- 电子 diànzǐ — electronic; electron (particle physics)
 
 **Deal desk (business Mandarin)**
-- 尽职调查 jìnzhí diàochá — due diligence · Shortened to 尽调 (jìndiào) in speech.
-- 财务尽调 cáiwù jìndiào — financial due diligence
-- 今天我做东，大家别客气。  Jīntiān wǒ zuòdōng, dàjiā bié kèqi.  — Today it's on me, everyone; please don't stand on ceremony.
+- 法律尽调 fǎlǜ jìndiào — legal due diligence
+- 审计报告 shěnjì bàogào — audit report
+- 先做朋友，再做生意。  Xiān zuò péngyou, zài zuò shēngyi.  — Friends first, business second.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 我们学习汉语。  Wǒmen xuéxí Hànyǔ.  — We study Chinese.
-- 老师说汉语。  Lǎoshī shuō Hànyǔ.  — The teacher speaks Chinese.
-- 明天我在家。  Míngtiān wǒ zài jiā.  — Tomorrow I will be at home.
-- 这是一个人。  Zhè shì yí ge rén.  — This is a person.
+- 我们今天看电影。  Wǒmen jīntiān kàn diànyǐng.  — We are watching a movie today.
+- 我在看电视。  Wǒ zài kàn diànshì.  — I am watching TV.
+- 他们明天来我家。  Tāmen míngtiān lái wǒ jiā.  — They are coming to my home tomorrow.
+- 他在前面。  Tā zài qiánmiàn.  — He is in front.
 
 ## 5 · Quiz (1 min)
-1. **语** — What does it mean?  (a) person  (b) country  (c) capital  (d) language
-2. **出生** — How is it pronounced?  (a) chūguó  (b) tài hǎo le  (c) chūshēng  (d) chūqu
-3. **huà** — which one is it?  (a) 话  (b) 二  (c) 上  (d) 都
-4. **见面** — How is it pronounced?  (a) rénjiā  (b) xuésheng  (c) nǚpéngyou  (d) jiànmiàn
-5. **说话** — What does it mean?  (a) Miss, young lady  (b) woman  (c) to speak, talk  (d) Sunday
+1. **出生** — What does it mean?  (a) to be born  (b) where  (c) now  (d) student
+2. **出国** — How is it pronounced?  (a) sēnlín  (b) shíhou  (c) qùnián  (d) chūguó
+3. **diànyǐng** — which one is it?  (a) 太好了  (b) 时候  (c) 上午  (d) 电影
+4. **日期** — How is it pronounced?  (a) sēnlín  (b) diànzǐ  (c) rìqī  (d) tài hǎo le
+5. **话** — What does it mean?  (a) read  (b) words / speech  (c) noon  (d) ? (question)
 
-Answers: 1d 2c 3a 4d 5c
+Answers: 1a 2d 3d 4c 5b
