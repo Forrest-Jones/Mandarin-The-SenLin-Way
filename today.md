@@ -1,63 +1,63 @@
-# Mandarin The SenLin Way — Day 47
+# Mandarin The SenLin Way — Day 48
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/47
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/48
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **2-3**: 苹果 píngguǒ — apple. Say it five times.
-Say aloud: 三 sān · 看 kàn · 先 xiān · 她 tā
+Tone pair of the day **2-4**: 学校 xuéxiào — school. Say it five times.
+Say aloud: 六 liù · 西 xī · 朋 péng · 现 xiàn
 
 ## 2 · Review (2½ min)
+- 影子 — yǐngzi — shadow
+- 电脑 — diànnǎo — computer
+- 汉字 — Hànzì — Chinese character
+- 看书 — kàn shū — read a book
+- 字 — zì — character / word
+- 书 — shū — book
+- 脑 — nǎo — brain
 - 电子 — diànzǐ — electronic; electron (particle physics)
 - 电影 — diànyǐng — movie
 - 电视 — diànshì — television
 - 电话 — diànhuà — telephone
 - 影 — yǐng — shadow / movie
-- 视 — shì — view (TV)
-- 电 — diàn — electricity
-- 看来 — kànlai — apparently; it seems that
-- 日期 — rìqī — date
-- 汉语 — Hànyǔ — Chinese language
-- 说话 — shuō huà — to speak, talk
-- 语 — yǔ — language
 
 ## 3 · New (3½ min)
-### 脑  nǎo  — brain
-Props: 月 moon / flesh (a crescent moon (or a slab of meat)), 亠 lid (top) (a top hat), 凶 bad luck (a bear trap)
-Scene: Neo, in the bedroom of a stadium, opens a SLAB OF MEAT (月) under a TOP HAT (亠) and finds a BEAR TRAP (凶) — the BRAIN.
-### 书  shū  — book
-Props: 书 book (a book)
-Scene: Sherlock Holmes, outside the front door of your grandparents’ house, opens a BOOK (书) — a brush writing on a scroll.
-### 字  zì  — character / word
-Props: 宀 roof (a roof), 子 child (a baby rattle)
-Scene: Zorro, in the bathroom of your workplace, places a BABY RATTLE (子) under a ROOF (宀) — a written CHARACTER.
+### 名  míng  — name
+Props: 夕 evening (a lantern), 口 mouth (a giant mouth)
+Scene: Mario, in the kitchen of a fire station, calls a NAME with a GIANT MOUTH (口) by LANTERN light (夕).
+### 叫  jiào  — be called / shout
+Props: 口 mouth (a giant mouth), 丩 rope (a twisted rope)
+Scene: James Bond, in the bathroom of a beach house, SHOUTS with a GIANT MOUTH (口) tied to a TWISTED ROPE (丩) — is CALLED.
+### 认  rèn  — recognize
+Props: 讠 speech (a microphone), 人 person (a person)
+Scene: Rocky Balboa, in the bathroom of a hotel, speaks into a MICROPHONE (讠) to a PERSON (人): “I RECOGNIZE you.”
 
 **New words**
-- 看书 kàn shū — read a book
-- 汉字 Hànzì — Chinese character
-- 电脑 diànnǎo — computer
-- 影子 yǐngzi — shadow
+- 名字 míngzi — name
+- 有名 yǒumíng — famous
+- 时期 shíqī — period; phase
+- 不时 bùshí — frequently; often
 
-**Pattern of the day: 的 possessive** — A + 的 + B = A’s B
-这是我的书。  Zhè shì wǒ de shū.  — This is my book.
-的 marks possession or description. With family and close relations it can be dropped: 我妈妈.
+**Pattern of the day: Question words stay in place** — …什么 / 谁 / 哪儿…
+你叫什么名字？  Nǐ jiào shénme míngzi?  — What is your name?
+Chinese does not move question words to the front. Put 什么 exactly where the answer would go.
 
 **Deal desk (business Mandarin)**
-- 数据室 shùjùshì — data room
-- 现金流 xiànjīnliú — cash flow
-- 三千万美元，大约两亿一千万人民币。  Sānqiān wàn měiyuán, dàyuē liǎng yì yìqiān wàn rénmínbì.  — Thirty million dollars, roughly 210 million RMB.
+- 营业收入 yíngyè shōurù — revenue
+- 毛利率 máolìlǜ — gross margin
+- 估值打八折，我们就可以马上签。  Gūzhí dǎ bā zhé, wǒmen jiù kěyǐ mǎshàng qiān.  — A 20 percent discount on valuation and we can sign immediately.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 她读书，我写字。  Tā dú shū, wǒ xiě zì.  — She reads; I write characters.
-- 我的电脑很小。  Wǒ de diànnǎo hěn xiǎo.  — My computer is very small.
-- 我们今天看电影。  Wǒmen jīntiān kàn diànyǐng.  — We are watching a movie today.
-- 这是一个人。  Zhè shì yí ge rén.  — This is a person.
+- 你叫什么名字？  Nǐ jiào shénme míngzi?  — What is your name?
+- 我叫森林。  Wǒ jiào Sēnlín.  — My name is SenLin.
+- 他也很好。  Tā yě hěn hǎo.  — He is fine too.
+- 你什么时候回家？  Nǐ shénme shíhou huí jiā?  — When do you go home?
 
 ## 5 · Quiz (1 min)
-1. **电** — What does it mean?  (a) return  (b) electricity  (c) life / be born  (d) (plural)
-2. **字** — How is it pronounced?  (a) xī  (b) zì  (c) sēn  (d) ma
-3. **yǐng** — which one is it?  (a) 他  (b) 影  (c) 后  (d) 北
-4. **看书** — How is it pronounced?  (a) yǐngzi  (b) xīngqītiān  (c) nàr  (d) kàn shū
-5. **电子** — What does it mean?  (a) electronic; electron (particle physics)  (b) university  (c) shadow  (d) to speak, talk
+1. **汉字** — What does it mean?  (a) they (f.)  (b) Chinese character  (c) now  (d) other people; others
+2. **影子** — How is it pronounced?  (a) shíqī  (b) yǐngzi  (c) hǎo de  (d) Běijīng
+3. **diànhuà** — which one is it?  (a) 大不了  (b) 电话  (c) 下面  (d) 同学
+4. **电视** — How is it pronounced?  (a) dàxuéshēng  (b) diànshì  (c) míngnián  (d) shàngwǔ
+5. **名** — What does it mean?  (a) speak  (b) number / date  (c) time / o’clock  (d) name
 
-Answers: 1b 2b 3b 4d 5a
+Answers: 1b 2b 3b 4b 5d
