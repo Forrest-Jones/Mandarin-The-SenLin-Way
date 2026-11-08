@@ -1,63 +1,64 @@
-# Mandarin The SenLin Way — Day 48
+# Mandarin The SenLin Way — Day 49
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/48
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/49
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **2-4**: 学校 xuéxiào — school. Say it five times.
-Say aloud: 六 liù · 西 xī · 朋 péng · 现 xiàn
+Tone pair of the day **3-1**: 老师 lǎoshī — teacher. Say it five times.
+Say aloud: 十 shí · 上 shàng · 妈 mā · 影 yǐng
 
 ## 2 · Review (2½ min)
+- 不时 — bùshí — frequently; often
+- 时期 — shíqī — period; phase
+- 有名 — yǒumíng — famous
+- 名字 — míngzi — name
+- 认 — rèn — recognize
+- 叫 — jiào — be called / shout
+- 名 — míng — name
 - 影子 — yǐngzi — shadow
 - 电脑 — diànnǎo — computer
 - 汉字 — Hànzì — Chinese character
 - 看书 — kàn shū — read a book
 - 字 — zì — character / word
-- 书 — shū — book
-- 脑 — nǎo — brain
-- 电子 — diànzǐ — electronic; electron (particle physics)
-- 电影 — diànyǐng — movie
-- 电视 — diànshì — television
-- 电话 — diànhuà — telephone
-- 影 — yǐng — shadow / movie
 
 ## 3 · New (3½ min)
-### 名  míng  — name
-Props: 夕 evening (a lantern), 口 mouth (a giant mouth)
-Scene: Mario, in the kitchen of a fire station, calls a NAME with a GIANT MOUTH (口) by LANTERN light (夕).
-### 叫  jiào  — be called / shout
-Props: 口 mouth (a giant mouth), 丩 rope (a twisted rope)
-Scene: James Bond, in the bathroom of a beach house, SHOUTS with a GIANT MOUTH (口) tied to a TWISTED ROPE (丩) — is CALLED.
-### 认  rèn  — recognize
-Props: 讠 speech (a microphone), 人 person (a person)
-Scene: Rocky Balboa, in the bathroom of a hotel, speaks into a MICROPHONE (讠) to a PERSON (人): “I RECOGNIZE you.”
+### 识  shí  — know
+Props: 讠 speech (a microphone), 口 mouth (a giant mouth), 八 eight (a moustache)
+Scene: Sherlock Holmes, in the kitchen of your workplace, speaks into a MICROPHONE (讠) through a GIANT MOUTH (口) with a MOUSTACHE (八) — KNOWLEDGE.
+### 会  huì  — can / will
+Props: 人 person (a person), 云 cloud (a cloud)
+Scene: Harry Potter, in the bathroom of a hair salon, a PERSON (人) rides a CLOUD (云) — CAN, will, meeting.
+### 能  néng  — be able
+Props: 厶 private (a nose), 月 moon / flesh (a crescent moon (or a slab of meat)), 匕 spoon (a spoon), 匕 spoon (a spoon)
+Scene: Neo, in the kitchen of a library, juggles a NOSE (厶), a SLAB OF MEAT (月) and two SPOONS (匕匕) — an ABLE bear.
 
 **New words**
-- 名字 míngzi — name
-- 有名 yǒumíng — famous
-- 时期 shíqī — period; phase
-- 不时 bùshí — frequently; often
+- 认识 rènshi — to know (a person), recognize
+- 一会儿 yíhuìr — a little while
+- 面子 miànzi — honor; reputation
+- 书面 shūmiàn — in writing; written (guarantee, etc.)
 
-**Pattern of the day: Question words stay in place** — …什么 / 谁 / 哪儿…
-你叫什么名字？  Nǐ jiào shénme míngzi?  — What is your name?
-Chinese does not move question words to the front. Put 什么 exactly where the answer would go.
+**Pattern of the day: 会 “can (learned skill)”** — Subject + 会 + verb
+我会说汉语。  Wǒ huì shuō Hànyǔ.  — I can speak Chinese.
+会 = an ability you learned; 能 = circumstances allow; 可以 = permission.
 
 **Deal desk (business Mandarin)**
-- 营业收入 yíngyè shōurù — revenue
-- 毛利率 máolìlǜ — gross margin
-- 估值打八折，我们就可以马上签。  Gūzhí dǎ bā zhé, wǒmen jiù kěyǐ mǎshàng qiān.  — A 20 percent discount on valuation and we can sign immediately.
+- 净利润 jìnglìrùn — net profit
+- 应收账款 yīngshōu zhàngkuǎn — accounts receivable
+- 王总您好，附件是今天的会议纪要，请您确认。  Wáng zǒng nín hǎo, fùjiàn shì jīntiān de huìyì jìyào, qǐng nín quèrèn.  — Hello Mr Wang, attached are today’s minutes, please confirm.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 你叫什么名字？  Nǐ jiào shénme míngzi?  — What is your name?
-- 我叫森林。  Wǒ jiào Sēnlín.  — My name is SenLin.
-- 他也很好。  Tā yě hěn hǎo.  — He is fine too.
-- 你什么时候回家？  Nǐ shénme shíhou huí jiā?  — When do you go home?
+- 我认识那个人。  Wǒ rènshi nà ge rén.  — I know that person.
+- 我会说汉语。  Wǒ huì shuō Hànyǔ.  — I can speak Chinese.
+- 你会写汉字吗？  Nǐ huì xiě Hànzì ma?  — Can you write Chinese characters?
+- 这是什么？  Zhè shì shénme?  — What is this?
+- 你是学生吗？  Nǐ shì xuésheng ma?  — Are you a student?
 
 ## 5 · Quiz (1 min)
-1. **汉字** — What does it mean?  (a) they (f.)  (b) Chinese character  (c) now  (d) other people; others
-2. **影子** — How is it pronounced?  (a) shíqī  (b) yǐngzi  (c) hǎo de  (d) Běijīng
-3. **diànhuà** — which one is it?  (a) 大不了  (b) 电话  (c) 下面  (d) 同学
-4. **电视** — How is it pronounced?  (a) dàxuéshēng  (b) diànshì  (c) míngnián  (d) shàngwǔ
-5. **名** — What does it mean?  (a) speak  (b) number / date  (c) time / o’clock  (d) name
+1. **面子** — What does it mean?  (a) honor; reputation  (b) we, us  (c) time, moment  (d) to speak, talk
+2. **影子** — How is it pronounced?  (a) dàjiā  (b) méiyǒu  (c) yǐngzi  (d) tóngxué
+3. **rènshi** — which one is it?  (a) 太太  (b) 友好  (c) 太好了  (d) 认识
+4. **认** — How is it pronounced?  (a) rèn  (b) nǚ  (c) nà  (d) dōng
+5. **名** — What does it mean?  (a) (measure word)  (b) Han / Chinese  (c) good  (d) name
 
-Answers: 1b 2b 3b 4b 5d
+Answers: 1a 2c 3d 4a 5d
