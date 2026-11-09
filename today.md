@@ -1,64 +1,61 @@
-# Mandarin The SenLin Way — Day 49
+# Mandarin The SenLin Way — Day 50
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/49
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/50
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **3-1**: 老师 lǎoshī — teacher. Say it five times.
-Say aloud: 十 shí · 上 shàng · 妈 mā · 影 yǐng
+Tone pair of the day **3-2**: 北京 Běijīng — try 我们 wǒmen — we (3-5). Say it five times.
+Say aloud: 学 xué · 年 nián · 同 tóng · 习 xí
 
 ## 2 · Review (2½ min)
+- 书面 — shūmiàn — in writing; written (guarantee, etc.)
+- 面子 — miànzi — honor; reputation
+- 一会儿 — yíhuìr — a little while
+- 认识 — rènshi — to know (a person), recognize
+- 能 — néng — be able
+- 会 — huì — can / will
+- 识 — shí — know
 - 不时 — bùshí — frequently; often
 - 时期 — shíqī — period; phase
 - 有名 — yǒumíng — famous
 - 名字 — míngzi — name
 - 认 — rèn — recognize
-- 叫 — jiào — be called / shout
-- 名 — míng — name
-- 影子 — yǐngzi — shadow
-- 电脑 — diànnǎo — computer
-- 汉字 — Hànzì — Chinese character
-- 看书 — kàn shū — read a book
-- 字 — zì — character / word
 
 ## 3 · New (3½ min)
-### 识  shí  — know
-Props: 讠 speech (a microphone), 口 mouth (a giant mouth), 八 eight (a moustache)
-Scene: Sherlock Holmes, in the kitchen of your workplace, speaks into a MICROPHONE (讠) through a GIANT MOUTH (口) with a MOUSTACHE (八) — KNOWLEDGE.
-### 会  huì  — can / will
-Props: 人 person (a person), 云 cloud (a cloud)
-Scene: Harry Potter, in the bathroom of a hair salon, a PERSON (人) rides a CLOUD (云) — CAN, will, meeting.
-### 能  néng  — be able
-Props: 厶 private (a nose), 月 moon / flesh (a crescent moon (or a slab of meat)), 匕 spoon (a spoon), 匕 spoon (a spoon)
-Scene: Neo, in the kitchen of a library, juggles a NOSE (厶), a SLAB OF MEAT (月) and two SPOONS (匕匕) — an ABLE bear.
+### 想  xiǎng  — think / want
+Props: 木 tree (a tree), 目 eye (an eyeball), 心 heart (a heart pillow)
+Scene: Xena, in the bedroom of a train station, a TREE (木) with an EYEBALL (目) resting on a HEART PILLOW (心) — THINKING, wanting.
+### 喜  xǐ  — joy / like
+Props: 士 scholar (a graduation cap), 口 mouth (a giant mouth), 丷 horns (horns), 口 mouth (a giant mouth)
+Scene: Xena, in the bedroom of your workplace, a GRADUATION CAP (士) with a GIANT MOUTH (口), HORNS (丷) and another GIANT MOUTH (口) — laughing with JOY.
+### 欢  huān  — happy
+Props: 又 right hand (a rubber hand), 欠 yawn (a yawning face)
+Scene: Harry Potter, outside the front door of a park, a RUBBER HAND (又) tickles a YAWNING FACE (欠) into HAPPINESS.
 
 **New words**
-- 认识 rènshi — to know (a person), recognize
-- 一会儿 yíhuìr — a little while
-- 面子 miànzi — honor; reputation
-- 书面 shūmiàn — in writing; written (guarantee, etc.)
+- 喜欢 xǐhuan — to like
+- 先前 xiānqián — before; previously
+- 学说 xuéshuō — theory; doctrine
 
-**Pattern of the day: 会 “can (learned skill)”** — Subject + 会 + verb
-我会说汉语。  Wǒ huì shuō Hànyǔ.  — I can speak Chinese.
-会 = an ability you learned; 能 = circumstances allow; 可以 = permission.
+**Pattern of the day: 一…也不 / 也没** — 一 + measure + noun + 也 / 都 + 不 / 没
+我一个人也不认识。  Wǒ yí ge rén yě bú rènshi.  — I don’t know a single person.
+Total negation: “not even one”.
 
 **Deal desk (business Mandarin)**
-- 净利润 jìnglìrùn — net profit
-- 应收账款 yīngshōu zhàngkuǎn — accounts receivable
-- 王总您好，附件是今天的会议纪要，请您确认。  Wáng zǒng nín hǎo, fùjiàn shì jīntiān de huìyì jìyào, qǐng nín quèrèn.  — Hello Mr Wang, attached are today’s minutes, please confirm.
+- 负债 fùzhài — liabilities / debt
+- 关联交易 guānlián jiāoyì — related-party transaction
+- 方便的话，我们下周三北京时间上午十点开个视频会议？  Fāngbiàn de huà, wǒmen xià zhōusān Běijīng shíjiān shàngwǔ shí diǎn kāi ge shìpín huìyì?  — If convenient, a video call next Wednesday at 10 a.m. Beijing time?
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 我认识那个人。  Wǒ rènshi nà ge rén.  — I know that person.
-- 我会说汉语。  Wǒ huì shuō Hànyǔ.  — I can speak Chinese.
-- 你会写汉字吗？  Nǐ huì xiě Hànzì ma?  — Can you write Chinese characters?
-- 这是什么？  Zhè shì shénme?  — What is this?
-- 你是学生吗？  Nǐ shì xuésheng ma?  — Are you a student?
+- 你能来吗？  Nǐ néng lái ma?  — Can you come?
+- 他是我的老师。  Tā shì wǒ de lǎoshī.  — He is my teacher.
+- 我看见他了。  Wǒ kànjiàn tā le.  — I saw him.
 
 ## 5 · Quiz (1 min)
-1. **面子** — What does it mean?  (a) honor; reputation  (b) we, us  (c) time, moment  (d) to speak, talk
-2. **影子** — How is it pronounced?  (a) dàjiā  (b) méiyǒu  (c) yǐngzi  (d) tóngxué
-3. **rènshi** — which one is it?  (a) 太太  (b) 友好  (c) 太好了  (d) 认识
-4. **认** — How is it pronounced?  (a) rèn  (b) nǚ  (c) nà  (d) dōng
-5. **名** — What does it mean?  (a) (measure word)  (b) Han / Chinese  (c) good  (d) name
+1. **喜** — What does it mean?  (a) (measure word)  (b) joy / like  (c) tree  (d) wait / time (时候)
+2. **想** — How is it pronounced?  (a) rèn  (b) nǚ  (c) hào  (d) xiǎng
+3. **néng** — which one is it?  (a) 时  (b) 一  (c) 能  (d) 明
+4. **学说** — How is it pronounced?  (a) huílai  (b) dàjiā  (c) xuéshuō  (d) tóngshí
+5. **面子** — What does it mean?  (a) one (of)  (b) to be born  (c) novel  (d) honor; reputation
 
-Answers: 1a 2c 3d 4a 5d
+Answers: 1b 2d 3c 4c 5d
