@@ -1,13 +1,16 @@
-# Mandarin The SenLin Way — Day 52
+# Mandarin The SenLin Way — Day 53
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/52
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/53
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **3-4**: 喜欢 xǐhuan / 请坐 qǐng zuò — like / please sit. Say it five times.
-Say aloud: 大 dà · 女 nǚ · 九 jiǔ · 呢 ne
+Tone pair of the day **4-1**: 看书 kàn shū — read a book. Say it five times.
+Say aloud: 子 zǐ · 习 xí · 四 sì · 期 qī
 
 ## 2 · Review (2½ min)
+- 菜 — cài — vegetable / dish
+- 茶 — chá — tea
+- 水 — shuǐ — water
 - 小吃 — xiǎochī — snack
 - 好吃 — hǎochī — delicious
 - 吃饭 — chī fàn — to eat (a meal)
@@ -17,37 +20,44 @@ Say aloud: 大 dà · 女 nǚ · 九 jiǔ · 呢 ne
 - 学说 — xuéshuō — theory; doctrine
 - 先前 — xiānqián — before; previously
 - 喜欢 — xǐhuan — to like
-- 欢 — huān — happy
-- 喜 — xǐ — joy / like
-- 想 — xiǎng — think / want
 
 ## 3 · New (3½ min)
-### 水  shuǐ  — water
-Props: 水 water (a stream)
-Scene: Sherlock Holmes, in the bedroom of a hair salon, splashes through a STREAM (水) — WATER.
-### 茶  chá  — tea
-Props: 艹 grass (grass), 人 person (a person), 木 tree (a tree)
-Scene: Charlie Chaplin, in the kitchen of your childhood home, GRASS (艹) over a PERSON (人) sitting in a TREE (木) — picking TEA.
-### 菜  cài  — vegetable / dish
-Props: 艹 grass (grass), 爫 claws (claws), 木 tree (a tree)
-Scene: Cinderella, in the bathroom of a hospital, GRASS (艹) picked by CLAWS (爫) from a TREE (木) — VEGETABLES, a dish.
+### 米  mǐ  — rice (grain)
+Props: 米 rice (a bag of rice)
+Scene: Mario, in the bedroom of your workplace, spills a BAG OF RICE (米) everywhere.
+### 果  guǒ  — fruit
+Props: 田 field (a rice field), 木 tree (a tree)
+Scene: Gandalf, in the bedroom of a supermarket, a RICE FIELD (田) growing on top of a TREE (木) — FRUIT.
+### 苹  píng  — apple (苹果)
+Props: 艹 grass (grass), 平 flat (a flat board)
+Scene: Pikachu, in the kitchen of a fire station, GRASS (艹) pressed under a FLAT BOARD (平) — an APPLE orchard row.
+
+**New words**
+- 米饭 mǐfàn — cooked rice
+- 水果 shuǐguǒ — fruit
+- 苹果 píngguǒ — apple
+- 后果 hòuguǒ — consequence
+
+**Pattern of the day: 想 “would like to”** — Subject + 想 + verb
+我想吃苹果。  Wǒ xiǎng chī píngguǒ.  — I want to eat an apple.
+想 + verb = want to; 想 + noun = miss / think of.
 
 **Deal desk (business Mandarin)**
-- 知识产权 zhīshi chǎnquán — intellectual property
-- 客户集中度 kèhù jízhōngdù — customer concentration
-- 我们尽快推进，争取月底前完成交割。  Wǒmen jǐnkuài tuījìn, zhēngqǔ yuèdǐ qián wánchéng jiāogē.  — We will push ahead quickly and aim to close before month-end.
+- 谈判 tánpàn — negotiation
+- 让步 ràngbù — to concede / a concession
+- 很荣幸认识您，王总。  Hěn róngxìng rènshi nín, Wáng zǒng.  — It is an honour to meet you, Mr Wang.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 你想喝茶吗？  Nǐ xiǎng hē chá ma?  — Do you want to drink tea?
-- 我不喝茶，我喝水。  Wǒ bù hē chá, wǒ hē shuǐ.  — I don’t drink tea; I drink water.
-- 明天我在家。  Míngtiān wǒ zài jiā.  — Tomorrow I will be at home.
-- 我看见他了。  Wǒ kànjiàn tā le.  — I saw him.
+- 我想吃苹果。  Wǒ xiǎng chī píngguǒ.  — I want to eat an apple.
+- 我喜欢吃米饭。  Wǒ xǐhuan chī mǐfàn.  — I like eating rice.
+- 我去北京。  Wǒ qù Běijīng.  — I am going to Beijing.
+- 一、二、三、四、五。  Yī, èr, sān, sì, wǔ.  — One, two, three, four, five.
 
 ## 5 · Quiz (1 min)
-1. **先前** — What does it mean?  (a) a little while  (b) Mr., sir, husband  (c) before; previously  (d) read a book
-2. **学说** — How is it pronounced?  (a) xuéshuō  (b) Hànzì  (c) tài hǎo le  (d) shūmiàn
-3. **chá** — which one is it?  (a) 茶  (b) 同  (c) 七  (d) 出
-4. **吃** — How is it pronounced?  (a) nǎo  (b) xiǎo  (c) dà  (d) chī
-5. **喜欢** — What does it mean?  (a) older sister  (b) innate; inherent  (c) other people; others  (d) to like
+1. **茶** — What does it mean?  (a) can / will  (b) speak  (c) tea  (d) water
+2. **喜欢** — How is it pronounced?  (a) xiǎoshuō  (b) chūxiàn  (c) xǐhuan  (d) xiàwǔ
+3. **cài** — which one is it?  (a) 很  (b) 喝  (c) 家  (d) 菜
+4. **苹果** — How is it pronounced?  (a) míngnián  (b) shēngrì  (c) píngguǒ  (d) rìqī
+5. **水果** — What does it mean?  (a) teacher  (b) Mr., sir, husband  (c) fruit  (d) go out
 
-Answers: 1c 2a 3a 4d 5d
+Answers: 1c 2c 3d 4c 5c
