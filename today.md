@@ -1,63 +1,58 @@
-# Mandarin The SenLin Way — Day 53
+# Mandarin The SenLin Way — Day 54
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/53
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/54
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **4-1**: 看书 kàn shū — read a book. Say it five times.
-Say aloud: 子 zǐ · 习 xí · 四 sì · 期 qī
+Tone pair of the day **4-2**: 大学 dàxué — university. Say it five times.
+Say aloud: 友 yǒu · 五 wǔ · 么 me · 木 mù
 
 ## 2 · Review (2½ min)
+- 后果 — hòuguǒ — consequence
+- 苹果 — píngguǒ — apple
+- 水果 — shuǐguǒ — fruit
+- 米饭 — mǐfàn — cooked rice
+- 苹 — píng — apple (苹果)
+- 果 — guǒ — fruit
+- 米 — mǐ — rice (grain)
 - 菜 — cài — vegetable / dish
 - 茶 — chá — tea
 - 水 — shuǐ — water
 - 小吃 — xiǎochī — snack
 - 好吃 — hǎochī — delicious
-- 吃饭 — chī fàn — to eat (a meal)
-- 饭 — fàn — meal / rice
-- 喝 — hē — drink
-- 吃 — chī — eat
-- 学说 — xuéshuō — theory; doctrine
-- 先前 — xiānqián — before; previously
-- 喜欢 — xǐhuan — to like
 
 ## 3 · New (3½ min)
-### 米  mǐ  — rice (grain)
-Props: 米 rice (a bag of rice)
-Scene: Mario, in the bedroom of your workplace, spills a BAG OF RICE (米) everywhere.
-### 果  guǒ  — fruit
-Props: 田 field (a rice field), 木 tree (a tree)
-Scene: Gandalf, in the bedroom of a supermarket, a RICE FIELD (田) growing on top of a TREE (木) — FRUIT.
-### 苹  píng  — apple (苹果)
-Props: 艹 grass (grass), 平 flat (a flat board)
-Scene: Pikachu, in the kitchen of a fire station, GRASS (艹) pressed under a FLAT BOARD (平) — an APPLE orchard row.
+### 杯  bēi  — cup
+Props: 木 tree (a tree), 不 not (a big red X)
+Scene: Batman, outside the front door of an airport, a TREE (木) carved with a BIG RED X (不) — a wooden CUP you must NOT drop.
+### 桌  zhuō  — table
+Props: 卜 divination (a fortune stick), 日 sun (a sun lamp), 木 tree (a tree)
+Scene: Jackie Chan, outside the front door of a supermarket, a FORTUNE STICK (卜) over a SUN LAMP (日) on a TREE (木) — a TABLE.
+### 椅  yǐ  — chair
+Props: 木 tree (a tree), 大 big (a giant), 可 can (a thumbs-up)
+Scene: Yoda, in the bedroom of your workplace, a TREE (木) shaped like a GIANT (大) giving a THUMBS-UP (可) — a CHAIR.
 
 **New words**
-- 米饭 mǐfàn — cooked rice
-- 水果 shuǐguǒ — fruit
-- 苹果 píngguǒ — apple
-- 后果 hòuguǒ — consequence
-
-**Pattern of the day: 想 “would like to”** — Subject + 想 + verb
-我想吃苹果。  Wǒ xiǎng chī píngguǒ.  — I want to eat an apple.
-想 + verb = want to; 想 + noun = miss / think of.
+- 杯子 bēizi — cup, glass
+- 桌子 zhuōzi — table
+- 椅子 yǐzi — chair
 
 **Deal desk (business Mandarin)**
-- 谈判 tánpàn — negotiation
-- 让步 ràngbù — to concede / a concession
-- 很荣幸认识您，王总。  Hěn róngxìng rènshi nín, Wáng zǒng.  — It is an honour to meet you, Mr Wang.
+- 底线 dǐxiàn — bottom line
+- 条件 tiáojiàn — condition / terms
+- 这是我的名片，请多多指教。  Zhè shì wǒ de míngpiàn, qǐng duōduō zhǐjiào.  — Here is my card; I look forward to your guidance.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 我想吃苹果。  Wǒ xiǎng chī píngguǒ.  — I want to eat an apple.
-- 我喜欢吃米饭。  Wǒ xǐhuan chī mǐfàn.  — I like eating rice.
-- 我去北京。  Wǒ qù Běijīng.  — I am going to Beijing.
-- 一、二、三、四、五。  Yī, èr, sān, sì, wǔ.  — One, two, three, four, five.
+- 这个杯子是我的。  Zhè ge bēizi shì wǒ de.  — This cup is mine.
+- 东西在桌子上。  Dōngxi zài zhuōzi shang.  — The things are on the table.
+- 我的电脑很小。  Wǒ de diànnǎo hěn xiǎo.  — My computer is very small.
+- 我看见他了。  Wǒ kànjiàn tā le.  — I saw him.
 
 ## 5 · Quiz (1 min)
-1. **茶** — What does it mean?  (a) can / will  (b) speak  (c) tea  (d) water
-2. **喜欢** — How is it pronounced?  (a) xiǎoshuō  (b) chūxiàn  (c) xǐhuan  (d) xiàwǔ
-3. **cài** — which one is it?  (a) 很  (b) 喝  (c) 家  (d) 菜
-4. **苹果** — How is it pronounced?  (a) míngnián  (b) shēngrì  (c) píngguǒ  (d) rìqī
-5. **水果** — What does it mean?  (a) teacher  (b) Mr., sir, husband  (c) fruit  (d) go out
+1. **桌子** — What does it mean?  (a) Mr., sir, husband  (b) they (f.)  (c) table  (d) frequently; often
+2. **椅子** — How is it pronounced?  (a) yǐzi  (b) míngtiān  (c) bēizi  (d) wǒmen
+3. **cài** — which one is it?  (a) 语  (b) 什  (c) 菜  (d) 欢
+4. **杯** — How is it pronounced?  (a) bēi  (b) zhōng  (c) gè  (d) men
+5. **好吃** — What does it mean?  (a) at home  (b) obviously; plainly  (c) delicious  (d) student
 
-Answers: 1c 2c 3d 4c 5c
+Answers: 1c 2a 3c 4a 5c
