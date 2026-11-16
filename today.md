@@ -1,63 +1,60 @@
-# Mandarin The SenLin Way — Day 56
+# Mandarin The SenLin Way — Day 57
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/56
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/57
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **4-4**: 再见 zàijiàn — goodbye. Say it five times.
-Say aloud: 了 le · 好 hǎo · 很 hěn · 认 rèn
+Tone pair of the day **1-5**: 妈妈 māma — mom. Say it five times.
+Say aloud: 天 tiān · 椅 yǐ · 好 hǎo · 九 jiǔ
 
 ## 2 · Review (2½ min)
+- 多么 — duōme — how (exclamatory)
+- 多少钱 — duōshao qián — how much money
+- 多少 — duōshao — how many, how much
+- 几 — jǐ — how many / a few
+- 少 — shǎo — few / little
+- 多 — duō — many / much
 - 零钱 — língqián — small change
 - 块 — kuài — yuan / lump
 - 钱 — qián — money
 - 买 — mǎi — buy
 - 椅子 — yǐzi — chair
 - 桌子 — zhuōzi — table
-- 杯子 — bēizi — cup, glass
-- 椅 — yǐ — chair
-- 桌 — zhuō — table
-- 杯 — bēi — cup
-- 后果 — hòuguǒ — consequence
-- 苹果 — píngguǒ — apple
 
 ## 3 · New (3½ min)
-### 多  duō  — many / much
-Props: 夕 evening (a lantern), 夕 evening (a lantern)
-Scene: Darth Vader, outside the front door of a supermarket, two LANTERNS (夕夕) glowing — MANY nights.
-### 少  shǎo  — few / little
-Props: 小 small (a figurine), 丿 slash (a whip)
-Scene: Sherlock Holmes, in the bedroom of a stadium, a FIGURINE (小) sliced by a WHIP (丿) — FEW, less.
-### 几  jǐ  — how many / a few
-Props: 几 table (a small table)
-Scene: James Bond, in the bedroom of your workplace, counts the legs of a SMALL TABLE (几) — HOW MANY?
+### 分  fēn  — minute / divide
+Props: 八 eight (a moustache), 刀 knife (a knife)
+Scene: Frodo, outside the front door of a hotel, a MOUSTACHE (八) split by a KNIFE (刀) — DIVIDE, a minute.
+### 钟  zhōng  — clock / o’clock
+Props: 钅 metal (a gold bar), 中 middle (a bullseye)
+Scene: Jackie Chan, outside the front door of a police station, a GOLD BAR (钅) struck on the BULLSEYE (中) — a CLOCK chimes.
+### 点  diǎn  — o’clock / dot
+Props: 卜 divination (a fortune stick), 口 mouth (a giant mouth), 灬 fire dots (a campfire)
+Scene: Darth Vader, in the bedroom of a bank, a FORTUNE STICK (卜) and a GIANT MOUTH (口) over a CAMPFIRE (灬) — a DOT, o’clock.
 
 **New words**
-- 多少 duōshao — how many, how much
-- 多少钱 duōshao qián — how much money
-- 多么 duōme — how (exclamatory)
-
-**Pattern of the day: 几 for small numbers** — 几 + measure word + noun
-你有几个朋友？  Nǐ yǒu jǐ ge péngyou?  — How many friends do you have?
-几 expects an answer under ten; 多少 is for any amount and can skip the measure word.
+- 一点儿 yìdiǎnr — a little
+- 分钟 fēnzhōng — minute
+- 几点 jǐ diǎn — what time
+- 十分 shífēn — very
 
 **Deal desk (business Mandarin)**
-- 分歧 fēnqí — disagreement / gap
-- 达成一致 dáchéng yízhì — reach agreement
-- 我们正在募集第三期美元基金，目标规模五亿美元。  Wǒmen zhèngzài mùjí dì-sān qī měiyuán jījīn, mùbiāo guīmó wǔ yì měiyuán.  — We are raising our third USD fund, targeting 500 million dollars.
+- 原则上 yuánzé shàng — in principle
+- 灵活 línghuó — flexible
+- 管理费百分之二，业绩报酬百分之二十，门槛收益率百分之八。  Guǎnlǐfèi bǎi fēn zhī èr, yèjì bàochou bǎi fēn zhī èrshí, ménkǎn shōuyìlǜ bǎi fēn zhī bā.  — Two percent management fee, twenty percent carry, eight percent hurdle.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 今天几号？  Jīntiān jǐ hào?  — What is the date today?
-- 苹果多少钱？  Píngguǒ duōshao qián?  — How much are the apples?
-- 你的电话是多少？  Nǐ de diànhuà shì duōshao?  — What is your phone number?
-- 你好吗？  Nǐ hǎo ma?  — How are you?
-- 你听我说。  Nǐ tīng wǒ shuō.  — Listen to me.
+- 现在几点？  Xiànzài jǐ diǎn?  — What time is it now?
+- 现在十点三十分。  Xiànzài shí diǎn sānshí fēn.  — It is 10:30 now.
+- 我们几点吃饭？  Wǒmen jǐ diǎn chī fàn?  — What time do we eat?
+- 我很好，你呢？  Wǒ hěn hǎo, nǐ ne?  — I am fine, and you?
+- 这不是我们的。  Zhè bú shì wǒmen de.  — This is not ours.
 
 ## 5 · Quiz (1 min)
-1. **杯** — What does it mean?  (a) cup  (b) zero  (c) character / word  (d) eight
-2. **后果** — How is it pronounced?  (a) jīntiān  (b) xǐhuan  (c) hòuguǒ  (d) kànjiàn
-3. **duōshao qián** — which one is it?  (a) 上午  (b) 影子  (c) 多少钱  (d) 零钱
-4. **块** — How is it pronounced?  (a) kuài  (b) yī  (c) zǐ  (d) chá
-5. **多少** — What does it mean?  (a) how many, how much  (b) classmate  (c) theory; doctrine  (d) individual
+1. **多** — What does it mean?  (a) many / much  (b) brain  (c) Han / Chinese  (d) son / -r
+2. **一点儿** — How is it pronounced?  (a) míngzi  (b) nǚ'ér  (c) yìdiǎnr  (d) zuótiān
+3. **shǎo** — which one is it?  (a) 八  (b) 少  (c) 写  (d) 说
+4. **钟** — How is it pronounced?  (a) jiě  (b) zhōng  (c) shī  (d) me
+5. **椅子** — What does it mean?  (a) telephone  (b) they (f.)  (c) China  (d) chair
 
-Answers: 1a 2c 3c 4a 5a
+Answers: 1a 2c 3b 4b 5d
