@@ -1,60 +1,59 @@
-# Mandarin The SenLin Way — Day 57
+# Mandarin The SenLin Way — Day 58
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/57
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/58
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-5**: 妈妈 māma — mom. Say it five times.
-Say aloud: 天 tiān · 椅 yǐ · 好 hǎo · 九 jiǔ
+Tone pair of the day **2-5**: 朋友 péngyou — friend. Say it five times.
+Say aloud: 年 nián · 喝 hē · 钟 zhōng · 去 qù
 
 ## 2 · Review (2½ min)
+- 十分 — shífēn — very
+- 几点 — jǐ diǎn — what time
+- 分钟 — fēnzhōng — minute
+- 一点儿 — yìdiǎnr — a little
+- 点 — diǎn — o’clock / dot
+- 钟 — zhōng — clock / o’clock
+- 分 — fēn — minute / divide
 - 多么 — duōme — how (exclamatory)
 - 多少钱 — duōshao qián — how much money
 - 多少 — duōshao — how many, how much
 - 几 — jǐ — how many / a few
 - 少 — shǎo — few / little
-- 多 — duō — many / much
-- 零钱 — língqián — small change
-- 块 — kuài — yuan / lump
-- 钱 — qián — money
-- 买 — mǎi — buy
-- 椅子 — yǐzi — chair
-- 桌子 — zhuōzi — table
 
 ## 3 · New (3½ min)
-### 分  fēn  — minute / divide
-Props: 八 eight (a moustache), 刀 knife (a knife)
-Scene: Frodo, outside the front door of a hotel, a MOUSTACHE (八) split by a KNIFE (刀) — DIVIDE, a minute.
-### 钟  zhōng  — clock / o’clock
-Props: 钅 metal (a gold bar), 中 middle (a bullseye)
-Scene: Jackie Chan, outside the front door of a police station, a GOLD BAR (钅) struck on the BULLSEYE (中) — a CLOCK chimes.
-### 点  diǎn  — o’clock / dot
-Props: 卜 divination (a fortune stick), 口 mouth (a giant mouth), 灬 fire dots (a campfire)
-Scene: Darth Vader, in the bedroom of a bank, a FORTUNE STICK (卜) and a GIANT MOUTH (口) over a CAMPFIRE (灬) — a DOT, o’clock.
+### 工  gōng  — work
+Props: 工 work (an I-beam)
+Scene: Gandalf, outside the front door of a police station, carries an I-BEAM (工) — WORK.
+### 作  zuò  — do / make (工作)
+Props: 亻 person (side) (a mannequin), 乍 sudden (a clapper board)
+Scene: Zorro, in the bathroom of a supermarket, a MANNEQUIN (亻) snaps a CLAPPER BOARD (乍) — DO, make.
+### 做  zuò  — do / make
+Props: 亻 person (side) (a mannequin), 古 ancient (an antique vase), 攵 tap (a stick)
+Scene: Zorro, in the bathroom of a supermarket, a MANNEQUIN (亻) taps an ANTIQUE VASE (古) with a STICK (攵) — MAKE, do.
 
 **New words**
-- 一点儿 yìdiǎnr — a little
-- 分钟 fēnzhōng — minute
-- 几点 jǐ diǎn — what time
-- 十分 shífēn — very
+- 工作 gōngzuò — work, job
+- 作家 zuòjiā — writer
+- 工人 gōngrén — worker
+- 写作 xiězuò — writing
 
 **Deal desk (business Mandarin)**
-- 原则上 yuánzé shàng — in principle
-- 灵活 línghuó — flexible
-- 管理费百分之二，业绩报酬百分之二十，门槛收益率百分之八。  Guǎnlǐfèi bǎi fēn zhī èr, yèjì bàochou bǎi fēn zhī èrshí, ménkǎn shōuyìlǜ bǎi fēn zhī bā.  — Two percent management fee, twenty percent carry, eight percent hurdle.
+- 诚意 chéngyì — sincerity / good faith · Chinese counterparties speak of 诚意 constantly; show it with concrete steps.
+- 面子 miànzi — face (reputation) · Never make the other side lose face in front of their team; push hard in private.
+- 您有兴趣做我们的基石投资者吗？  Nín yǒu xìngqù zuò wǒmen de jīshí tóuzīzhě ma?  — Would you be interested in anchoring the fund?
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 现在几点？  Xiànzài jǐ diǎn?  — What time is it now?
-- 现在十点三十分。  Xiànzài shí diǎn sānshí fēn.  — It is 10:30 now.
-- 我们几点吃饭？  Wǒmen jǐ diǎn chī fàn?  — What time do we eat?
-- 我很好，你呢？  Wǒ hěn hǎo, nǐ ne?  — I am fine, and you?
-- 这不是我们的。  Zhè bú shì wǒmen de.  — This is not ours.
+- 我上午学习，下午工作。  Wǒ shàngwǔ xuéxí, xiàwǔ gōngzuò.  — I study in the morning and work in the afternoon.
+- 你在哪儿工作？  Nǐ zài nǎr gōngzuò?  — Where do you work?
+- 他们是同学。  Tāmen shì tóngxué.  — They are classmates.
+- 我们学习汉语。  Wǒmen xuéxí Hànyǔ.  — We study Chinese.
 
 ## 5 · Quiz (1 min)
-1. **多** — What does it mean?  (a) many / much  (b) brain  (c) Han / Chinese  (d) son / -r
-2. **一点儿** — How is it pronounced?  (a) míngzi  (b) nǚ'ér  (c) yìdiǎnr  (d) zuótiān
-3. **shǎo** — which one is it?  (a) 八  (b) 少  (c) 写  (d) 说
-4. **钟** — How is it pronounced?  (a) jiě  (b) zhōng  (c) shī  (d) me
-5. **椅子** — What does it mean?  (a) telephone  (b) they (f.)  (c) China  (d) chair
+1. **几点** — What does it mean?  (a) electronic; electron (particle physics)  (b) son  (c) what time  (d) when
+2. **一点儿** — How is it pronounced?  (a) yíxià  (b) yìdiǎnr  (c) diànhuà  (d) zuótiān
+3. **jǐ** — which one is it?  (a) 七  (b) 姐  (c) 子  (d) 几
+4. **多少钱** — How is it pronounced?  (a) bēizi  (b) mǐfàn  (c) xīngqīyī  (d) duōshao qián
+5. **分钟** — What does it mean?  (a) hour  (b) today  (c) cooked rice  (d) minute
 
-Answers: 1a 2c 3b 4b 5d
+Answers: 1c 2b 3d 4d 5d
