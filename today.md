@@ -1,59 +1,59 @@
-# Mandarin The SenLin Way — Day 59
+# Mandarin The SenLin Way — Day 60
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/59
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/60
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **3-5**: 我们 wǒmen — we. Say it five times.
-Say aloud: 期 qī · 名 míng · 少 shǎo · 他 tā
+Tone pair of the day **4-5**: 爸爸 bàba — dad. Say it five times.
+Say aloud: 下 xià · 读 dú · 买 mǎi · 年 nián
 
 ## 2 · Review (2½ min)
+- 打听 — dǎting — to ask about, inquire
+- 打工 — dǎgōng — to work a temporary job
+- 开会 — kāihuì — to hold / attend a meeting
+- 打电话 — dǎ diànhuà — make a phone call
+- 住 — zhù — live (reside)
+- 开 — kāi — open / drive
+- 打 — dǎ — hit / play / make (call)
 - 写作 — xiězuò — writing
 - 工人 — gōngrén — worker
 - 作家 — zuòjiā — writer
 - 工作 — gōngzuò — work, job
 - 做 — zuò — do / make
-- 作 — zuò — do / make (工作)
-- 工 — gōng — work
-- 十分 — shífēn — very
-- 几点 — jǐ diǎn — what time
-- 分钟 — fēnzhōng — minute
-- 一点儿 — yìdiǎnr — a little
-- 点 — diǎn — o’clock / dot
 
 ## 3 · New (3½ min)
-### 打  dǎ  — hit / play / make (call)
-Props: 扌 hand (side) (a glove), 丁 nail (a nail)
-Scene: Darth Vader, in the bedroom of your childhood home, a GLOVE (扌) hammering a NAIL (丁) — HIT.
-### 开  kāi  — open / drive
-Props: 一 one (a stick), 廾 two hands (two raised hands)
-Scene: Kermit, outside the front door of a hospital, ONE STICK (一) lifted by TWO RAISED HANDS (廾) — OPEN, start.
-### 住  zhù  — live (reside)
-Props: 亻 person (side) (a mannequin), 主 master (a candle)
-Scene: Jackie Chan, in the bathroom of your grandparents’ house, a MANNEQUIN (亻) beside a CANDLE (主) — LIVE, stay.
+### 坐  zuò  — sit / take (transport)
+Props: 人 person (a person), 人 person (a person), 土 earth (a dirt pile)
+Scene: Zorro, in the bathroom of a supermarket, two PEOPLE (人人) on a DIRT PILE (土) — SIT.
+### 车  chē  — vehicle
+Props: 车 vehicle (a toy car)
+Scene: Charlie Chaplin, outside the front door of your school, rolls a TOY CAR (车) — a VEHICLE.
+### 租  zū  — rent
+Props: 禾 grain (a wheat stalk), 且 shelf (a shelf)
+Scene: Zorro, outside the front door of your grandparents’ house, a WHEAT STALK (禾) on a SHELF (且) — RENT it by the day.
 
 **New words**
-- 打电话 dǎ diànhuà — make a phone call
-- 开会 kāihuì — to hold / attend a meeting
-- 打工 dǎgōng — to work a temporary job
-- 打听 dǎting — to ask about, inquire
+- 开车 kāi chē — to drive
+- 出租车 chūzūchē — taxi
+- 坐车 zuò chē — ride in a vehicle
+- 开水 kāishuǐ — boiled water
 
 **Deal desk (business Mandarin)**
-- 折中 zhézhōng — to split the difference
-- 最后报价 zuìhòu bàojià — final offer
-- 这个项目我们很感兴趣，想进一步了解。  Zhège xiàngmù wǒmen hěn gǎn xìngqù, xiǎng jìnyíbù liǎojiě.  — We are very interested in this deal and would like to learn more.
+- 签约 qiānyuē — signing
+- 交割 jiāogē — closing (completion)
+- 这一轮谁领投？我们可以考虑跟投。  Zhè yì lún shéi lǐngtóu? Wǒmen kěyǐ kǎolǜ gēntóu.  — Who is leading this round? We could consider following.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 他在打电话。  Tā zài dǎ diànhuà.  — He is making a phone call.
-- 我住在北京。  Wǒ zhù zài Běijīng.  — I live in Beijing.
-- 我有一个儿子。  Wǒ yǒu yí ge érzi.  — I have a son.
-- 你是中国人吗？  Nǐ shì Zhōngguórén ma?  — Are you Chinese?
+- 他会开车。  Tā huì kāi chē.  — He can drive.
+- 我坐出租车去。  Wǒ zuò chūzūchē qù.  — I am going by taxi.
+- 他们明天来我家。  Tāmen míngtiān lái wǒ jiā.  — They are coming to my home tomorrow.
+- 我们学习汉语。  Wǒmen xuéxí Hànyǔ.  — We study Chinese.
 
 ## 5 · Quiz (1 min)
-1. **开会** — What does it mean?  (a) go home  (b) television  (c) read a book  (d) to hold / attend a meeting
-2. **几点** — How is it pronounced?  (a) bàba  (b) xiānsheng  (c) shíqī  (d) jǐ diǎn
-3. **dǎ diànhuà** — which one is it?  (a) 昨天  (b) 上面  (c) 打电话  (d) 见面
-4. **工作** — How is it pronounced?  (a) míngmíng  (b) yǐzi  (c) gōngzuò  (d) diànnǎo
-5. **打工** — What does it mean?  (a) mom  (b) star; celebrity  (c) to ask about, inquire  (d) to work a temporary job
+1. **坐** — What does it mean?  (a) read  (b) four  (c) sit / take (transport)  (d) words / speech
+2. **开车** — How is it pronounced?  (a) diànshì  (b) kāi chē  (c) yí ge  (d) dàxué
+3. **dǎ diànhuà** — which one is it?  (a) 打听  (b) 打电话  (c) 认识  (d) 什么
+4. **坐车** — How is it pronounced?  (a) zuò chē  (b) hòuguǒ  (c) xuéxí  (d) língxīng
+5. **作家** — What does it mean?  (a) to like  (b) writer  (c) to speak, talk  (d) name
 
-Answers: 1d 2d 3c 4c 5d
+Answers: 1c 2b 3b 4a 5b
