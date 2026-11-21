@@ -1,58 +1,59 @@
-# Mandarin The SenLin Way — Day 61
+# Mandarin The SenLin Way — Day 62
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/61
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/62
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-1**: 今天 jīntiān — today. Say it five times.
-Say aloud: 里 lǐ · 西 xī · 果 guǒ · 多 duō
+Tone pair of the day **1-2**: 中国 Zhōngguó — China. Say it five times.
+Say aloud: 来 lái · 号 hào · 水 shuǐ · 爸 bà
 
 ## 2 · Review (2½ min)
+- 分明 — fēnmíng — clear; distinct
+- 机会 — jīhuì — opportunity
+- 饭店 — fàndiàn — restaurant, hotel
+- 飞机 — fēijī — airplane
+- 店 — diàn — shop
+- 机 — jī — machine
+- 飞 — fēi — fly
 - 开水 — kāishuǐ — boiled water
 - 坐车 — zuò chē — ride in a vehicle
 - 出租车 — chūzūchē — taxi
 - 开车 — kāi chē — to drive
 - 租 — zū — rent
-- 车 — chē — vehicle
-- 坐 — zuò — sit / take (transport)
-- 打听 — dǎting — to ask about, inquire
-- 打工 — dǎgōng — to work a temporary job
-- 开会 — kāihuì — to hold / attend a meeting
-- 打电话 — dǎ diànhuà — make a phone call
-- 住 — zhù — live (reside)
 
 ## 3 · New (3½ min)
-### 飞  fēi  — fly
-Props: 飞 fly (wings)
-Scene: Frodo, outside the front door of an airport, flaps WINGS (飞) — FLY.
-### 机  jī  — machine
-Props: 木 tree (a tree), 几 table (a small table)
-Scene: James Bond, outside the front door of your workplace, a TREE (木) bolted to a SMALL TABLE (几) — a MACHINE.
-### 店  diàn  — shop
-Props: 广 shelter (a lean-to), 卜 divination (a fortune stick), 口 mouth (a giant mouth)
-Scene: Darth Vader, in the bathroom of a bank, a LEAN-TO (广) with a FORTUNE STICK (卜) and a GIANT MOUTH (口) — a SHOP.
+### 商  shāng  — commerce
+Props: 亠 lid (top) (a top hat), 冂 border (a doorframe), 八 eight (a moustache), 口 mouth (a giant mouth)
+Scene: Sherlock Holmes, outside the front door of a gym, a TOP HAT (亠) over a DOORFRAME (冂), a MOUSTACHE (八) and a GIANT MOUTH (口) — a MERCHANT selling.
+### 医  yī  — medicine / doctor
+Props: 匚 box (a box), 矢 arrow (an arrow)
+Scene: Yoda, outside the front door of your workplace, an ARROW (矢) in a BOX (匚) — the DOCTOR’s kit.
+### 院  yuàn  — courtyard / institute
+Props: 阝 city (a city gate), 宀 roof (a roof), 元 coin (a coin)
+Scene: Yoda, in the bathroom of a swimming pool, a CITY GATE (阝) with a ROOF (宀) over a COIN (元) — a COURTYARD, a hospital.
 
 **New words**
-- 飞机 fēijī — airplane
-- 饭店 fàndiàn — restaurant, hotel
-- 机会 jīhuì — opportunity
-- 分明 fēnmíng — clear; distinct
+- 商店 shāngdiàn — shop, store
+- 医生 yīshēng — doctor
+- 医院 yīyuàn — hospital
+- 开明 kāimíng — enlightened; open-minded
 
 **Deal desk (business Mandarin)**
-- 交割条件 jiāogē tiáojiàn — conditions precedent (CPs)
-- 交割日 jiāogērì — closing date
-- 请先签保密协议，然后我们发商业计划书。  Qǐng xiān qiān bǎomì xiéyì, ránhòu wǒmen fā shāngyè jìhuàshū.  — Please sign the NDA first, then we will send the business plan.
+- 付款 fùkuǎn — payment
+- 电汇 diànhuì — wire transfer
+- 我们的报价是投前估值两亿美元，投资三千万美元。  Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.  — Our offer is a pre-money valuation of 200 million US dollars, with an investment of 30 million US dollars.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 我坐飞机去中国。  Wǒ zuò fēijī qù Zhōngguó.  — I am flying to China.
-- 她读书，我写字。  Tā dú shū, wǒ xiě zì.  — She reads; I write characters.
-- 他也很好。  Tā yě hěn hǎo.  — He is fine too.
+- 商店在学校后面。  Shāngdiàn zài xuéxiào hòumiàn.  — The shop is behind the school.
+- 他是医生，在医院工作。  Tā shì yīshēng, zài yīyuàn gōngzuò.  — He is a doctor; he works at a hospital.
+- 你想喝茶吗？  Nǐ xiǎng hē chá ma?  — Do you want to drink tea?
+- 你听我说。  Nǐ tīng wǒ shuō.  — Listen to me.
 
 ## 5 · Quiz (1 min)
-1. **打工** — What does it mean?  (a) Chinese language  (b) to work a temporary job  (c) to eat (a meal)  (d) computer
-2. **开水** — How is it pronounced?  (a) chūlai  (b) fēnmíng  (c) kāishuǐ  (d) dàxué
-3. **dǎting** — which one is it?  (a) 东西  (b) 打听  (c) 昨天  (d) 女人
-4. **打电话** — How is it pronounced?  (a) kāihuì  (b) chūxiàn  (c) dǎ diànhuà  (d) chūguó
-5. **坐车** — What does it mean?  (a) daughter  (b) behind  (c) ride in a vehicle  (d) country
+1. **店** — What does it mean?  (a) shop  (b) go  (c) few / little  (d) two
+2. **开水** — How is it pronounced?  (a) tàitai  (b) kāishuǐ  (c) tiānshēng  (d) hòulái
+3. **yī** — which one is it?  (a) 医  (b) 电  (c) 书  (d) 三
+4. **飞机** — How is it pronounced?  (a) xīngqī  (b) fēijī  (c) yìdiǎnr  (d) chūzūchē
+5. **商店** — What does it mean?  (a) time, moment  (b) shop, store  (c) Chinese language  (d) we, us
 
-Answers: 1b 2c 3b 4c 5c
+Answers: 1a 2b 3a 4b 5b
