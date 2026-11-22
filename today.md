@@ -1,59 +1,58 @@
-# Mandarin The SenLin Way — Day 62
+# Mandarin The SenLin Way — Day 63
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/62
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/63
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **1-2**: 中国 Zhōngguó — China. Say it five times.
-Say aloud: 来 lái · 号 hào · 水 shuǐ · 爸 bà
+Tone pair of the day **1-3**: 生日 shēngrì — birthday (1-4 in speech). Say it five times.
+Say aloud: 见 jiàn · 没 méi · 喜 xǐ · 识 shí
 
 ## 2 · Review (2½ min)
+- 开明 — kāimíng — enlightened; open-minded
+- 医院 — yīyuàn — hospital
+- 医生 — yīshēng — doctor
+- 商店 — shāngdiàn — shop, store
+- 院 — yuàn — courtyard / institute
+- 医 — yī — medicine / doctor
+- 商 — shāng — commerce
 - 分明 — fēnmíng — clear; distinct
 - 机会 — jīhuì — opportunity
 - 饭店 — fàndiàn — restaurant, hotel
 - 飞机 — fēijī — airplane
 - 店 — diàn — shop
-- 机 — jī — machine
-- 飞 — fēi — fly
-- 开水 — kāishuǐ — boiled water
-- 坐车 — zuò chē — ride in a vehicle
-- 出租车 — chūzūchē — taxi
-- 开车 — kāi chē — to drive
-- 租 — zū — rent
 
 ## 3 · New (3½ min)
-### 商  shāng  — commerce
-Props: 亠 lid (top) (a top hat), 冂 border (a doorframe), 八 eight (a moustache), 口 mouth (a giant mouth)
-Scene: Sherlock Holmes, outside the front door of a gym, a TOP HAT (亠) over a DOORFRAME (冂), a MOUSTACHE (八) and a GIANT MOUTH (口) — a MERCHANT selling.
-### 医  yī  — medicine / doctor
-Props: 匚 box (a box), 矢 arrow (an arrow)
-Scene: Yoda, outside the front door of your workplace, an ARROW (矢) in a BOX (匚) — the DOCTOR’s kit.
-### 院  yuàn  — courtyard / institute
-Props: 阝 city (a city gate), 宀 roof (a roof), 元 coin (a coin)
-Scene: Yoda, in the bathroom of a swimming pool, a CITY GATE (阝) with a ROOF (宀) over a COIN (元) — a COURTYARD, a hospital.
+### 睡  shuì  — sleep
+Props: 目 eye (an eyeball), 垂 droop (a wilted flower)
+Scene: Sherlock Holmes, in the bathroom of a hair salon, an EYEBALL (目) DROOPING like a WILTED FLOWER (垂) — SLEEP.
+### 觉  jiào  — sleep (睡觉)
+Props: ⺍ dots (a crown of dots), 冖 cover (a lid), 见 see (binoculars)
+Scene: James Bond, in the bathroom of a beach house, a CROWN OF DOTS (⺍) on a LID (冖) over BINOCULARS (见) — eyes closing, SLEEP.
+### 起  qǐ  — rise / get up
+Props: 走 run (running shoes), 己 self (a mirror)
+Scene: Queen Elizabeth, in the bedroom of your workplace, RUNNING SHOES (走) beside a MIRROR (己) — GET UP, rise.
 
 **New words**
-- 商店 shāngdiàn — shop, store
-- 医生 yīshēng — doctor
-- 医院 yīyuàn — hospital
-- 开明 kāimíng — enlightened; open-minded
+- 睡觉 shuì jiào — to sleep
+- 起来 qǐlai — get up
+- 一起 yìqǐ — together
+- 起飞 qǐfēi — to take off (plane)
 
 **Deal desk (business Mandarin)**
-- 付款 fùkuǎn — payment
-- 电汇 diànhuì — wire transfer
-- 我们的报价是投前估值两亿美元，投资三千万美元。  Wǒmen de bàojià shì tóuqián gūzhí liǎng yì měiyuán, tóuzī sānqiān wàn měiyuán.  — Our offer is a pre-money valuation of 200 million US dollars, with an investment of 30 million US dollars.
+- 托管账户 tuōguǎn zhànghù — escrow account
+- 外汇管制 wàihuì guǎnzhì — foreign-exchange control
+- 一倍不参与分配的优先清算权是我们的底线。  Yí bèi bù cānyù fēnpèi de yōuxiān qīngsuànquán shì wǒmen de dǐxiàn.  — A one-times non-participating liquidation preference is our bottom line.
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 商店在学校后面。  Shāngdiàn zài xuéxiào hòumiàn.  — The shop is behind the school.
-- 他是医生，在医院工作。  Tā shì yīshēng, zài yīyuàn gōngzuò.  — He is a doctor; he works at a hospital.
-- 你想喝茶吗？  Nǐ xiǎng hē chá ma?  — Do you want to drink tea?
-- 你听我说。  Nǐ tīng wǒ shuō.  — Listen to me.
+- 我十点睡觉。  Wǒ shí diǎn shuì jiào.  — I go to sleep at ten.
+- 现在十点三十分。  Xiànzài shí diǎn sānshí fēn.  — It is 10:30 now.
+- 你好吗？  Nǐ hǎo ma?  — How are you?
 
 ## 5 · Quiz (1 min)
-1. **店** — What does it mean?  (a) shop  (b) go  (c) few / little  (d) two
-2. **开水** — How is it pronounced?  (a) tàitai  (b) kāishuǐ  (c) tiānshēng  (d) hòulái
-3. **yī** — which one is it?  (a) 医  (b) 电  (c) 书  (d) 三
-4. **飞机** — How is it pronounced?  (a) xīngqī  (b) fēijī  (c) yìdiǎnr  (d) chūzūchē
-5. **商店** — What does it mean?  (a) time, moment  (b) shop, store  (c) Chinese language  (d) we, us
+1. **开明** — What does it mean?  (a) name  (b) hospital  (c) to appear  (d) enlightened; open-minded
+2. **睡** — How is it pronounced?  (a) shuì  (b) péng  (c) shí  (d) kàn
+3. **yīshēng** — which one is it?  (a) 星期天  (b) 医生  (c) 老师  (d) 不是
+4. **一起** — How is it pronounced?  (a) shénme  (b) yìqǐ  (c) yíxià  (d) jīntiān
+5. **饭店** — What does it mean?  (a) restaurant, hotel  (b) they (m.)  (c) classmate  (d) university student
 
-Answers: 1a 2b 3a 4b 5b
+Answers: 1d 2a 3b 4b 5a
