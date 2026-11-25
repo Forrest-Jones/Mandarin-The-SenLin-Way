@@ -1,59 +1,60 @@
-# Mandarin The SenLin Way — Day 65
+# Mandarin The SenLin Way — Day 66
 *Phase 1 · HSK 1 · 10 minutes*
 
-Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/65
+Open today’s lesson: https://forrest-jones.github.io/Mandarin-The-SenLin-Way/#/lesson/66
 
 ## 1 · Warm-up (1 min)
-Tone pair of the day **2-1**: 明天 míngtiān — tomorrow. Say it five times.
-Say aloud: 脑 nǎo · 八 bā · 影 yǐng · 京 jīng
+Tone pair of the day **2-2**: 同学 tóngxué — classmate. Say it five times.
+Say aloud: 认 rèn · 国 guó · 写 xiě · 对 duì
 
 ## 2 · Review (2½ min)
+- 看不起 — kànbuqǐ — to look down on
+- 关系 — guānxi — relationship
+- 没关系 — méi guānxi — it doesn’t matter, no problem
+- 再见 — zàijiàn — goodbye
+- 系 — xì — connect / system
+- 关 — guān — close / concern
+- 再 — zài — again
 - 对面 — duìmiàn — opposite side
 - 对话 — duìhuà — dialogue
 - 谢谢 — xièxie — thank you
 - 对不起 — duìbuqǐ — sorry
 - 谢 — xiè — thank
-- 请 — qǐng — please / invite
-- 对 — duì — correct / towards
-- 起飞 — qǐfēi — to take off (plane)
-- 一起 — yìqǐ — together
-- 起来 — qǐlai — get up
-- 睡觉 — shuì jiào — to sleep
-- 起 — qǐ — rise / get up
 
 ## 3 · New (3½ min)
-### 再  zài  — again
-Props: 一 one (a stick), 冂 border (a doorframe), 土 earth (a dirt pile)
-Scene: Zorro, in the bathroom of a hospital, ONE STICK (一), a DOORFRAME (冂) and a DIRT PILE (土) — go through AGAIN.
-### 关  guān  — close / concern
-Props: 丷 horns (horns), 天 sky (a blue sky cloth)
-Scene: Gandalf, outside the front door of a park, HORNS (丷) locking up the BLUE SKY CLOTH (天) — CLOSE, shut.
-### 系  xì  — connect / system
-Props: 丿 slash (a whip), 糸 silk (silk thread)
-Scene: Xena, in the bathroom of your workplace, a WHIP (丿) tied to SILK THREAD (糸) — a CONNECTION.
+### 客  kè  — guest
+Props: 宀 roof (a roof), 夂 go (a walking stick), 口 mouth (a giant mouth)
+Scene: Kermit, in the bathroom of your school, under a ROOF (宀), a WALKING STICK (夂) and a GIANT MOUTH (口) — a GUEST arrives.
+### 气  qì  — air / spirit
+Props: 气 air (a puff of air)
+Scene: Queen Elizabeth, in the bathroom of your workplace, blows a PUFF OF AIR (气) — gas, weather, spirit.
+### 冷  lěng  — cold
+Props: 冫 ice (ice cubes), 令 order (a whistle)
+Scene: Luke Skywalker, in the bedroom of a library, ICE CUBES (冫) and a WHISTLE (令) — shivering, COLD.
 
 **New words**
-- 再见 zàijiàn — goodbye
-- 没关系 méi guānxi — it doesn’t matter, no problem
-- 关系 guānxi — relationship
-- 看不起 kànbuqǐ — to look down on
+- 不客气 bú kèqi — you’re welcome
+- 天气 tiānqì — weather
+- 客人 kèrén — guest
+- 生气 shēngqì — angry; to get angry
 
 **Deal desk (business Mandarin)**
-- 汇率 huìlǜ — exchange rate
-- 境外直接投资备案 jìngwài zhíjiē tóuzī bèi’àn — ODI filing (outbound direct investment) · Required for RMB money going out: NDRC and MOFCOM filings, then SAFE bank registration.
-- 请把最近三年的审计报告放进数据室。  Qǐng bǎ zuìjìn sān nián de shěnjì bàogào fàngjìn shùjùshì.  — Please put the last three years of audit reports in the data room.
+- 国家外汇管理局 Guójiā Wàihuì Guǎnlǐjú — SAFE (State Administration of Foreign Exchange)
+- 发改委 Fāgǎiwěi — NDRC (National Development and Reform Commission)
+- 这笔关联交易是怎么定价的？  Zhè bǐ guānlián jiāoyì shì zěnme dìngjià de?  — How was this related-party transaction priced?
 
 ## 4 · Sentences: shadow each one 3× (2 min)
-- 再见！  Zàijiàn!  — Goodbye!
-- 没关系。  Méi guānxi.  — No problem.
-- 这不是我们的。  Zhè bú shì wǒmen de.  — This is not ours.
-- 请坐。请喝茶。  Qǐng zuò. Qǐng hē chá.  — Please sit. Please have some tea.
+- 不客气。  Bú kèqi.  — You’re welcome.
+- 今天天气很冷。  Jīntiān tiānqì hěn lěng.  — The weather is very cold today.
+- 北京冷吗？  Běijīng lěng ma?  — Is Beijing cold?
+- 他们是同学。  Tāmen shì tóngxué.  — They are classmates.
+- 你听我说。  Nǐ tīng wǒ shuō.  — Listen to me.
 
 ## 5 · Quiz (1 min)
-1. **起** — What does it mean?  (a) down / under  (b) shadow / movie  (c) rise / get up  (d) four
-2. **谢** — How is it pronounced?  (a) yǔ  (b) chī  (c) xiè  (d) xiào
-3. **zài** — which one is it?  (a) 国  (b) 北  (c) 再  (d) 们
-4. **请** — How is it pronounced?  (a) guān  (b) diàn  (c) qǐng  (d) shuō
-5. **系** — What does it mean?  (a) friend  (b) person  (c) one  (d) connect / system
+1. **对话** — What does it mean?  (a) today  (b) later, afterwards  (c) primary school  (d) dialogue
+2. **谢** — How is it pronounced?  (a) qǐng  (b) dà  (c) yuè  (d) xiè
+3. **kèrén** — which one is it?  (a) 水果  (b) 开明  (c) 汉字  (d) 客人
+4. **生气** — How is it pronounced?  (a) hǎo de  (b) shēngqì  (c) mǐfàn  (d) shàngmiàn
+5. **再** — What does it mean?  (a) again  (b) period (of time)  (c) character / word  (d) to be / yes
 
-Answers: 1c 2c 3c 4c 5d
+Answers: 1d 2d 3d 4b 5a
